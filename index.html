@@ -1022,12 +1022,29 @@ function drawProp(g,p,t){
     rr(g, X+6, Y+20, 20, 9, 2, '#c7c7c7');
     rr(g, X+14.5, Y-30, 3, 52, 1, '#e8e8e8');
     circ(g, X+16, Y-31, 2.5, '#f4c542');
-    g.fillStyle='#3c7fd0'; g.beginPath(); g.moveTo(X+18,Y-28);
-    const fs = 4*(1+windK*1.5);
-    for(let i=0;i<=8;i++){ g.lineTo(X+18+i*2.2, Y-28+Math.sin(t*fs+i*.7)*1.8); }
-    for(let i=8;i>=0;i--){ g.lineTo(X+18+i*2.2, Y-16+Math.sin(t*fs+i*.7)*1.8); }
-    g.closePath(); g.fill(); g.stroke();
-    g.fillStyle='#f4c542'; g.beginPath(); g.arc(X+26, Y-22+Math.sin(t*4+3)*1.8, 2.5, 0, 7); g.fill();
+    // 中華民國國旗（青天白日滿地紅），隨風飄動
+    const fs = 4*(1+windK*1.5), N = 10, SW = 2.2, FH = 14, top = Y-29, fx0 = X+17.5;
+    const off = i => Math.sin(t*fs + i*.7) * 1.8 * (.25 + .75*i/N); // 靠旗桿那端擺動較小
+    const band = (i0, i1, y0, y1, col)=>{
+      g.beginPath();
+      for(let i=i0;i<=i1;i++) g.lineTo(fx0+i*SW, top+y0+off(i));
+      for(let i=i1;i>=i0;i--) g.lineTo(fx0+i*SW, top+y1+off(i));
+      g.closePath(); g.fillStyle=col; g.fill();
+    };
+    band(0, N, 0, FH, '#d8262f');            // 滿地紅
+    band(0, N/2, 0, FH/2, '#0b3a8f');        // 青天
+    const sx = fx0 + (N/4)*SW, sy = top + FH/4 + off(N/4);
+    g.save(); g.translate(sx, sy); g.fillStyle='#fff';
+    g.beginPath();                            // 白日的 12 道光芒
+    for(let j=0;j<24;j++){ const r = j%2 ? 1.75 : 3, a = j/24*Math.PI*2 - Math.PI/2; g.lineTo(Math.cos(a)*r, Math.sin(a)*r); }
+    g.closePath(); g.fill();
+    g.fillStyle='#0b3a8f'; g.beginPath(); g.arc(0,0,1.55,0,7); g.fill();
+    g.fillStyle='#fff'; g.beginPath(); g.arc(0,0,1.25,0,7); g.fill();
+    g.restore();
+    g.beginPath();                            // 外框
+    for(let i=0;i<=N;i++) g.lineTo(fx0+i*SW, top+off(i));
+    for(let i=N;i>=0;i--) g.lineTo(fx0+i*SW, top+FH+off(i));
+    g.closePath(); g.lineWidth=1.2; g.stroke();
   } else if(p.c==='L'){
     const L=light();
     ell(g, X+16, Y+28, 7, 2.5, 'rgba(30,20,40,.25)', false);
