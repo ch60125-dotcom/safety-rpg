@@ -1,6 +1,2524 @@
 <!doctype html>
 <html lang="zh-Hant">
+<head><!doctype html>
+<html lang="zh-Hant">
 <head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>校園守護者</title>
+<style>
+  :root{
+    --ink:#2b2233; --paper:#fffaf0; --paper2:#fbeccb; --gold:#f6c445; --gold2:#d99a1e;
+    --ok:#2e9d5b; --bad:#d64545; --blue:#3c7fd0; --trim:#e3c38a;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:radial-gradient(circle at 50% 40%,#2b3550,#141a28);overflow:hidden;
+    font-family:"Microsoft JhengHei","PingFang TC","Noto Sans TC",sans-serif;color:var(--ink);
+    -webkit-user-select:none;user-select:none;touch-action:none}
+  #game{position:absolute;left:50%;top:50%;width:800px;height:576px;transform-origin:center center;
+    box-shadow:0 14px 50px rgba(0,0,0,.6),0 0 0 4px #0d111b;border-radius:12px;overflow:hidden;background:#000}
+  canvas#cv{display:block}
+  .hidden{display:none!important}
+
+  /* 共用框 */
+  .frame{background:linear-gradient(180deg,#fffdf6,#fbefd4);border:3px solid var(--ink);border-radius:12px;
+    box-shadow:inset 0 0 0 2px #fff,inset 0 0 0 4px var(--trim),0 3px 0 rgba(0,0,0,.35)}
+
+  /* HUD */
+  #hud{position:absolute;left:0;right:0;top:0;padding:8px 10px;display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none}
+  #hLeft{display:flex;gap:8px;align-items:center;padding:6px 12px 7px 8px;pointer-events:auto}
+  #hLv{width:40px;height:40px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffe9a0,var(--gold) 55%,var(--gold2));
+    border:3px solid var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:900;line-height:1}
+  #hLv small{font-size:9px}
+  #hLv b{font-size:17px}
+  #hName{font-weight:bold;font-size:16px}
+  #hTitle{font-size:12px;color:#8a6127}
+  .expbar{width:140px;height:9px;background:#e9dcc0;border:2px solid var(--ink);border-radius:6px;margin-top:3px;overflow:hidden}
+  .expbar i{display:block;height:100%;background:linear-gradient(180deg,#8fe0ff,#3c9be0);width:0;transition:width .4s}
+  #hRight{display:flex;gap:6px;align-items:center;pointer-events:auto}
+  #badges{display:flex;gap:3px;padding:5px 8px}
+  #badges span{width:32px;height:32px;line-height:28px;text-align:center;font-size:18px;border-radius:50%;
+    background:#d8d2c4;filter:grayscale(1);opacity:.5;border:2px solid #9a927f}
+  #badges span.on{filter:none;opacity:1;background:radial-gradient(circle at 35% 30%,#fff7d6,#ffe08a);border-color:var(--gold2);box-shadow:0 0 8px rgba(246,196,69,.9)}
+  #badges span.pop{animation:pop .7s}
+  @keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.6) rotate(12deg)}100%{transform:scale(1)}}
+  .hbtn{font:inherit;font-size:14px;font-weight:bold;height:40px;padding:0 10px;cursor:pointer;color:var(--ink)}
+  .hbtn:hover{filter:brightness(1.05);transform:translateY(-1px)}
+  #where{position:absolute;top:66px;left:50%;transform:translateX(-50%);background:rgba(43,34,51,.88);color:#fff;
+    padding:6px 22px;border-radius:20px;font-size:18px;font-weight:bold;transition:opacity .5s;opacity:0;pointer-events:none;
+    border:2px solid rgba(255,255,255,.5)}
+  #toast{position:absolute;top:108px;left:50%;transform:translateX(-50%);padding:9px 18px;font-size:18px;font-weight:bold;max-width:660px;
+    text-align:center;transition:opacity .4s,transform .4s;opacity:0;pointer-events:none;border-color:var(--bad)!important}
+  #toast.good{border-color:var(--ok)!important}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(4px)}
+  #hint{position:absolute;bottom:12px;right:12px;background:rgba(43,34,51,.8);color:#fff;padding:6px 12px;border-radius:10px;font-size:14px;pointer-events:none;border:2px solid rgba(255,255,255,.35)}
+  #mini.top{top:70px;bottom:auto}
+  #mini{position:absolute;left:10px;bottom:12px;border:3px solid var(--ink);border-radius:8px;box-shadow:0 3px 0 rgba(0,0,0,.35);background:#000;opacity:.92}
+
+  /* 對話框 */
+  #dlg{position:absolute;left:14px;right:14px;bottom:14px;min-height:136px;padding:16px 20px 14px 132px;font-size:22px;line-height:1.55;cursor:pointer}
+  #dlg.noface{padding-left:22px}
+  #dFace{position:absolute;left:14px;top:16px;width:104px;height:104px;border:3px solid var(--ink);border-radius:10px;
+    background:radial-gradient(circle at 50% 35%,#fff,#dcefff)}
+  #dlg.noface #dFace{display:none}
+  #dName{position:absolute;top:-18px;left:18px;background:linear-gradient(#ffe48f,var(--gold));border:3px solid var(--ink);border-radius:8px;padding:0 12px;font-size:17px;font-weight:bold}
+  #dNext{position:absolute;right:16px;bottom:8px;font-size:16px;animation:bob .8s infinite}
+  @keyframes bob{50%{transform:translateY(4px)}}
+  #dChoices{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+  .cbtn{font:inherit;font-size:19px;font-weight:bold;padding:6px 16px;border:3px solid var(--ink);border-radius:10px;background:#fff;cursor:pointer;color:var(--ink);box-shadow:0 3px 0 rgba(0,0,0,.25)}
+  .cbtn.sel,.cbtn:hover{background:#fff1bf;box-shadow:0 0 0 3px var(--gold),0 3px 0 rgba(0,0,0,.25)}
+
+  /* 任務面板 */
+  #panel{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:560px;padding:18px 22px}
+  #panel h2{margin:0 0 10px;font-size:24px}
+  .qrow{display:flex;align-items:center;gap:10px;font-size:18px;padding:7px 0;border-bottom:2px dashed #e6d3a8}
+  .qrow b{min-width:118px}
+  .qrow small{color:#7a5a2a}
+
+  /* 標題 */
+  #title{position:absolute;inset:0;background:linear-gradient(180deg,rgba(30,70,140,.55),rgba(15,25,55,.8));display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff}
+  #title h1{font-size:66px;margin:0;letter-spacing:8px;color:var(--gold);
+    text-shadow:0 4px 0 #b9741a,0 8px 0 #2b2233,0 0 24px rgba(255,220,100,.7);animation:float 3s ease-in-out infinite}
+  @keyframes float{50%{transform:translateY(-6px)}}
+  #title .sub{display:flex;gap:6px;margin:14px 0 18px}
+  #title .sub span{background:rgba(255,255,255,.92);color:var(--ink);border:2px solid var(--ink);border-radius:20px;padding:2px 10px;font-weight:bold;font-size:15px}
+  .tcard{width:540px;padding:16px 24px;color:var(--ink)}
+  .tcard label{font-weight:bold;font-size:18px}
+  .tcard input{font:inherit;font-size:20px;padding:5px 10px;border:3px solid var(--ink);border-radius:8px;width:200px;margin-left:6px;background:#fff}
+  .tcard input#inCls{width:90px}
+  .trow{display:flex;gap:16px;align-items:center}
+  .tnote{font-size:13px;color:#a3242a;margin-top:6px}
+  .terr{font-size:15px;color:var(--bad);font-weight:bold;min-height:0;margin-top:4px}
+
+  /* 排行榜 */
+  #panel{z-index:20}
+  .btabs{display:flex;gap:8px;margin-bottom:8px}
+  .btabs .cbtn{font-size:15px;padding:3px 12px}
+  .btabs .cbtn.on{background:linear-gradient(#ffe48f,var(--gold))}
+  .btable{width:100%;border-collapse:collapse;font-size:16px}
+  .btable th{font-size:13px;color:#8a6127;text-align:left;border-bottom:2px solid #e6d3a8;padding:3px 4px}
+  .btable td{padding:5px 6px;border-bottom:1px dashed #eadbb8;white-space:nowrap}
+  .btable td:nth-child(3){white-space:normal;width:40%}
+  .btable td:first-child{text-align:center;width:44px;font-weight:bold}
+  .btable tr.mine td{background:#fff1bf;font-weight:bold}
+  .bscroll{max-height:330px;overflow:auto}
+  .bmsg{text-align:center;padding:30px 0;font-size:17px;color:#7a5a2a}
+  #panel{max-height:548px;overflow:auto}
+  #panel h3{margin:14px 0 4px;font-size:19px}
+  .cbtn.on{background:linear-gradient(#ffe48f,var(--gold))}
+  .acc{font-size:14px;padding:3px 10px;margin:3px 2px}
+
+  /* 隨機事件 */
+  #qte{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%);width:440px;padding:18px 22px;text-align:center;z-index:15}
+  #qte .qt{font-size:40px;font-weight:900;color:var(--bad)}
+  #qte .qs{font-size:19px;margin:6px 0 10px}
+  .qbar{height:14px;border:3px solid var(--ink);border-radius:8px;background:#fff;overflow:hidden;margin-bottom:12px}
+  .qbar i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#ff8a8a,#d64545)}
+  #cv.quake{animation:quake .12s infinite}
+  @keyframes quake{25%{transform:translate(-5px,3px)}50%{transform:translate(4px,-3px)}75%{transform:translate(-3px,-2px)}}
+  #phone{position:absolute;left:50%;top:22px;transform:translateX(-50%);width:300px;background:#f2f4f7;border:6px solid #222;border-radius:24px;padding:10px 10px 14px;z-index:15;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+  .ph-top{background:#3c7fd0;color:#fff;font-weight:bold;border-radius:12px;padding:6px 10px;font-size:15px;margin-bottom:8px}
+  .ph-msg{display:flex;flex-direction:column;margin:5px 0;font-size:15px}
+  .ph-msg b{font-size:12px;color:#666}
+  .ph-msg span{background:#fff;border-radius:12px;padding:6px 10px;align-self:flex-start;border:1px solid #ddd}
+  .ph-img{background:#ffe3ec!important;font-weight:bold}
+  #looks{display:flex;gap:12px;margin:10px 0}
+  #looks canvas{border:3px solid #bba98a;border-radius:12px;background:radial-gradient(circle at 50% 40%,#f3fbe9,#c9e8b5);cursor:pointer;transition:transform .15s}
+  #looks canvas:hover{transform:translateY(-3px)}
+  #looks canvas.sel{border-color:var(--ink);box-shadow:0 0 0 3px var(--gold)}
+  .tbtns{display:flex;gap:10px;margin-top:10px}
+  .big{font:inherit;font-size:21px;font-weight:bold;padding:9px 20px;border:3px solid var(--ink);border-radius:12px;
+    background:linear-gradient(#ffe48f,var(--gold));cursor:pointer;color:var(--ink);box-shadow:0 4px 0 var(--ink)}
+  .big:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+  .big.alt{background:#fff}
+  .help{font-size:14px;color:#5a4a3a;margin-top:12px;line-height:1.6}
+
+  /* 戰鬥 */
+  #battle{position:absolute;inset:0;padding:12px}
+  #battle.in{animation:bin .55s ease-out}
+  @keyframes bin{0%{filter:brightness(4) saturate(0);transform:scale(1.15)}100%{filter:none;transform:none}}
+  #bgcv,#fxcv{position:absolute;left:0;top:0}
+  #fxcv{pointer-events:none;z-index:5}
+  .btop{position:relative;display:flex;justify-content:space-between;align-items:flex-start;height:240px}
+  .mon{text-align:center;position:relative;width:280px;margin-left:30px}
+  .mon.enter{animation:menter .6s ease-out}
+  @keyframes menter{0%{transform:translateX(420px)}75%{transform:translateX(-14px)}100%{transform:none}}
+  .mon canvas{display:block;margin:0 auto}
+  .mname{font-weight:bold;font-size:19px;padding:1px 14px;display:inline-block;margin-top:-6px}
+  .hp{width:220px;height:16px;border:3px solid var(--ink);border-radius:8px;background:#fff;margin:4px auto 0;overflow:hidden}
+  .hp i{display:block;height:100%;background:linear-gradient(180deg,#ff8a8a,#d64545);transition:width .45s}
+  .dmg{position:absolute;left:50%;top:60px;font-size:40px;font-weight:900;color:#fff;-webkit-text-stroke:2px var(--ink);animation:dmg 1s ease-out forwards;pointer-events:none}
+  @keyframes dmg{0%{transform:translate(-50%,0) scale(.6);opacity:1}30%{transform:translate(-50%,-30px) scale(1.3)}100%{transform:translate(-50%,-70px);opacity:0}}
+  .me{display:flex;gap:10px;align-items:center;padding:8px 14px;margin-top:18px;margin-right:16px;font-size:18px}
+  .me canvas{border:2px solid var(--ink);border-radius:8px;background:radial-gradient(circle at 50% 35%,#fff,#dcefff)}
+  .me .hearts{font-size:23px;letter-spacing:1px}
+  .me.hit{animation:shake .35s}
+  .bpanel{position:relative;padding:12px 16px;height:300px}
+  .bq{font-size:22px;font-weight:bold;line-height:1.45;min-height:64px}
+  .btag{display:inline-block;font-size:14px;background:var(--ink);color:#fff;border-radius:6px;padding:1px 9px;margin-bottom:4px}
+  .bopts{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:8px}
+  .obtn{font:inherit;font-size:18px;text-align:left;padding:9px 12px;border:3px solid var(--ink);border-radius:10px;background:#fff;cursor:pointer;line-height:1.35;color:var(--ink);box-shadow:0 3px 0 rgba(0,0,0,.2)}
+  .obtn:hover:not(:disabled){background:#fff1bf;transform:translateY(-1px)}
+  .obtn .k{display:inline-block;width:24px;height:24px;line-height:22px;text-align:center;background:var(--ink);color:#fff;border-radius:50%;font-size:14px;margin-right:6px}
+  .obtn.right{background:#c9f2d6;border-color:var(--ok)}
+  .obtn.wrong{background:#ffd0d0;border-color:var(--bad)}
+  .obtn:disabled{cursor:default}
+  .obtn.picked{opacity:.45}
+  .picked{min-height:44px;border:3px dashed #d6bf8c;border-radius:10px;padding:5px;display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;font-size:17px;background:#fffdf6}
+  .chip{background:linear-gradient(#ffe48f,var(--gold));border:2px solid var(--ink);border-radius:8px;padding:3px 9px;font-weight:bold}
+  .bfb{position:absolute;inset:8px;background:linear-gradient(180deg,#fffdf6,#fbefd4);border-radius:10px;padding:10px 14px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center}
+  .bfb .res{font-size:34px;font-weight:bold}
+  .bfb .exp{font-size:19px;line-height:1.55;margin:10px 0 14px;max-width:660px}
+  .bfb .ans{font-size:18px;color:var(--ok);font-weight:bold}
+  .flee{position:absolute;right:12px;bottom:10px;font:inherit;font-size:14px;background:none;border:2px solid #b0a58f;border-radius:6px;color:#8a7f6a;cursor:pointer;padding:2px 8px}
+  .shake{animation:shake .35s}
+  @keyframes shake{20%{transform:translateX(-10px)}40%{transform:translateX(10px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
+  .redflash{animation:redf .4s}
+  @keyframes redf{50%{box-shadow:inset 0 0 0 9999px rgba(255,0,0,.25)}}
+
+  /* 觸控 */
+  #pad{position:absolute;left:14px;bottom:14px;width:150px;height:150px;opacity:.85}
+  #pad button,#abtn{position:absolute;width:50px;height:50px;border-radius:12px;border:3px solid var(--ink);background:rgba(255,255,255,.88);font-size:22px;font-weight:bold;touch-action:none;color:var(--ink)}
+  #pad .u{left:50px;top:0}#pad .d{left:50px;top:100px}#pad .l{left:0;top:50px}#pad .r{left:100px;top:50px}
+  #abtn{right:20px;bottom:50px;width:72px;height:72px;border-radius:50%;background:linear-gradient(#ffe48f,var(--gold));font-size:19px}
+
+  /* 獎狀 */
+  #cert{position:fixed;inset:0;background:rgba(20,30,50,.85);display:flex;align-items:center;justify-content:center;z-index:10}
+  .paper{width:760px;max-width:96vw;background:#fffdf3;border:14px double #b8892c;padding:34px 46px;text-align:center;color:#3a2c1e;position:relative}
+  .paper h1{font-size:54px;margin:0 0 6px;letter-spacing:18px;color:#a3242a}
+  .paper .who{font-size:30px;margin:18px 0}
+  .paper .who b{font-size:40px;border-bottom:3px solid #3a2c1e;padding:0 14px}
+  .certname{font:inherit;font-size:40px;font-weight:bold;border:none;border-bottom:3px solid #3a2c1e;text-align:center;width:320px;background:transparent;color:#3a2c1e;outline:none}
+  .certname:focus{background:#fff8d6}
+  .noprint{font-size:14px;color:#8a6127}
+  .paper p{font-size:21px;line-height:1.9;text-align:left;text-indent:2em}
+  .paper .bd{font-size:36px;letter-spacing:8px;margin:8px 0}
+  .paper .date{margin-top:18px;font-size:20px;letter-spacing:3px}
+  .paper .seal{position:absolute;right:46px;bottom:60px;width:110px;height:110px;border:5px solid #c0392b;border-radius:50%;color:#c0392b;
+    font-weight:bold;display:flex;align-items:center;justify-content:center;font-size:22px;transform:rotate(-14deg);line-height:1.2;opacity:.85}
+  .certbtns{margin-top:16px;display:flex;gap:10px;justify-content:center}
+  @media print{
+    html,body{background:#fff;overflow:visible;height:auto}
+    #game{display:none}
+    #cert{position:static;background:none}
+    .paper{max-width:none;width:100%}
+    .certbtns,.noprint{display:none}
+  }
+</style>
+</head>
+<body>
+<div id="game">
+  <canvas id="cv" width="800" height="576"></canvas>
+  <canvas id="mini" width="156" height="99" class="hidden"></canvas>
+
+  <div id="hud" class="hidden">
+    <div class="frame" id="hLeft">
+      <div id="hLv"><small>LV</small><b id="hLvN">1</b></div>
+      <div>
+        <div id="hName">小勇士</div>
+        <div id="hTitle">見習守護者</div>
+        <div class="expbar"><i id="hExp"></i></div>
+      </div>
+    </div>
+    <div id="hRight">
+      <div class="frame" id="badges"></div>
+      <button class="hbtn frame" id="btnMap" title="小地圖 (M)">🗺️</button>
+      <button class="hbtn frame" id="btnQuest" title="任務清單 (Q)">📋 任務</button>
+      <button class="hbtn frame" id="btnBoard" title="排行榜 (R)">🏆</button>
+      <button class="hbtn frame" id="btnMute" title="音效開關">🔊</button>
+    </div>
+  </div>
+  <div id="where"></div>
+  <div id="toast" class="frame"></div>
+  <div id="hint" class="hidden"></div>
+  <div id="qte" class="frame hidden">
+    <div class="qt">🔔 地震來了！</div>
+    <div class="qs">3 秒內按 <b>空白鍵</b> 或點下面的按鈕！</div>
+    <div class="qbar"><i id="qBar"></i></div>
+    <button class="big" id="qBtn">🙇 趴下！</button>
+  </div>
+  <div id="phone" class="hidden">
+    <div class="ph-top">💬 三年級班級群組 (32)</div>
+    <div class="ph-msg"><b>阿明</b><span>哈哈你們看小宇的照片 😂😂</span></div>
+    <div class="ph-msg"><b>阿明</b><span class="ph-img">🐷 [被 P 成豬頭的照片]</span></div>
+    <div class="ph-msg"><b>小華</b><span>笑死，再傳給隔壁班！</span></div>
+    <div class="ph-msg"><b>阿明</b><span>快按讚轉傳 👍</span></div>
+  </div>
+
+  <div id="pad" class="hidden">
+    <button class="u" data-k="up">▲</button><button class="l" data-k="left">◀</button>
+    <button class="r" data-k="right">▶</button><button class="d" data-k="down">▼</button>
+  </div>
+  <button id="abtn" class="hidden">對話</button>
+
+  <div id="dlg" class="frame hidden"><canvas id="dFace" width="104" height="104"></canvas><div id="dName"></div><div id="dText"></div><div id="dChoices"></div><div id="dNext">▼</div></div>
+
+  <div id="panel" class="frame hidden"></div>
+
+  <div id="battle" class="hidden">
+    <canvas id="bgcv" width="800" height="576"></canvas>
+    <div class="btop">
+      <div class="mon" id="monBox">
+        <canvas id="moncv" width="280" height="178"></canvas>
+        <div class="mname frame" id="mName">怪獸</div>
+        <div class="hp"><i id="mHp"></i></div>
+      </div>
+      <div class="me frame" id="meBox"><canvas id="meFace" width="54" height="54"></canvas><div><div id="bMe">小勇士</div><div class="hearts" id="bHearts"></div></div></div>
+    </div>
+    <div class="bpanel frame" id="bPanel">
+      <div class="btag" id="bTag">題目</div>
+      <div class="bq" id="bQ"></div>
+      <div id="bBody"></div>
+      <button class="flee" id="bFlee">撤退</button>
+      <div class="bfb hidden" id="bFb"></div>
+    </div>
+    <canvas id="fxcv" width="800" height="576"></canvas>
+  </div>
+
+  <div id="title">
+    <h1>校園守護者</h1>
+    <div class="sub"><span>🧯 防災</span><span>🚦 交通安全</span><span>🤝 性別平等</span><span>🛡️ 反霸凌</span><span>📚 校園常規</span></div>
+    <div class="tcard frame">
+      <div class="trow">
+        <label>班級：<input id="inCls" maxlength="4" inputmode="numeric" placeholder="301"></label>
+        <label>暱稱：<input id="inName" maxlength="8" placeholder="例如：閃電小勇士"></label>
+      </div>
+      <div class="tnote">🏆 排行榜會公開顯示「班級＋暱稱」，請不要使用真實姓名。</div>
+      <div class="terr" id="tErr"></div>
+      <div style="margin-top:10px;font-weight:bold;font-size:18px">選擇造型：</div>
+      <div id="looks"></div>
+      <div class="tbtns">
+        <button class="big" id="btnNew">▶ 開始新遊戲</button>
+        <button class="big alt hidden" id="btnLoad">📂 繼續遊戲</button>
+        <button class="big alt" id="btnBoardT">🏆 排行榜</button>
+      </div>
+      <div class="help">⌨️ 方向鍵 / WASD：移動　空白鍵 / Enter：對話、確定　Q：任務　M：小地圖　R：排行榜<br>
+        📱 平板可使用畫面上的方向鍵。題目可按數字鍵 1～4 作答。</div>
+    </div>
+  </div>
+</div>
+
+<div id="cert" class="hidden">
+  <div>
+    <div class="paper" id="paper"></div>
+    <div class="certbtns"><button class="big" id="btnPrint">🖨️ 列印獎狀</button><button class="big alt" id="btnCertClose">繼續探索校園</button></div>
+  </div>
+</div>
+
+<script>
+/* =====================================================================
+   ★ 老師可修改區 ★
+   - SCHOOL_NAME：顯示在校門口的校名
+   - QUIZ：題庫。一般選擇題的「第一個選項」就是正確答案，遊戲會自動打亂順序。
+           排序題 type:'order'，items 依「正確順序」填寫。
+           exp 是答題後顯示的解說。每一關會從題庫中隨機抽題。
+   ===================================================================== */
+const SCHOOL_NAME = '快樂國小';
+// 排行榜：把 Apps Script 部署後的「網頁應用程式網址」貼在引號中間（留空＝不使用排行榜）
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzOO0XzGfQORw3W59KgaCGOFnW9KofrfhFN1up-qh-YCVpjul4QiyTHyEHfIu8oJ3PYeA/exec';
+
+const QUIZ = {
+  disaster: [
+    {q:'上課時突然發生地震，教室搖晃得很厲害，你應該怎麼做？', a:['立刻「趴下、掩護、穩住」，躲在桌子下保護頭頸部','馬上衝出教室往外跑','躲到窗戶旁邊','趕快搭電梯下樓'], exp:'地震時先就地避難！趴下、躲在堅固的桌子下、抓穩桌腳，等搖晃停止再聽老師指示疏散。'},
+    {type:'order', q:'請依正確順序，排出地震避難三步驟：', items:['趴下','掩護','穩住'], exp:'「趴下」降低身體、「掩護」保護頭頸部、「穩住」抓緊桌腳直到搖晃停止。'},
+    {q:'發生火災要逃生時，下列哪一個做法正確？', a:['往樓下、往室外逃生，不搭電梯','往頂樓跑','搭電梯最快','先回教室拿書包'], exp:'火災時電梯可能停電或變成煙囪，非常危險！要走樓梯往下、往外逃生，生命比東西重要。'},
+    {q:'火災時，打開門發現走廊都是濃煙、無法通過，應該怎麼辦？', a:['退回房間把門關上，用毛巾塞住門縫，到窗邊求救','憋氣衝過濃煙','躲到床底下或衣櫃裡','把所有門窗打開'], exp:'記住口訣「小火快逃、濃煙關門」。關上門能擋住濃煙，再到窗邊揮手、打119求救。'},
+    {q:'發生火災或有人受傷需要救護車時，要撥打哪支電話？', a:['119','110','113','165'], exp:'119 是消防和救護車；110 是報警。打電話時要說清楚地點和發生什麼事。'},
+    {q:'颱風天停止上課時，下列哪一個做法最正確？', a:['待在家裡，遠離窗戶，注意氣象新聞','去海邊看大浪','到河邊玩水','出門騎腳踏車兜風'], exp:'颱風天風雨很大，海邊、河邊非常危險。留在安全的室內，並準備好手電筒和飲用水。'},
+    {q:'家裡的緊急避難包，最需要準備下列哪些東西？', a:['飲用水、手電筒、急救用品、哨子','電動玩具和漫畫書','大型家電','零食和玩偶就好'], exp:'避難包要準備：水、乾糧、手電筒、哨子、急救用品、保暖衣物、重要證件影本等。'},
+    {type:'order', q:'學校火災演練時，請排出正確的逃生順序：', items:['聽到警報，停下手邊工作','聽老師指示，用手帕摀住口鼻','沿著牆壁走樓梯往下','到操場集合，向老師報到'], exp:'不慌張、聽指揮、不推擠、不說話、不回頭，到集合點後一定要讓老師點名確認。'},
+    {q:'地震停止後，要從教室疏散到操場時，可以用什麼保護頭部？', a:['把書包或防災頭套放在頭上','用手機擋著','不用保護，跑快一點就好','拿課本遮眼睛'], exp:'疏散時可能還有東西掉落，用書包或防災頭套保護頭部，並且不推擠、靠一側走。'},
+    {type:'order', q:'請排出使用滅火器的正確順序：', items:['拉：拉開安全插銷','瞄：瞄準火源底部','壓：用力壓下握把','掃：左右來回掃射'], exp:'滅火器口訣「拉、瞄、壓、掃」。不過小朋友遇到火災，最重要的還是趕快逃生、告訴大人。'},
+    {q:'在家裡聞到很濃的瓦斯味，應該怎麼做？', a:['不開關任何電器、不點火，打開門窗通風，到屋外請大人處理','馬上打開電燈看清楚','打開抽油煙機把味道抽掉','點火看看是哪裡漏氣'], exp:'開關電器或點火可能產生火花引起爆炸！要開窗通風、關掉瓦斯開關（請大人處理），到室外再打電話求救。'},
+    {q:'地震時人在走廊，附近沒有桌子可以躲，應該怎麼做？', a:['蹲低趴下，用手臂或書包保護頭頸部，遠離窗戶和可能掉落的東西','跑到窗戶旁邊看外面','站在原地不動','衝下樓梯跑出去'], exp:'沒有桌子時，就靠著堅固的牆邊趴低，保護頭頸部，遠離玻璃、櫃子等可能倒下或掉落的東西。'},
+    {type:'order', q:'衣服著火時，請排出正確的處理順序：', items:['停：馬上停下來，不要跑','躺：立刻躺在地上','滾：雙手摀住臉，左右翻滾把火壓熄'], exp:'記住「停、躺、滾」！跑步會讓火燒得更旺，翻滾可以把火壓熄。'},
+    {q:'颱風要來之前，家裡應該做哪些準備？', a:['檢查門窗、清理排水孔，準備手電筒和飲用水','把盆栽搬到陽台欄杆上','把窗戶全部打開','趁颱風前出門去海邊玩'], exp:'颱風前要固定或收好容易被吹落的東西，清理排水孔避免積水，並準備好防災用品。'},
+    {q:'下大雨淹水的時候，下列哪一個做法正確？', a:['往高的地方移動，遠離水溝、水溝蓋和電線','走進積水裡看看有多深','在積水裡玩水','用手碰泡到水的電器'], exp:'積水裡可能有看不見的水溝或掉落的電線，非常危險！要往高處移動，遠離水和電。'},
+    {q:'晚上突然停電了，用什麼照明最安全？', a:['手電筒或緊急照明燈','在窗簾旁邊點蠟燭','一直用打火機照明','打開瓦斯爐照明'], exp:'蠟燭和明火容易引起火災，停電時用手電筒最安全，所以家裡要準備好手電筒和備用電池。'},
+    {q:'學校防災演練時，有同學在疏散途中嘻笑打鬧，正確的做法是？', a:['認真演練，保持安靜、聽從老師指令','跟著一起玩','用跑的搶第一名','躲起來不參加'], exp:'演練就是在練習真正發生災害時要怎麼做，認真演練，真的遇到時才不會慌張。'},
+    {q:'地震過後，發現家裡的牆壁有很大的裂縫，應該怎麼做？', a:['先不要進去，告訴大人，請專業人員檢查','進去把玩具拿出來','用膠帶把裂縫貼起來','沒關係，照常住'], exp:'建築物可能已經受損，餘震時可能倒塌，一定要請專業人員檢查確認安全。'},
+    {q:'地震發生時，如果剛好在搭電梯，應該怎麼做？', a:['按下所有樓層的按鈕，在最近的樓層停下後立刻離開','繼續搭到目的地','在電梯裡跳來跳去','用力把電梯門撬開'], exp:'地震時電梯可能停電卡住，要盡快在最近的樓層離開。如果被困住，按緊急鈴求救，保持冷靜。'},
+    {q:'打 119 報案時，最重要的是說清楚什麼？', a:['發生什麼事，以及詳細的地址','自己的興趣和喜好','只說「快來」就掛斷','先問消防員叫什麼名字'], exp:'說清楚「發生什麼事、在哪裡、有沒有人受傷」，消防員才能用最快的速度趕到。'}
+  ],
+  traffic: [
+    {q:'要過馬路時，下列哪一個做法最安全？', a:['走斑馬線，看到小綠人亮起，再左右看清楚才通過','哪裡近就從哪裡過','跟著別人一起闖紅燈','車子少就直接跑過去'], exp:'過馬路要「停、看、聽」：走斑馬線、等小綠人、左右看來車，確認安全再走。'},
+    {q:'你走到路口時，小綠人已經開始「閃爍」了，應該怎麼做？', a:['停在人行道上，等下一次綠燈','用跑的衝過去','邊跑邊揮手叫車子停','閉上眼睛快走'], exp:'小綠人閃爍代表快要紅燈了，還沒出發就不要衝！耐心等待下一次綠燈最安全。'},
+    {q:'公車、大卡車在路口轉彎時，為什麼要離它遠一點？', a:['大型車有很大的視線死角和「內輪差」，可能把人捲進車輪','因為車子很吵','因為怕被噴到水','其實不用離太遠'], exp:'大型車轉彎時，後輪會比前輪更往內側走（內輪差），司機也看不到車旁的小朋友，一定要遠離！'},
+    {q:'坐家人的機車上學時，一定要做什麼？', a:['戴好安全帽，並且扣好扣環','坐在前面踏板上就好','安全帽拿在手上就好','可以邊坐邊玩手機'], exp:'安全帽要戴正、扣環扣緊，發生意外時才能保護頭部。'},
+    {q:'坐汽車到學校，要下車時應該怎麼做？', a:['從靠人行道那一側下車，開門前先看後方有沒有來車','從靠馬路那一側下車','車子還沒停好就開門','開門後直接衝出去'], exp:'開車門前要先回頭看，避免撞到後方的機車或腳踏車，並且從靠人行道的一邊下車。'},
+    {q:'走路上學時，下列哪一個行為是正確的？', a:['走在人行道上，不邊走邊滑手機','在馬路中間和同學追逐','邊走邊低頭玩手機','戴耳機把音樂開到最大聲'], exp:'走路要專心！低頭滑手機或戴耳機會聽不到、看不到來車，非常危險。'},
+    {q:'下雨天或天色昏暗時，穿什麼顏色的衣服比較安全？', a:['顏色鮮明或有反光條的衣服','全身黑色的衣服','深藍色的雨衣','什麼顏色都一樣'], exp:'鮮豔的顏色和反光條能讓駕駛人更早看到你，減少交通意外。'},
+    {type:'order', q:'請排出過馬路的正確步驟：', items:['在路邊停下腳步','看紅綠燈，等小綠人亮起','左右看清楚有沒有來車','走在斑馬線上通過'], exp:'記住：停、看、聽、走！每一步都不能少。'},
+    {q:'小朋友坐汽車時，最安全的坐法是？', a:['坐在後座，繫好安全帶或使用兒童安全座椅','坐在前座比較好看風景','站在座位上','坐在大人腿上'], exp:'依規定，12歲以下且身高未達145公分的兒童不能坐前座，坐後座並繫好安全帶最安全。'},
+    {q:'騎腳踏車時，下列哪一個做法正確？', a:['戴好安全帽，不雙載、不放手騎','雙手放開騎比較帥','載同學一起騎','晚上不用開車燈'], exp:'騎腳踏車要戴安全帽、雙手握好把手，晚上要開燈，讓別人看得到你。'},
+    {q:'在路口看到汽車要轉彎，你應該怎麼做？', a:['停下來等車子轉完，確認司機有看到你再走','從車子前面衝過去','走在車子旁邊','拍車子提醒司機'], exp:'轉彎的車子有視線死角，司機可能沒看到你。等車子轉完、確認安全再走。'},
+    {q:'在停車場裡走路，要特別注意什麼？', a:['注意正在倒車的車輛，不在車子後面玩','在車子之間玩躲貓貓','坐在車子後面休息','在停車場跑來跑去'], exp:'倒車時司機很難看到車後的小朋友，停車場不是遊戲的地方，要跟緊大人。'},
+    {type:'order', q:'坐汽車到學校，請排出安全下車的順序：', items:['等車子完全停好','回頭確認後方沒有機車或腳踏車','從靠人行道那一邊開門下車','關好車門，走到人行道上'], exp:'記住「停好、回頭看、靠人行道下車」，就能避免被後方來車撞到。'},
+    {q:'從公車下車後，要到對面去，應該怎麼做？', a:['等公車開走、視線清楚後，再走斑馬線過馬路','從公車前面直接穿越','從公車後面跑過去','追著公車跑'], exp:'停著的公車會擋住視線，其他車子也看不到你。要等公車開走，再走斑馬線過馬路。'},
+    {q:'沒有紅綠燈也沒有斑馬線的小巷子，要怎麼過馬路？', a:['停在路邊，左右來回看清楚沒有車，再快步通過','直接衝過去','低著頭快走','邊走邊看手機'], exp:'小巷子常有突然出現的機車，一定要停下來、左右看清楚再走。'},
+    {q:'走在斑馬線上時，下列哪一個觀念正確？', a:['行人有優先通行權，但還是要注意車子有沒有停下來','車子一定會停，不用看','行人要讓車子先走','可以在斑馬線上慢慢玩'], exp:'法律規定車子要禮讓行人，但不是每個駕駛都會注意到你，保護自己最重要。'},
+    {q:'坐在汽車後座時，安全帶要怎麼繫才正確？', a:['肩帶斜過肩膀和胸前，腰帶繫在腰部下方','把肩帶放到背後','只繫腰帶就好','坐後座不用繫'], exp:'正確繫好安全帶，發生碰撞時才能保護身體。後座也一定要繫安全帶喔！'},
+    {q:'在路邊玩球，球滾到馬路上了，應該怎麼做？', a:['不要追，請大人幫忙處理','馬上衝出去撿','站在馬路中間叫車子停下來','用腳把球踢回來'], exp:'追球時眼睛只看球，很容易沒注意到來車。球滾出去了，一定要請大人幫忙。'},
+    {q:'下雨天撐傘走路，要注意什麼？', a:['傘不要壓太低擋住視線，注意來車和濕滑的路面','把傘壓得很低，看不到前面也沒關係','在水坑裡跳來跳去','撐著傘跑步過馬路'], exp:'雨天視線不好、路面濕滑，駕駛也比較難看到你，要走慢一點、看清楚。'},
+    {q:'路口有交通警察或導護志工在指揮交通，應該怎麼做？', a:['聽從指揮，依照他們的手勢通行','不理他，自己看紅綠燈走','跟他開玩笑','從他後面繞過去'], exp:'有人指揮交通時，要依照指揮人員的手勢通行，他們會幫你注意來車。'}
+  ],
+  gender: [
+    {q:'身體的哪些地方是「隱私部位」，別人不可以隨便看或碰觸？', a:['泳衣、泳褲遮住的地方','只有手','只有頭髮','沒有這種地方'], exp:'泳衣泳褲遮住的地方是隱私部位，除了看醫生或家人幫忙清潔等必要情況，別人都不可以碰。'},
+    {q:'如果有人碰你的身體，讓你覺得不舒服，你應該怎麼做？', a:['大聲說「不要！」，趕快離開，並告訴信任的大人','忍耐一下就好','覺得是自己的錯，不敢說','跟他一起保守秘密'], exp:'記住三步驟：說「不」、離開、告訴大人。這不是你的錯，勇敢說出來就是保護自己！'},
+    {q:'有人對你說「這是我們之間的秘密，不可以告訴任何人」，但這件事讓你很不舒服，怎麼辦？', a:['讓人不舒服的秘密不用保守，要告訴爸媽或老師','一定要遵守約定','自己偷偷難過就好','上網問陌生人'], exp:'「好的秘密」像驚喜派對會讓人開心；「不好的秘密」讓人害怕、不舒服，一定要說出來！'},
+    {q:'小明很喜歡跳舞，有同學笑他：「男生跳舞好奇怪！」你覺得呢？', a:['興趣沒有性別之分，每個人都可以做自己喜歡的事','男生只能踢足球','女生才能跳舞','跟著一起笑他'], exp:'喜歡跳舞、畫畫、踢球、做菜……都沒有男女之分，尊重每個人的興趣和選擇。'},
+    {q:'有同學把別人換衣服的照片傳到班級群組，你應該怎麼做？', a:['不看、不轉傳，並告訴老師','趕快存下來','轉傳給更多朋友看','留言開玩笑'], exp:'轉傳別人的私密照片會傷害對方，也可能觸犯法律。不看、不傳、告訴大人才是正確的。'},
+    {q:'你想要和同學擁抱，或勾著他的肩膀，應該先怎麼做？', a:['先問對方願不願意，並尊重他的回答','直接抱上去就好','對方不要也沒關係','偷偷從後面抱'], exp:'這就是「身體界線」和「同意」：每個人都能決定自己的身體要不要被碰，對方說不要就要停止。'},
+    {q:'有人說「男生不可以哭，哭就是愛哭鬼」，這句話對嗎？', a:['不對，每個人都可以表達自己的情緒','對，男生不可以哭','只有女生可以哭','哭的人都很弱'], exp:'難過、害怕都是正常的情緒，不論男生女生，都可以用適當的方式表達出來。'},
+    {q:'遇到家暴、性騷擾等事情需要幫忙時，可以撥打哪一支保護專線？', a:['113','119','110','104'], exp:'113 保護專線 24 小時都有人接聽，也可以告訴爸媽、老師或輔導老師。'},
+    {q:'班上要選小組長，誰可以擔任？', a:['不分男生女生，有意願、有能力的人都可以','只有男生可以','只有女生可以','成績最好的男生'], exp:'每個人都有平等的機會，不應該因為性別就被限制。'},
+    {q:'怎麼分辨「不好的觸碰」？', a:['讓你覺得不舒服、害怕，或被要求保密的觸碰','只要是認識的人就沒關係','大人碰就一定沒關係','不用分辨'], exp:'相信自己的感覺！讓你不舒服、害怕，或對方要你保密的觸碰，就是不好的觸碰，要說出來。'},
+    {q:'網路上認識的朋友想看你的照片，還約你出來見面，應該怎麼做？', a:['不傳照片、不赴約，並告訴爸媽或老師','偷偷去見面','傳照片給他','把家裡地址告訴他'], exp:'網路上的人可能不是他說的那個人！不傳照片、不給個人資料、不單獨見面，並告訴大人。'},
+    {q:'同學一直對你說讓人不舒服的黃色笑話，你可以怎麼做？', a:['清楚說「我不喜歡，請停止」，必要時告訴老師','跟著一起笑','自己忍耐就好','也說更誇張的回去'], exp:'讓人不舒服的性別玩笑可能構成性騷擾。你有權利說「不」，也可以請老師幫忙。'},
+    {q:'下列哪一句話屬於「性別刻板印象」？', a:['「女生的數學一定比較差」','每個人都有不同的專長','男生女生都可以當護理師','尊重別人的選擇'], exp:'能力和興趣跟性別沒有關係，用性別去限制或判斷一個人，就是性別刻板印象。'},
+    {q:'有同學掀別人的裙子或拉別人的褲子「開玩笑」，這是什麼行為？', a:['不尊重別人的行為，可能構成性騷擾','好玩的遊戲','表示喜歡對方','沒什麼大不了'], exp:'這會讓人很難堪、很受傷，絕對不是玩笑。看到這種行為要制止，並告訴老師。'},
+    {q:'換衣服或上廁所時，發現有人故意偷看，你應該怎麼做？', a:['大聲制止，並馬上告訴老師','沒關係，不用管','也去偷看他','覺得丟臉，不敢說'], exp:'每個人的隱私都要被尊重。遇到偷看、偷拍，要大聲制止並告訴老師，不是你的錯。'},
+    {q:'好朋友偷偷告訴你，有人摸了他讓他不舒服的地方，你可以怎麼做？', a:['相信他、陪伴他，一起去告訴信任的大人','叫他不要說出去','告訴全班同學','覺得他在說謊'], exp:'說出來需要很大的勇氣！相信他、陪伴他，並陪他告訴老師或家長。'},
+    {q:'家裡的家事應該由誰來做？', a:['家裡的每個人都可以分工合作','只有媽媽要做','只有女生要做','只有大人要做'], exp:'家事是全家人的事，不分性別，大家一起分工合作，家裡會更溫暖。'},
+    {q:'有同學的家庭和別人不太一樣（例如單親、隔代教養），我們應該怎麼做？', a:['尊重每個家庭的樣子，不取笑、不排擠','取笑他','一直問讓他難堪的問題','不跟他玩'], exp:'每個家庭的組成都不一樣，但都一樣有愛。尊重差異，是友善校園的開始。'},
+    {q:'「我的身體我作主」是什麼意思？', a:['我可以決定別人能不能碰我的身體，也要尊重別人的決定','我可以隨便碰別人','別人一定要聽我的','身體一點都不重要'], exp:'身體自主權是每個人都有的權利：你可以拒絕別人碰你，也要尊重別人的拒絕。'},
+    {type:'order', q:'遇到讓你不舒服的觸碰，請排出自我保護三步驟：', items:['大聲說「不要！」','趕快離開現場','告訴信任的大人'], exp:'記住「說不、離開、告訴大人」！這不是你的錯，說出來就是在保護自己。'}
+  ],
+  bully: [
+    {q:'下列哪一種情況是「霸凌」？', a:['故意而且一再地欺負、嘲笑某位同學','同學不小心撞到你，還跟你道歉','和好朋友意見不同吵了一次架','比賽輸了覺得難過'], exp:'霸凌通常是「故意」、「重複發生」，而且讓被欺負的人受到身體或心理的傷害。'},
+    {q:'你看到有同學被欺負，身為旁觀者，最好怎麼做？', a:['不起鬨、不圍觀，馬上告訴老師，並關心被欺負的同學','在旁邊一起笑','拿手機拍下來上傳','假裝沒看到走開'], exp:'旁觀者的力量很大！不起鬨、告訴大人、陪伴被欺負的同學，就能讓霸凌停下來。'},
+    {q:'在網路群組看到有人把同學的照片惡搞並取笑他，你應該？', a:['不按讚、不轉傳，截圖留下證據並告訴大人','覺得好笑就轉傳','留言一起罵','把照片改得更好笑'], exp:'網路霸凌傳得又快又廣，傷害很大。不參與、保留證據、告訴爸媽或老師。'},
+    {q:'故意叫大家都不要跟某位同學玩、排擠他，這屬於哪一種霸凌？', a:['關係霸凌','肢體霸凌','網路霸凌','這不是霸凌'], exp:'排擠、孤立、散播謠言讓別人沒有朋友，就是「關係霸凌」。'},
+    {q:'一直幫同學取難聽的綽號、嘲笑他的外表，這屬於哪一種霸凌？', a:['言語霸凌','關係霸凌','肢體霸凌','只是開玩笑，不算霸凌'], exp:'對方覺得受傷，就不是玩笑！嘲笑、取難聽綽號、辱罵都是「言語霸凌」。'},
+    {q:'如果你被別人欺負了，應該怎麼做？', a:['勇敢告訴老師或家長，請大人幫忙','自己默默忍耐','找更多人去打回來','覺得都是自己不好'], exp:'被欺負不是你的錯！告訴信任的大人，大家會一起想辦法保護你。'},
+    {q:'如果你不小心說了讓同學難過的話，應該怎麼做？', a:['真誠地向同學道歉，以後多注意','假裝沒發生','說「我只是開玩笑」','怪對方太敏感'], exp:'每個人都可能犯錯，重要的是願意道歉、改進，並學會站在別人的角度想。'},
+    {q:'新同學轉來班上，還沒有朋友，你可以怎麼做？', a:['主動打招呼，邀請他一起玩','等他自己來找我們','跟大家說不要理他','在背後說他壞話'], exp:'友善的一句「要不要一起玩？」，就能讓別人感到溫暖，也是預防霸凌的好方法。'},
+    {q:'下列哪一個是「肢體霸凌」的例子？', a:['故意一再推、打、踢同學，或破壞他的東西','和同學一起打球','不小心碰到同學','幫同學拿東西'], exp:'故意傷害別人的身體或破壞別人的物品，就是肢體霸凌。'},
+    {q:'有人在班上散播某位同學的謠言，你應該怎麼做？', a:['不相信、不轉述，並告訴老師','跟著一起傳','再加油添醋','跑去問當事人然後笑他'], exp:'謠言傷人很深。不聽、不傳、不加料，謠言就會停在你這裡。'},
+    {q:'有同學因為口音或膚色和大家不同而被嘲笑，你覺得呢？', a:['每個人都不一樣，應該互相尊重','本來就很好笑','他應該改掉','不關我的事'], exp:'每個人的外表、口音、文化背景都不同，這些差異讓世界更豐富，不是取笑的理由。'},
+    {q:'如果在網路上被別人罵，最好的做法是什麼？', a:['不要罵回去，截圖保存、封鎖對方，並告訴大人','馬上罵回去','刪掉帳號就沒事了','自己難過就好'], exp:'罵回去只會讓事情更嚴重。保留證據、封鎖對方、告訴大人，才能真正解決問題。'},
+    {q:'被欺負的同學拜託你「不要告訴老師，會更慘」，你應該怎麼做？', a:['先安慰他，再私下找信任的大人幫忙，保護他的安全','答應他，什麼都不做','在全班面前說出來','叫他自己打回去'], exp:'保守這種秘密，霸凌只會繼續。私下告訴老師，老師會用保護他的方式處理。'},
+    {q:'用手機偷拍同學出糗的影片上傳到網路，這是什麼？', a:['網路霸凌，會造成很大的傷害','好玩的分享','留下紀念','是事實所以沒關係'], exp:'影片上傳後很難完全刪除，會一直傷害當事人。不拍、不傳，看到要告訴大人。'},
+    {q:'被欺負的時候，打回去是好方法嗎？', a:['不是，暴力會讓事情更嚴重，應該請大人協助','是，打回去才不會再被欺負','找更多人一起打回去','帶武器保護自己'], exp:'以暴制暴可能讓自己也受傷或變成加害者。保護自己最好的方法，是馬上告訴大人。'},
+    {q:'分組時沒有人願意和某位同學一組，你可以怎麼做？', a:['主動邀請他加入我們這一組','也不理他','在旁邊嘲笑他','叫老師把他換走'], exp:'一個小小的邀請，就能讓被冷落的同學感到溫暖。'},
+    {q:'霸凌事件中的「旁觀者」是指誰？', a:['在旁邊看到霸凌發生的人，他們的行動可以讓霸凌停止','欺負別人的人','被欺負的人','學校的老師'], exp:'大部分霸凌發生時都有旁觀者在場，只要旁觀者不起鬨、去求助，霸凌就很難繼續。'},
+    {q:'有同學一直說你「好胖」，讓你很難過，你可以怎麼做？', a:['告訴他「我不喜歡，請停止」，如果繼續就告訴老師','躲起來偷偷哭','開始不吃飯','也罵他難聽的話'], exp:'你值得被尊重！清楚表達感受，如果對方不停止，就請老師幫忙。'},
+    {type:'order', q:'看到同學被欺負時，請排出正確的處理順序：', items:['不起鬨、不圍觀','先確定自己是安全的','馬上告訴老師或大人','事後關心被欺負的同學'], exp:'保護好自己、找大人幫忙、陪伴被欺負的人，你就是友善校園的守護者！'},
+    {q:'遇到霸凌問題時，可以向誰求助？', a:['導師、輔導老師、學務處，或家長','只能自己處理','只能找同學','不能告訴任何人'], exp:'學校和家裡有很多大人願意幫你，說出來，就有人可以一起想辦法。'}
+  ],
+  rules: [
+    {q:'上課鐘聲響了，你正在操場玩，應該怎麼做？', a:['馬上回教室，準備好上課要用的東西','玩完這一局再說','慢慢逛福利社','躲起來不上課'], exp:'聽到鐘聲就回教室，準時上課是尊重老師和同學的表現。'},
+    {q:'在走廊上，應該怎麼走？', a:['慢慢走，靠右行，不奔跑追逐','用跑的比較快','跟同學在走廊玩鬼抓人','倒退著走'], exp:'走廊奔跑很容易撞到人或滑倒受傷，要放慢腳步、靠右走。'},
+    {q:'上下樓梯時，下列哪一個做法正確？', a:['靠右邊一階一階走，不推擠','兩三階一起跳','從扶手溜下去','在樓梯上玩耍'], exp:'樓梯是最容易發生意外的地方之一，靠右、一階一階、不推擠才安全。'},
+    {q:'你想借用同學的彩色筆，應該怎麼做？', a:['先詢問同學，得到同意再用，用完歸還並說謝謝','直接拿來用','用完放著不還','趁他不在偷偷拿'], exp:'尊重別人的物品：先問、再借、要還、說謝謝！'},
+    {q:'喝完的鋁箔包飲料，應該怎麼處理？', a:['把吸管抽出、壓扁，放到回收區','直接丟到一般垃圾桶','丟在抽屜裡','丟在操場上'], exp:'做好垃圾分類和資源回收，讓地球更乾淨！'},
+    {q:'下課時，同學突然肚子很痛、臉色發白，你應該？', a:['馬上告訴老師，並陪同學去健康中心','叫他自己忍耐','繼續去玩','給他吃自己的藥'], exp:'同學身體不舒服要馬上告訴老師，不可以亂給別人吃藥喔。'},
+    {q:'你在走廊撿到一個錢包，應該怎麼做？', a:['交給老師或學務處的失物招領','放進自己的口袋','丟掉','拿裡面的錢去買東西'], exp:'拾金不昧！把東西交給老師，失主才能找回自己的東西。'},
+    {q:'要進入辦公室找老師時，應該怎麼做？', a:['先敲門喊「報告」，經過同意再進去','直接衝進去大叫老師','在門口一直敲門不說話','趴在窗戶偷看'], exp:'有禮貌地喊「報告」，說清楚找哪位老師、有什麼事情。'},
+    {q:'打掃時間到了，你應該？', a:['認真完成自己負責的工作','偷偷溜去玩','把垃圾掃到別人的區域','叫別人幫我做'], exp:'每個人都把自己的工作做好，教室和校園就能乾淨又舒服。'},
+    {q:'午餐時間，下列哪一個做法正確？', a:['洗好手後排隊打菜，不浪費食物','插隊先打','不喜歡的菜直接倒掉','邊吃邊跑來跑去'], exp:'飯前洗手、排隊打菜、珍惜食物，吃飯時坐好，才不會噎到。'},
+    {q:'上課時突然很想上廁所，應該怎麼做？', a:['舉手告訴老師，經過同意再去','直接走出教室','忍到肚子痛','趁老師不注意偷偷溜出去'], exp:'讓老師知道你去哪裡，老師才能確保你的安全。'},
+    {q:'在圖書館裡，應該怎麼做？', a:['保持安靜，看完的書放回原位','大聲聊天','在書上畫畫','邊看書邊吃零食'], exp:'圖書館是大家共用的安靜空間，愛惜書本，下一個人才能看到乾淨的書。'},
+    {type:'order', q:'請排出正確的洗手步驟：', items:['濕：把手淋濕','搓：抹肥皂搓洗手心、手背、指縫','沖：用清水沖乾淨','捧：捧水沖洗水龍頭','擦：用乾淨的紙巾擦乾'], exp:'洗手口訣「濕、搓、沖、捧、擦」，搓洗至少 20 秒，可以預防很多疾病。'},
+    {q:'下課時間，可以在哪裡玩？', a:['操場或學校規定的遊戲區，不在樓梯間追逐','樓梯間','頂樓圍牆邊','停車場'], exp:'樓梯間、頂樓、停車場都很危險，下課要在安全的地方玩。'},
+    {q:'早上遲到了，進教室時應該怎麼做？', a:['先說「報告」，再向老師說明原因','偷偷從後門溜進去','大聲喧嘩地走進去','乾脆不進教室'], exp:'有禮貌地說明原因，下次記得早一點出門，就不會遲到了。'},
+    {q:'玩遊樂器材時，正確的做法是？', a:['排隊輪流，依照正確的方式使用','站在鞦韆上盪','從溜滑梯下面往上爬','推擠搶位子'], exp:'遊樂器材要照正確方式玩，排隊輪流不推擠，大家才能玩得開心又安全。'},
+    {q:'放學的時候，應該怎麼做？', a:['整理好書包，依路隊或家長接送的規定離開學校','自己到處亂跑','跟不認識的人走','在校門口逗留玩耍'], exp:'依照規定的方式回家，讓家人和老師都知道你平安。'},
+    {q:'帶手機到學校，應該怎麼做？', a:['遵守學校規定，上課時關機或交給老師保管','上課偷偷玩','偷拍同學','借給同學玩遊戲'], exp:'手機要依照學校規定使用，上課專心，也不能拍別人。'},
+    {q:'看到同學亂丟垃圾，你可以怎麼做？', a:['友善地提醒他，並把垃圾撿起來丟進垃圾桶','假裝沒看到','也跟著亂丟','大聲罵他'], exp:'用友善的方式提醒，比責罵更有用。校園乾淨，大家都舒服。'},
+    {q:'看到學校的工友伯伯或志工阿姨，應該怎麼做？', a:['有禮貌地打招呼，並說謝謝','不理他們','叫他們幫我做事','取笑他們'], exp:'學校裡每個人都在努力照顧大家，一句問好和謝謝，就是最好的回報。'}
+  ]
+};
+for(const k of Object.keys(QUIZ)) QUIZ[k].forEach((q,i)=>{ q.id = k + '_' + i; });
+
+/* ===================================================================== */
+
+const TOPICS = {
+  rules:    {name:'校園常規', badge:'常規徽章',   icon:'📚', place:'教室（左上方）',       npc:'王老師',  bg:'class',
+             monster:{name:'散漫怪',   kind:'lazy',    color:'#4fb393', horn:'#2d6b57'}},
+  traffic:  {name:'交通安全', badge:'交通徽章',   icon:'🚦', place:'校門口（下方）',       npc:'林阿姨',  bg:'road',
+             monster:{name:'闖紅燈怪', kind:'traffic', color:'#e25555', horn:'#5a1d1d'}},
+  disaster: {name:'防災',     badge:'防災徽章',   icon:'🧯', place:'防災教育中心（左方）', npc:'阿勇隊長',bg:'alert',
+             monster:{name:'慌張怪',   kind:'panic',   color:'#f0913f', horn:'#8a3b0b'}},
+  bully:    {name:'反霸凌',   badge:'反霸凌徽章', icon:'🛡️', place:'操場（右方）',         npc:'張主任',  bg:'field',
+             monster:{name:'欺負怪',   kind:'bully',   color:'#6b7f96', horn:'#26303b'}},
+  gender:   {name:'性別平等', badge:'性平徽章',   icon:'🤝', place:'輔導室（右上方）',     npc:'陳老師',  bg:'soft',
+             monster:{name:'偏見怪',   kind:'bias',    color:'#a074dc', horn:'#4a2a73'}},
+};
+const TOPIC_KEYS = Object.keys(TOPICS);
+const BOSS = {name:'糊塗大魔王', kind:'boss', color:'#55418a', horn:'#f4c542', boss:true};
+const LV_TITLES = ['見習守護者','校園小隊員','安全小達人','守護小隊長','校園守護者','傳說守護者'];
+
+const $ = s => document.querySelector(s);
+const cv = $('#cv'), ctx = cv.getContext('2d');
+const VW = 800, VH = 576, TS = 32, MW = 52, MH = 33;
+const OL = '#2b2233';
+const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.random()*(i+1)|0; [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function hash(x,y,k){ let n = Math.imul(x,374761393) + Math.imul(y,668265263) + Math.imul(k,1442695041); n = Math.imul(n ^ (n>>>13), 1274126177); return ((n ^ (n>>>16))>>>0) / 4294967296; }
+function rgb(hex){ hex=hex.replace('#',''); if(hex.length===3) hex=hex.split('').map(c=>c+c).join(''); const n=parseInt(hex,16); return [n>>16,(n>>8)&255,n&255]; }
+function darken(hex,a){ const [r,g,b]=rgb(hex); return `rgb(${r*(1-a)|0},${g*(1-a)|0},${b*(1-a)|0})`; }
+function lighten(hex,a){ const [r,g,b]=rgb(hex); return `rgb(${r+(255-r)*a|0},${g+(255-g)*a|0},${b+(255-b)*a|0})`; }
+
+/* ---- 繪圖小工具：填色＋描邊 ---- */
+function rr(g,x,y,w,h,r,fill,stroke=true){
+  g.beginPath();
+  if(g.roundRect) g.roundRect(x,y,w,h,r); else g.rect(x,y,w,h);
+  if(fill){ g.fillStyle=fill; g.fill(); }
+  if(stroke){ g.stroke(); }
+}
+function circ(g,x,y,r,fill,stroke=true){ g.beginPath(); g.arc(x,y,r,0,Math.PI*2); if(fill){g.fillStyle=fill; g.fill();} if(stroke) g.stroke(); }
+function ell(g,x,y,rx,ry,fill,stroke=true){ g.beginPath(); g.ellipse(x,y,rx,ry,0,0,Math.PI*2); if(fill){g.fillStyle=fill; g.fill();} if(stroke) g.stroke(); }
+
+/* ---------------- 地圖 ---------------- */
+const map = [];
+for(let y=0;y<MH;y++){ map.push(new Array(MW).fill('.')); }
+function R(c,x1,y1,x2,y2){ for(let y=y1;y<=y2;y++) for(let x=x1;x<=x2;x++) map[y][x]=c; }
+function building(x1,y1,x2,y2){ R('#',x1,y1,x2,y2); R(',',x1+1,y1+1,x2-1,y2-1); }
+(function buildMap(){
+  for(let x=0;x<MW;x++) map[0][x]='T';
+  for(let y=0;y<24;y++){ map[y][0]='T'; map[y][MW-1]='T'; }
+  R('_',2,10,49,11);
+  R('_',18,9,20,24);
+  R('_',12,16,21,17);
+  R('_',39,12,40,23);
+  building(2,2,13,9); map[9][8]='D'; R('b',5,2,10,2);
+  for(const x of [4,5,6,10,11]) for(const y of [5,7]) map[y][x]='k';
+  building(16,2,23,8); map[8][19]='Q'; R('k',18,5,20,5); map[3][17]='p'; map[3][22]='p';
+  building(26,2,37,9); map[9][31]='D'; R('c',28,4,29,4); R('c',33,4,34,4); map[3][27]='p'; map[3][36]='p'; R('k',30,7,32,7);
+  building(2,13,11,20); map[16][11]='D'; R('h',5,14,8,14); map[14][3]='e'; map[19][10]='e'; map[19][3]='e';
+  // 圖書館
+  building(41,2,49,9); map[9][45]='D'; for(const x of [42,43,44,46,47,48]) map[3][x]='B'; for(const x of [43,44,46,47]) map[6][x]='k'; map[8][42]='p'; map[8][48]='p';
+  // 健康中心
+  building(42,13,49,18); map[15][42]='D'; map[14][46]='Y'; map[14][48]='Y'; map[17][48]='h';
+  // 福利社
+  building(42,20,49,23); map[21][42]='D'; map[21][47]='h'; map[21][48]='h'; map[22][48]='h';
+  R('t',22,12,37,21); R('.',24,14,35,19);
+  R('W',13,19,16,22); R('F',13,18,16,18);
+  map[13][16]='P';
+  for(const x of [23,25,27,29,31,33,35,37]) map[23][x]='T';
+  for(const x of [3,5,7,9,11]) map[22][x]='T';
+  R('f',0,24,MW-1,24); R('g',18,24,20,24);
+  R('_',0,25,MW-1,25);
+  R('=',0,26,MW-1,29); R('z',18,26,20,29);
+  R('_',0,30,MW-1,31);
+  R('f',0,32,MW-1,32);
+  map[25][16]='L'; map[30][21]='L';
+})();
+
+/* 告示牌內容（座標 'x,y'：文字） */
+const SIGNS = {
+  '21,23':'【校園公告】上下學請走斑馬線，並遵守導護志工的指揮。',
+  '17,12':'【校園地圖】左上：教室｜中上：校長室｜右上：輔導室｜左：防災教育中心｜右：操場｜最右邊：圖書館、健康中心、福利社｜下：校門口',
+  '12,13':'【防災小叮嚀】地震：趴下、掩護、穩住。火災：小火快逃、濃煙關門。報案請撥 119。',
+  '14,12':'【生活常規】走廊不奔跑，上下樓梯靠右走，見到師長要問好。',
+  '24,22':'【友善校園】反霸凌三步驟：不旁觀、要求助、多關心。',
+  '37,22':'【性平小語】我的身體我作主！讓人不舒服的秘密要說出來。保護專線 113。'
+};
+for(const k of Object.keys(SIGNS)){ const [x,y]=k.split(',').map(Number); if(map[y][x]==='.') map[y][x]='S'; }
+const EXTRA_TALK = {
+  P:'【升旗台】每週一早上有升旗典禮，要排好隊伍、保持安靜喔。',
+  L:'【紅綠燈】行人要看「小綠人」。小綠人亮起，左右看清楚再過馬路！',
+  W:'【水池】水池邊很滑又很深，不可以在旁邊追逐玩耍喔！',
+  h:'【防災器材櫃】裡面有急救箱、手電筒、哨子和防災頭套。',
+  e:'【滅火器】使用口訣：拉（插銷）、瞄（火源底部）、壓（握把）、掃（左右掃射）。',
+  c:'（舒服的沙發，在這裡可以放心說出心裡的話。）',
+  b:'（黑板上寫著：今天的目標──做個校園守護者！）',
+  p:'（綠油油的盆栽，有人每天細心澆水。）',
+  Y:'（健康中心的病床，身體不舒服時可以在這裡休息。）',
+  f:'（白色的校園圍牆。要從校門進出喔！）'
+};
+
+const SOLID = new Set(['#','T','W','f','k','b','c','e','h','p','S','P','L','B','Y']);
+const NPC_WALK = new Set(['.','_','t',',','F']);
+const BG = {T:'.',F:'.',f:'.',S:'.',P:'.',L:'_',k:',',c:',',e:',',h:',',p:',',b:'#',Q:'#',D:',',g:'_',B:',',Y:','};
+const BOOK_TIPS = [
+  '📕《小心！陌生人》：不跟陌生人走、不吃陌生人給的東西、不告訴陌生人個人資料。',
+  '📗《地震來了怎麼辦》：趴下、掩護、穩住！搖晃停止後再聽指示疏散。',
+  '📘《網路安全小學堂》：密碼不告訴別人、不亂點連結、不傳私密照片。',
+  '📙《情緒小怪獸》：生氣、難過都是正常的，可以深呼吸，或找信任的人說說。',
+  '📒《交通安全繪本》：走斑馬線、看小綠人、左右看清楚，走路不滑手機。',
+  '📓《我的身體我作主》：不舒服的觸碰要說「不」、離開、告訴大人。',
+  '📔《好朋友不霸凌》：不起鬨、要求助、多關心，友善校園靠大家。'
+];
+const tileAt = (x,y) => (x<0||y<0||x>=MW||y>=MH) ? '#' : map[y][x];
+// 門口前後不讓 NPC 停留，避免擋路
+const NO_WANDER = new Set();
+for(let y=0;y<MH;y++) for(let x=0;x<MW;x++) if('DQg'.includes(map[y][x])) for(const [dx,dy] of [[0,0],[1,0],[-1,0],[0,1],[0,-1]]) NO_WANDER.add((x+dx)+','+(y+dy));
+
+const BLD = [
+  {k:'class',     x1:2, y1:2, x2:13,y2:9,  roof:'#c8553d', wall:'#f6e7c8', trim:'#8a5a3c'},
+  {k:'principal', x1:16,y1:2, x2:23,y2:8,  roof:'#3d5a80', wall:'#eef2f7', trim:'#2c3e60'},
+  {k:'counsel',   x1:26,y1:2, x2:37,y2:9,  roof:'#3f9483', wall:'#fff6e6', trim:'#2f6b5f'},
+  {k:'disaster',  x1:2, y1:13,x2:11,y2:20, roof:'#b83b3b', wall:'#f4f4f4', trim:'#7a2020'},
+  {k:'library',   x1:41,y1:2, x2:49,y2:9,  roof:'#6b4a8a', wall:'#f7efe0', trim:'#4a2f63'},
+  {k:'health',    x1:42,y1:13,x2:49,y2:18, roof:'#3f95bf', wall:'#ffffff', trim:'#2a6f8f'},
+  {k:'shop',      x1:42,y1:20,x2:49,y2:23, roof:'#e09a2a', wall:'#fff3dc', trim:'#8a5a10'},
+];
+const bldAt = (x,y) => BLD.find(b=>x>=b.x1&&x<=b.x2&&y>=b.y1&&y<=b.y2);
+const isWall = c => c==='#'||c==='b'||c==='Q';
+const POND = {x:13*TS, y:19*TS, w:4*TS, h:4*TS};
+
+/* ---------------- 預先繪製地圖（靜態層） ---------------- */
+const mapCv = document.createElement('canvas'); mapCv.width = MW*TS; mapCv.height = MH*TS;
+const MS = 3; // 小地圖每格像素
+const miniCv = document.createElement('canvas'); miniCv.width = MW*MS; miniCv.height = MH*MS;
+(function prerender(){
+  const g = mapCv.getContext('2d');
+  g.lineJoin='round';
+  for(let y=0;y<MH;y++) for(let x=0;x<MW;x++) drawGround(g, x, y);
+  drawPlayground(g);
+  drawPondBase(g);
+  drawInteriors(g);
+  for(let y=0;y<MH;y++) for(let x=0;x<MW;x++) drawStatic(g, map[y][x], x, y);
+  drawShadows(g);
+  g.fillStyle='rgba(255,255,255,.88)'; g.font='bold 12px "Microsoft JhengHei",sans-serif'; g.textAlign='center'; g.textBaseline='middle';
+  g.fillText('今日目標：做個校園守護者！', 8*TS, 2*TS+20);
+  plaque(g,'教　室', 5*TS, 9*TS+20);
+  plaque(g,'校長室', 17*TS+4, 8*TS+20);
+  plaque(g,'輔導室', 34*TS, 9*TS+20);
+  plaque(g,'防災教育中心', 6.5*TS, 13*TS+20);
+  plaque(g,'圖書館', 43*TS, 9*TS+20);
+  plaque(g,'健康中心', 46*TS, 13*TS+20);
+  plaque(g,'福利社', 46*TS, 20*TS+20);
+  // 健康中心紅十字
+  g.lineWidth=1.5; g.strokeStyle=OL; rr(g, 48*TS+6, 13*TS+12, 18, 18, 3, '#fff'); g.fillStyle='#d62d2d'; g.fillRect(48*TS+13, 13*TS+15, 4, 12); g.fillRect(48*TS+9, 13*TS+19, 12, 4);
+  plaque(g, SCHOOL_NAME, 14.5*TS, 24*TS+16, true);
+  // 小地圖
+  const m = miniCv.getContext('2d');
+  const MC = {'.':'#86c96e','_':'#e6d6b0','g':'#e6d6b0','=':'#4f525a','z':'#d8d8d8','t':'#c9573f','W':'#3f97d6','T':'#3d8a43','F':'#f29ab5','f':'#f4f4f4','S':'#a8733e','P':'#bbb','L':'#666'};
+  for(let y=0;y<MH;y++) for(let x=0;x<MW;x++){
+    const c = map[y][x], b = bldAt(x,y);
+    m.fillStyle = b ? (isWall(c) ? b.roof : lighten(b.roof,.72)) : (y>=25 && c==='_' ? '#c9c6bf' : (MC[c]||'#86c96e'));
+    m.fillRect(x*MS,y*MS,MS,MS);
+  }
+})();
+
+function plaque(g, text, cx, cy, big){
+  g.font = `bold ${big?18:14}px "Microsoft JhengHei",sans-serif`;
+  const w = g.measureText(text).width + (big?22:16), h = big?28:22;
+  g.lineWidth=2; g.strokeStyle=OL;
+  g.fillStyle='rgba(0,0,0,.25)'; g.fillRect(cx-w/2+3, cy-h/2+3, w, h);
+  rr(g, cx-w/2, cy-h/2, w, h, 5, big ? '#f6c445' : '#7a4a24');
+  g.fillStyle = big ? 'rgba(255,255,255,.35)' : 'rgba(255,255,255,.15)'; g.fillRect(cx-w/2+3, cy-h/2+3, w-6, 3);
+  g.fillStyle = big ? OL : '#fff3c4'; g.textAlign='center'; g.textBaseline='middle'; g.fillText(text, cx, cy+1);
+}
+
+function drawGrass(g,X,Y,tx,ty){
+  g.fillStyle = hash(tx>>1,ty>>1,7) > .5 ? '#86c96e' : '#8dcf74'; g.fillRect(X,Y,TS,TS);
+  for(let i=0;i<3;i++){ // 草叢
+    const gx = X+4+hash(tx,ty,i)*22, gy = Y+6+hash(ty,tx,i+3)*20;
+    g.strokeStyle = '#69ad55'; g.lineWidth=1.2; g.beginPath();
+    g.moveTo(gx,gy+4); g.lineTo(gx-2,gy); g.moveTo(gx+1,gy+4); g.lineTo(gx+1,gy-1); g.moveTo(gx+2,gy+4); g.lineTo(gx+4,gy); g.stroke();
+  }
+  if(hash(tx,ty,11) > .9){ g.fillStyle = hash(tx,ty,12)>.5 ? '#fff' : '#ffe066'; g.beginPath(); g.arc(X+8+hash(tx,ty,13)*16, Y+8+hash(tx,ty,14)*16, 1.8, 0, 7); g.fill(); }
+}
+function drawGround(g,tx,ty){
+  const X=tx*TS, Y=ty*TS, c=map[ty][tx];
+  let b = BG[c]||c;
+  const B = bldAt(tx,ty);
+  if(b==='.' || b==='t' || b==='W'){ drawGrass(g,X,Y,tx,ty); return; }
+  if(b==='_'||b==='g'){
+    if(ty>=25){ // 人行道
+      g.fillStyle='#cfccc4'; g.fillRect(X,Y,TS,TS);
+      g.fillStyle='#bdb9b0'; g.fillRect(X,Y+15,TS,2); g.fillRect(X+((ty%2)?8:24),Y,2,15); g.fillRect(X+((ty%2)?24:8),Y+17,2,15);
+      if(ty===25){ g.fillStyle='#9b978e'; g.fillRect(X,Y+TS-4,TS,4); g.fillStyle='#e4e1da'; g.fillRect(X,Y+TS-5,TS,1); }
+      if(ty===30){ g.fillStyle='#9b978e'; g.fillRect(X,Y,TS,4); g.fillStyle='#e4e1da'; g.fillRect(X,Y+4,TS,1); }
+      if((ty===25||ty===30) && tx>=18 && tx<=20){ // 導盲磚
+        g.fillStyle='#f2c230'; g.fillRect(X+2,Y+(ty===25?6:10),TS-4,16);
+        g.fillStyle='#d9a810'; for(let i=0;i<4;i++) for(let j=0;j<3;j++){ g.beginPath(); g.arc(X+6+i*7,Y+(ty===25?10:14)+j*5,1.2,0,7); g.fill(); }
+      }
+      return;
+    }
+    g.fillStyle='#e6d6b0'; g.fillRect(X,Y,TS,TS);
+    g.fillStyle='#d4c193';
+    const o = (ty%2)*8;
+    g.fillRect(X,Y+15,TS,2); g.fillRect(X+((o+8)%32),Y,2,15); g.fillRect(X+((o+24)%32),Y,2,15); g.fillRect(X+o,Y+17,2,15); g.fillRect(X+o+16,Y+17,2,15);
+    g.fillStyle='rgba(255,255,255,.25)'; g.fillRect(X+3,Y+2,8,2);
+    // 草地邊緣
+    const grassy = c2 => c2==='.'||c2==='F'||c2==='T'||c2==='S'||c2==='P';
+    g.fillStyle='#86c96e';
+    if(grassy(tileAt(tx,ty-1))) for(let i=0;i<8;i++) g.fillRect(X+i*4, Y, 3, 2+(hash(tx,ty,i)*3|0));
+    if(grassy(tileAt(tx,ty+1))) for(let i=0;i<8;i++){ const h=2+(hash(tx,ty,i+8)*3|0); g.fillRect(X+i*4, Y+TS-h, 3, h); }
+    if(grassy(tileAt(tx-1,ty))) for(let i=0;i<8;i++) g.fillRect(X, Y+i*4, 2+(hash(tx,ty,i+16)*3|0), 3);
+    if(grassy(tileAt(tx+1,ty))) for(let i=0;i<8;i++){ const w=2+(hash(tx,ty,i+24)*3|0); g.fillRect(X+TS-w, Y+i*4, w, 3); }
+    return;
+  }
+  if(b===','||b==='D'){ drawFloor(g,X,Y,tx,ty,B); return; }
+  if(b==='='||b==='z'){
+    g.fillStyle='#4f525a'; g.fillRect(X,Y,TS,TS);
+    for(let i=0;i<6;i++){ g.fillStyle= i%2?'#464950':'#5a5d65'; g.fillRect(X+hash(tx,ty,i)*30|0, Y+hash(ty,tx,i)*30|0, 2,2); }
+    if(b==='='){
+      if(ty===28){ g.fillStyle='#f2c230'; g.fillRect(X+4, Y-1.5, 18, 3); }
+      if(ty===26){ g.fillStyle='#e8e8e8'; g.fillRect(X, Y+3, TS, 2); }
+      if(ty===29){ g.fillStyle='#e8e8e8'; g.fillRect(X, Y+TS-5, TS, 2); }
+      if(tx===17 && ty===27){ g.fillStyle='#f4f4f4'; g.fillRect(X+TS-8, Y, 4, TS); }  // 停止線
+      if(tx===21 && ty===28){ g.fillStyle='#f4f4f4'; g.fillRect(X+4, Y, 4, TS); }
+    } else {
+      g.fillStyle='#f4f4f4'; g.fillRect(X+3, Y+4, TS-6, 9); g.fillRect(X+3, Y+20, TS-6, 9);
+      g.fillStyle='rgba(0,0,0,.08)'; g.fillRect(X+3, Y+11, TS-6, 2); g.fillRect(X+3, Y+27, TS-6, 2);
+    }
+    return;
+  }
+  if(b==='#'){ /* 牆壁在 drawStatic 畫 */ g.fillStyle='#000'; g.fillRect(X,Y,TS,TS); return; }
+}
+function drawFloor(g,X,Y,tx,ty,B){
+  const k = B ? B.k : 'class';
+  if(k==='class'){
+    g.fillStyle='#e2b77e'; g.fillRect(X,Y,TS,TS);
+    g.fillStyle='#cf9f62'; for(let i=0;i<4;i++){ g.fillRect(X, Y+i*8+7, TS, 1); g.fillRect(X+((i+tx)%2?6:20), Y+i*8, 1, 7); }
+    g.fillStyle='rgba(255,255,255,.18)'; g.fillRect(X, Y+((tx+ty)%4)*8, TS, 2);
+  } else if(k==='principal'){
+    g.fillStyle='#a8343a'; g.fillRect(X,Y,TS,TS);
+    g.fillStyle='#b9484d'; for(let i=0;i<2;i++) for(let j=0;j<2;j++){ g.beginPath(); g.moveTo(X+8+i*16,Y+3+j*16); g.lineTo(X+13+i*16,Y+8+j*16); g.lineTo(X+8+i*16,Y+13+j*16); g.lineTo(X+3+i*16,Y+8+j*16); g.fill(); }
+  } else if(k==='counsel'){
+    g.fillStyle=((tx+ty)%2)?'#d7eee0':'#c9e6d5'; g.fillRect(X,Y,TS,TS);
+    g.fillStyle='rgba(255,255,255,.4)'; g.fillRect(X,Y,TS,1); g.fillRect(X,Y,1,TS);
+  } else if(k==='library'){
+    g.fillStyle='#4f6fa8'; g.fillRect(X,Y,TS,TS);
+    g.fillStyle='#5b7cb6'; for(let i=0;i<4;i++) g.fillRect(X+i*8+((ty%2)?4:0), Y+((tx+i)%4)*8, 3, 3);
+  } else if(k==='health'){
+    g.fillStyle=((tx+ty)%2)?'#f4fbfd':'#e6f4f8'; g.fillRect(X,Y,TS,TS);
+    g.fillStyle='rgba(63,149,191,.25)'; g.fillRect(X,Y,TS,1); g.fillRect(X,Y,1,TS);
+  } else if(k==='shop'){
+    g.fillStyle=((tx+ty)%2)?'#fde7b0':'#f7d58a'; g.fillRect(X,Y,TS,TS);
+    g.fillStyle='rgba(255,255,255,.35)'; g.fillRect(X,Y,TS,1); g.fillRect(X,Y,1,TS);
+  } else {
+    g.fillStyle=((tx+ty)%2)?'#e2e6eb':'#d5dae0'; g.fillRect(X,Y,TS,TS);
+    g.fillStyle='rgba(255,255,255,.5)'; g.fillRect(X,Y,TS,1); g.fillRect(X,Y,1,TS);
+  }
+}
+function drawInteriors(g){
+  g.lineWidth=2; g.strokeStyle=OL;
+  // 校長室金邊
+  g.strokeStyle='#e0b44a'; g.lineWidth=2; g.strokeRect(17*TS+6, 3*TS+6, 6*TS-12, 5*TS-12);
+  // 輔導室地毯
+  g.fillStyle='#f6c9a8'; g.strokeStyle='#d9906a'; g.lineWidth=3;
+  g.beginPath(); g.ellipse(31.5*TS, 6.5*TS, 3.2*TS, 1.6*TS, 0, 0, 7); g.fill(); g.stroke();
+  g.strokeStyle='#fff3e6'; g.lineWidth=2; g.beginPath(); g.ellipse(31.5*TS, 6.5*TS, 2.7*TS, 1.2*TS, 0, 0, 7); g.stroke();
+  // 防災中心安全線
+  g.strokeStyle='#f2c230'; g.lineWidth=4; g.setLineDash([10,6]); g.strokeRect(3*TS+6, 14*TS+6, 8*TS-12, 6*TS-12); g.setLineDash([]);
+  // 教室講台
+  g.fillStyle='#b98448'; g.strokeStyle=OL; g.lineWidth=2; rr(g, 6*TS+4, 3*TS+18, 5*TS-8, 12, 3, '#b98448');
+}
+function drawPlayground(g){
+  const x1=22*TS, y1=12*TS, w=16*TS, h=10*TS;
+  g.lineWidth=3; g.strokeStyle=OL;
+  // 跑道
+  g.fillStyle='#c9573f'; g.beginPath(); g.roundRect(x1+2,y1+2,w-4,h-4,60); g.fill(); g.stroke();
+  g.strokeStyle='rgba(255,255,255,.85)'; g.lineWidth=2;
+  for(const ins of [14,28,42]){ g.beginPath(); g.roundRect(x1+ins,y1+ins,w-ins*2,h-ins*2,Math.max(10,60-ins)); g.stroke(); }
+  // 草皮
+  const fx=24*TS, fy=14*TS, fw=12*TS, fh=6*TS;
+  for(let i=0;i<12;i++){ g.fillStyle = i%2 ? '#7cc062' : '#8ccf70'; g.fillRect(fx+i*TS, fy, TS, fh); }
+  g.strokeStyle='#fff'; g.lineWidth=2.5;
+  g.strokeRect(fx+8, fy+8, fw-16, fh-16);
+  g.beginPath(); g.moveTo(fx+fw/2, fy+8); g.lineTo(fx+fw/2, fy+fh-8); g.stroke();
+  g.beginPath(); g.arc(fx+fw/2, fy+fh/2, 30, 0, 7); g.stroke();
+  g.strokeRect(fx+8, fy+fh/2-34, 30, 68); g.strokeRect(fx+fw-38, fy+fh/2-34, 30, 68);
+  // 球門
+  g.strokeStyle=OL; g.lineWidth=2;
+  rr(g, fx+2, fy+fh/2-18, 8, 36, 2, '#f4f4f4'); rr(g, fx+fw-10, fy+fh/2-18, 8, 36, 2, '#f4f4f4');
+  g.strokeStyle='rgba(43,34,51,.35)'; g.lineWidth=1; for(let i=0;i<5;i++){ g.beginPath(); g.moveTo(fx+3,fy+fh/2-15+i*8); g.lineTo(fx+9,fy+fh/2-15+i*8); g.moveTo(fx+fw-9,fy+fh/2-15+i*8); g.lineTo(fx+fw-3,fy+fh/2-15+i*8); g.stroke(); }
+  g.fillStyle='rgba(255,255,255,.95)'; g.font='bold 15px "Microsoft JhengHei",sans-serif'; g.textAlign='center'; g.textBaseline='middle';
+  g.fillText('操　場', x1+w/2, y1+21);
+}
+function drawPondBase(g){
+  const {x,y,w,h}=POND;
+  g.lineWidth=2; g.strokeStyle=OL;
+  g.fillStyle='rgba(0,0,0,.2)'; g.beginPath(); g.roundRect(x+4,y+6,w,h,26); g.fill();
+  rr(g, x, y, w, h, 26, '#a5aab0');
+  for(let i=0;i<22;i++){ const a=i/22*Math.PI*2; ell(g, x+w/2+Math.cos(a)*(w/2-6), y+h/2+Math.sin(a)*(h/2-6), 8, 6, i%2?'#b9bec4':'#9aa0a6'); }
+  rr(g, x+10, y+10, w-20, h-20, 18, '#2f7fbf');
+}
+function drawStatic(g,c,tx,ty){
+  const X=tx*TS, Y=ty*TS;
+  g.lineWidth=1.5; g.strokeStyle=OL;
+  if(c==='#'||c==='b'||c==='Q'){ drawWall(g,c,tx,ty); return; }
+  switch(c){
+    case 'F':
+      for(let i=0;i<5;i++){
+        const fx=X+5+hash(tx,ty,i)*22, fy=Y+6+hash(ty,tx,i)*20;
+        g.strokeStyle='#3d8a43'; g.lineWidth=1.5; g.beginPath(); g.moveTo(fx,fy+3); g.lineTo(fx,fy+9); g.stroke();
+        const col=['#ff6b8a','#ffd447','#ffffff','#c78bff','#ff9a4a'][(i+tx)%5];
+        g.fillStyle=col; for(let k=0;k<5;k++){ const a=k/5*Math.PI*2; g.beginPath(); g.arc(fx+Math.cos(a)*2.6, fy+Math.sin(a)*2.6, 2, 0, 7); g.fill(); }
+        g.fillStyle='#f4a62a'; g.beginPath(); g.arc(fx,fy,1.4,0,7); g.fill();
+      } break;
+    case 'f':
+      g.fillStyle='rgba(0,0,0,.15)'; g.fillRect(X, Y+27, TS, 4);
+      g.strokeStyle=OL; g.lineWidth=1.5;
+      rr(g, X, Y+11, TS, 4, 0, '#f6f6f6'); rr(g, X, Y+20, TS, 4, 0, '#f6f6f6');
+      for(let i=0;i<4;i++){ g.beginPath(); g.moveTo(X+i*8+2,Y+28); g.lineTo(X+i*8+2,Y+7); g.lineTo(X+i*8+4,Y+4); g.lineTo(X+i*8+6,Y+7); g.lineTo(X+i*8+6,Y+28); g.closePath(); g.fillStyle='#ffffff'; g.fill(); g.stroke(); }
+      break;
+    case 'B':
+      g.fillStyle='rgba(0,0,0,.18)'; g.fillRect(X+3,Y+26,28,4);
+      rr(g, X+1, Y+1, 30, 27, 2, '#7a4a24');
+      for(let r=0;r<2;r++){ g.fillStyle='#5b3518'; g.fillRect(X+3,Y+3+r*12,26,11);
+        for(let i=0;i<5;i++){ g.fillStyle=['#d62d2d','#3c7fd0','#f4c542','#2e9d5b','#9b6bd6'][(i+tx+r)%5]; g.fillRect(X+4+i*5,Y+4+r*12+(i%2),4,10-(i%2)); } }
+      break;
+    case 'Y':
+      g.fillStyle='rgba(0,0,0,.15)'; g.fillRect(X+4,Y+27,26,4);
+      rr(g, X+3, Y+2, 26, 26, 3, '#dfe6ea'); rr(g, X+5, Y+4, 22, 8, 3, '#ffffff'); rr(g, X+5, Y+13, 22, 13, 2, '#8fd0f5');
+      break;
+    case 'D':
+      if(isWall(tileAt(tx,ty-1)) && isWall(tileAt(tx,ty+1))){ // 側門
+        g.fillStyle='#7a4a24'; g.fillRect(X,Y,TS,3); g.fillRect(X,Y+TS-3,TS,3);
+      } else {
+        const B=bldAt(tx,ty);
+        g.fillStyle=B.roof; g.fillRect(X,Y,TS,6); g.fillStyle=B.trim; g.fillRect(X,Y,4,TS); g.fillRect(X+TS-4,Y,4,TS);
+      }
+      rr(g, X+6, Y+20, TS-12, 8, 2, '#5d8b4f');
+      break;
+    case 'k': drawDesk(g,X,Y,tx,ty); break;
+    case 'c':
+      g.fillStyle='rgba(0,0,0,.15)'; g.fillRect(X+3,Y+24,28,5);
+      rr(g, X+1, Y+6, 30, 20, 6, '#8a68c9'); rr(g, X+4, Y+12, 24, 12, 4, '#a689e2');
+      g.fillStyle='rgba(255,255,255,.3)'; g.fillRect(X+6,Y+8,20,2); break;
+    case 'e':
+      g.fillStyle='rgba(0,0,0,.18)'; g.fillRect(X+10,Y+26,14,4);
+      rr(g, X+11, Y+8, 10, 19, 3, '#d62d2d'); rr(g, X+13, Y+3, 6, 6, 1, '#333');
+      g.fillStyle='#fff'; g.fillRect(X+12,Y+15,8,4); g.fillStyle='rgba(255,255,255,.35)'; g.fillRect(X+13,Y+10,2,14); break;
+    case 'h':
+      g.fillStyle='rgba(0,0,0,.18)'; g.fillRect(X+3,Y+26,28,4);
+      rr(g, X+2, Y+1, 28, 27, 2, '#7a4a24');
+      g.fillStyle='#e8c38c'; g.fillRect(X+4,Y+3,24,10); g.fillRect(X+4,Y+15,24,11);
+      const items=[['#d62d2d','#fff'],['#3c7fd0','#f4c542'],['#f4c542','#2e9d5b'],['#2e9d5b','#d62d2d']][tx%4];
+      rr(g, X+6,Y+5,9,8,1,items[0]); rr(g, X+17,Y+6,8,7,1,items[1]);
+      rr(g, X+6,Y+17,10,9,1,'#fff'); g.fillStyle='#d62d2d'; g.fillRect(X+10,Y+19,2,5); g.fillRect(X+8.5,Y+20.5,5,2);
+      rr(g, X+19,Y+18,6,8,1,'#f2c230'); break;
+    case 'p':
+      g.fillStyle='rgba(0,0,0,.18)'; g.fillRect(X+8,Y+26,18,4);
+      rr(g, X+10, Y+18, 12, 10, 2, '#b5653a');
+      circ(g, X+16, Y+12, 8, '#3d9b48'); circ(g, X+11, Y+15, 5, '#4fb35a'); circ(g, X+21, Y+15, 5, '#4fb35a'); break;
+  }
+}
+function drawDesk(g,X,Y,tx,ty){
+  const B = bldAt(tx,ty);
+  if(B && B.k==='class'){
+    g.fillStyle='rgba(0,0,0,.15)'; g.fillRect(X+5,Y+22,24,4);
+    rr(g, X+8, Y+19, 16, 8, 2, '#3c7fd0'); // 椅子
+    rr(g, X+3, Y+4, 26, 15, 2, '#c58d50'); g.fillStyle='#d9a467'; g.fillRect(X+5,Y+6,22,3);
+    g.fillStyle='#fff'; g.fillRect(X+8,Y+9,7,6); g.fillStyle='#ff6b8a'; g.fillRect(X+18,Y+10,6,2);
+    return;
+  }
+  // 可合併的大桌
+  const L = tileAt(tx-1,ty)==='k', Rr = tileAt(tx+1,ty)==='k';
+  const x0 = X + (L?0:2), x1 = X + TS - (Rr?0:2);
+  g.fillStyle='rgba(0,0,0,.15)'; g.fillRect(x0+3,Y+24,x1-x0,5);
+  g.fillStyle = B && B.k==='principal' ? '#7a4a24' : '#e2b77e';
+  g.fillRect(x0, Y+6, x1-x0, 20);
+  g.fillStyle = B && B.k==='principal' ? '#94602f' : '#efd0a0'; g.fillRect(x0, Y+6, x1-x0, 5);
+  g.beginPath(); g.moveTo(x0,Y+6); g.lineTo(x1,Y+6); g.moveTo(x0,Y+26); g.lineTo(x1,Y+26);
+  if(!L){ g.moveTo(x0,Y+6); g.lineTo(x0,Y+26); } if(!Rr){ g.moveTo(x1,Y+6); g.lineTo(x1,Y+26); } g.stroke();
+  if(B && B.k==='principal' && tx===19){ rr(g, X+6, Y+14, 20, 7, 1, '#f4c542'); }
+  if(B && B.k==='counsel' && tx===31){ circ(g, X+16, Y+14, 4, '#fff'); g.fillStyle='#8b5a2b'; g.beginPath(); g.arc(X+16,Y+14,2.5,0,7); g.fill(); }
+}
+function drawWall(g,c,tx,ty){
+  const X=tx*TS, Y=ty*TS, B=bldAt(tx,ty);
+  const s = tileAt(tx,ty+1);
+  const face = !isWall(s) && s!=='D';
+  const outdoor = face && !bldAt(tx,ty+1);
+  const topH = face ? 12 : TS;
+  // 屋頂（牆頂）
+  g.fillStyle=B.roof; g.fillRect(X,Y,TS,topH);
+  g.fillStyle=darken(B.roof,.15); for(let i=6;i<topH;i+=7) g.fillRect(X,Y+i,TS,1.5);
+  g.fillStyle=lighten(B.roof,.25);
+  if(!isWall(tileAt(tx,ty-1))) g.fillRect(X,Y,TS,3);
+  if(!isWall(tileAt(tx-1,ty))) g.fillRect(X,Y,3,topH);
+  g.fillStyle=darken(B.roof,.3);
+  if(!isWall(tileAt(tx+1,ty))) g.fillRect(X+TS-3,Y,3,topH);
+  if(!face) return;
+  g.fillStyle=darken(B.roof,.35); g.fillRect(X,Y+topH-2,TS,2);
+  // 牆面
+  const FY=Y+topH, FH=TS-topH;
+  g.fillStyle=B.wall; g.fillRect(X,FY,TS,FH);
+  if(c==='Q'){
+    g.strokeStyle=OL; g.lineWidth=1.5;
+    rr(g, X+3, FY, 26, FH, 1, '#7a4a24');
+    g.fillStyle='#9a6234'; g.fillRect(X+6,FY+3,9,FH-4); g.fillRect(X+17,FY+3,9,FH-4);
+    g.fillStyle='#f4c542'; g.beginPath(); g.arc(X+14,FY+11,1.8,0,7); g.arc(X+18,FY+11,1.8,0,7); g.fill();
+    return;
+  }
+  if(c==='b'){
+    g.strokeStyle='#7a4a24'; g.lineWidth=3; g.fillStyle='#2e5d45'; g.fillRect(X,FY+2,TS,FH-6); g.beginPath(); g.moveTo(X,FY+FH-3); g.lineTo(X+TS,FY+FH-3); g.stroke();
+    return;
+  }
+  if(outdoor){
+    g.fillStyle=B.trim; g.fillRect(X,Y+TS-3,TS,3);
+    if(tx%3===0 && tileAt(tx-1,ty)!=='D' && tileAt(tx+1,ty)!=='D' && tileAt(tx-1,ty)!=='Q' && tileAt(tx+1,ty)!=='Q'){
+      g.strokeStyle=OL; g.lineWidth=1.5; rr(g, X+7, FY+2, 18, FH-7, 1, '#9fd3f0');
+      g.fillStyle='rgba(255,255,255,.7)'; g.beginPath(); g.moveTo(X+9,FY+11); g.lineTo(X+14,FY+4); g.lineTo(X+16,FY+4); g.lineTo(X+11,FY+11); g.fill();
+      g.strokeStyle=B.trim; g.beginPath(); g.moveTo(X+16,FY+3); g.lineTo(X+16,FY+FH-6); g.stroke();
+    }
+  } else {
+    g.fillStyle=darken(B.wall,.1); g.fillRect(X,Y+TS-8,TS,8);
+    g.fillStyle=B.trim; g.fillRect(X,Y+TS-9,TS,1.5);
+    // 牆上裝飾
+    if(B.k==='disaster' && tx===8){ g.strokeStyle=OL; g.lineWidth=1; rr(g,X+5,FY+1,22,12,1,'#fff'); g.fillStyle='#d62d2d'; g.font='bold 9px sans-serif'; g.textAlign='center'; g.textBaseline='middle'; g.fillText('119',X+16,FY+7); }
+    if(B.k==='disaster' && tx===4){ g.strokeStyle=OL; g.lineWidth=1; rr(g,X+6,FY+1,20,12,1,'#2e9d5b'); g.fillStyle='#fff'; g.fillRect(X+9,FY+6,8,2); g.beginPath(); g.moveTo(X+17,FY+3); g.lineTo(X+22,FY+7); g.lineTo(X+17,FY+11); g.fill(); }
+    if(B.k==='counsel' && (tx===30||tx===32)){ g.strokeStyle=OL; g.lineWidth=1; rr(g,X+7,FY+1,18,12,1,tx===30?'#ffd6e0':'#d6ecff'); g.fillStyle=tx===30?'#ff6b8a':'#3c7fd0'; g.beginPath(); g.arc(X+14,FY+6,2,0,7); g.arc(X+18,FY+6,2,0,7); g.moveTo(X+12,FY+7); g.lineTo(X+16,FY+11); g.lineTo(X+20,FY+7); g.fill(); }
+    if(B.k==='principal' && (tx===18||tx===19||tx===20)){ g.strokeStyle=OL; g.lineWidth=1; rr(g,X+2,FY,28,FH-9,1,'#7a4a24'); for(let i=0;i<5;i++){ g.fillStyle=['#d62d2d','#3c7fd0','#f4c542','#2e9d5b','#9b6bd6'][(i+tx)%5]; g.fillRect(X+4+i*5,FY+2,4,FH-13); } }
+    if(B.k==='class' && tx===12){ g.strokeStyle=OL; g.lineWidth=1; circ(g,X+16,FY+5,5,'#fff'); g.beginPath(); g.moveTo(X+16,FY+5); g.lineTo(X+16,FY+2); g.moveTo(X+16,FY+5); g.lineTo(X+18,FY+6); g.stroke(); }
+  }
+}
+function drawShadows(g){
+  for(let y=1;y<MH;y++) for(let x=0;x<MW;x++){
+    const c=map[y][x]; if(isWall(c)) continue;
+    const X=x*TS, Y=y*TS;
+    const n=map[y-1][x];
+    if(isWall(n)){ const gr=g.createLinearGradient(0,Y,0,Y+9); gr.addColorStop(0,'rgba(30,20,40,.32)'); gr.addColorStop(1,'rgba(30,20,40,0)'); g.fillStyle=gr; g.fillRect(X,Y,TS,9); }
+    if(x>0 && isWall(map[y][x-1])){ const gr=g.createLinearGradient(X,0,X+7,0); gr.addColorStop(0,'rgba(30,20,40,.25)'); gr.addColorStop(1,'rgba(30,20,40,0)'); g.fillStyle=gr; g.fillRect(X,Y,7,TS); }
+  }
+}
+
+/* ---------------- 立體道具（和角色一起依深度排序） ---------------- */
+const PROPS = [];
+for(let y=0;y<MH;y++) for(let x=0;x<MW;x++){
+  const c=map[y][x];
+  if(c==='T'||c==='S'||c==='P'||c==='L') PROPS.push({c,x,y,py:y*TS});
+}
+PROPS.push({c:'pillar',x:17,y:24,py:24*TS}); PROPS.push({c:'pillar',x:21,y:24,py:24*TS});
+function drawProp(g,p,t){
+  const X=p.x*TS, Y=p.y*TS;
+  g.lineWidth=1.5; g.strokeStyle=OL;
+  if(p.c==='T'){
+    const sway = Math.sin(t*1.3 + p.x*.7)*1.2;
+    ell(g, X+18, Y+28, 13, 4.5, 'rgba(30,20,40,.25)', false);
+    rr(g, X+12, Y+14, 8, 16, 2, '#80522b');
+    g.fillStyle='#996535'; g.fillRect(X+13.5,Y+16,2,12);
+    const v = hash(p.x,p.y,3);
+    const c1 = v>.5 ? '#2f8a3c' : '#3a9446', c2 = v>.5 ? '#43a64f' : '#4fb35a', c3 = '#6cc96a';
+    circ(g, X+16+sway, Y+6, 14, c1);
+    circ(g, X+8+sway, Y+10, 8, c1); circ(g, X+24+sway, Y+10, 8, c1);
+    g.save(); // 樹冠內：下方陰影＋葉片紋理
+    g.beginPath(); g.moveTo(X+30+sway,Y+6); g.arc(X+16+sway,Y+6,14,0,7); g.moveTo(X+16+sway,Y+10); g.arc(X+8+sway,Y+10,8,0,7); g.moveTo(X+32+sway,Y+10); g.arc(X+24+sway,Y+10,8,0,7); g.clip();
+    g.fillStyle='rgba(15,50,30,.28)'; g.beginPath(); g.ellipse(X+17+sway, Y+21, 18, 7, 0, 0, 7); g.fill();
+    g.strokeStyle='rgba(15,60,25,.35)'; g.lineWidth=1.2;
+    for(let i=0;i<5;i++){ const lx=X+5+hash(p.x,p.y,10+i)*22+sway, ly=Y+2+hash(p.x,p.y,20+i)*14; g.beginPath(); g.arc(lx,ly,2.6,.2,Math.PI-.2); g.stroke(); }
+    g.restore(); g.lineWidth=1.5; g.strokeStyle=OL;
+    g.fillStyle=c2; g.beginPath(); g.arc(X+13+sway, Y+3, 9, 0, 7); g.fill();
+    g.fillStyle=c3; g.beginPath(); g.arc(X+10+sway, Y, 4, 0, 7); g.fill();
+    g.fillStyle='rgba(255,255,255,.35)'; g.beginPath(); g.arc(X+8.5+sway, Y-1.5, 1.6, 0, 7); g.fill();
+    if(v>.7){ g.fillStyle='#ff7b7b'; for(let i=0;i<3;i++){ g.beginPath(); g.arc(X+8+i*8+sway, Y+8+(i%2)*4, 2, 0, 7); g.fill(); } }
+  } else if(p.c==='S'){
+    ell(g, X+16, Y+29, 9, 3, 'rgba(30,20,40,.25)', false);
+    rr(g, X+14, Y+14, 4, 16, 1, '#7a4a24');
+    rr(g, X+2, Y+1, 28, 17, 3, '#d29a5a');
+    g.fillStyle='rgba(255,255,255,.3)'; g.fillRect(X+4,Y+3,24,2);
+    g.fillStyle='#6d4520'; g.fillRect(X+7,Y+8,18,2); g.fillRect(X+7,Y+12,12,2);
+  } else if(p.c==='P'){
+    ell(g, X+16, Y+28, 12, 4, 'rgba(30,20,40,.25)', false);
+    rr(g, X+6, Y+20, 20, 9, 2, '#c7c7c7');
+    rr(g, X+14.5, Y-30, 3, 52, 1, '#e8e8e8');
+    circ(g, X+16, Y-31, 2.5, '#f4c542');
+    g.fillStyle='#3c7fd0'; g.beginPath(); g.moveTo(X+18,Y-28);
+    for(let i=0;i<=8;i++){ g.lineTo(X+18+i*2.2, Y-28+Math.sin(t*4+i*.7)*1.8); }
+    for(let i=8;i>=0;i--){ g.lineTo(X+18+i*2.2, Y-16+Math.sin(t*4+i*.7)*1.8); }
+    g.closePath(); g.fill(); g.stroke();
+    g.fillStyle='#f4c542'; g.beginPath(); g.arc(X+26, Y-22+Math.sin(t*4+3)*1.8, 2.5, 0, 7); g.fill();
+  } else if(p.c==='L'){
+    const L=light();
+    ell(g, X+16, Y+28, 7, 2.5, 'rgba(30,20,40,.25)', false);
+    rr(g, X+14, Y-8, 4, 36, 1, '#6d7178');
+    rr(g, X+6, Y-36, 20, 32, 4, '#2a2d33');
+    const redOn = L==='red', greenOn = L==='green' || (L==='flash' && Math.floor(lightT*4)%2===0);
+    g.fillStyle = redOn ? '#ff4040' : '#4a1a1a'; g.beginPath(); g.arc(X+16,Y-27,6,0,7); g.fill();
+    g.fillStyle = greenOn ? '#3bff6b' : '#173d22'; g.beginPath(); g.arc(X+16,Y-12,6,0,7); g.fill();
+    // 小人圖示
+    g.fillStyle = redOn ? '#7a0d0d' : '#3a1414'; g.beginPath(); g.arc(X+16,Y-30,1.5,0,7); g.fill(); g.fillRect(X+15,Y-28.5,2,5);
+    g.fillStyle = greenOn ? '#0b5a22' : '#0e2615'; g.beginPath(); g.arc(X+16,Y-15,1.5,0,7); g.fill(); g.fillRect(X+15,Y-13.5,2,4); g.fillRect(X+13,Y-10,2,3); g.fillRect(X+17,Y-10,2,3);
+    if(redOn||greenOn){ g.fillStyle = redOn ? 'rgba(255,60,60,.25)' : 'rgba(60,255,110,.25)'; g.beginPath(); g.arc(X+16, redOn?Y-27:Y-12, 11, 0, 7); g.fill(); }
+  } else if(p.c==='pillar'){
+    g.fillStyle='rgba(30,20,40,.25)'; g.fillRect(X+6,Y+26,24,5);
+    rr(g, X+5, Y-14, 22, 42, 2, '#c8553d');
+    g.fillStyle='#a8432f'; for(let i=0;i<5;i++) g.fillRect(X+6, Y-8+i*8, 20, 1.5);
+    rr(g, X+2, Y-20, 28, 8, 2, '#e8dcc0');
+    circ(g, X+16, Y-25, 5, '#f4c542');
+  }
+}
+
+/* ---------------- 角色繪製 ---------------- */
+const LOOKS = [
+  {skin:'#f6d2b0', hair:'#3b2a1a', shirt:'#3c8de0', pants:'#2c3e60'},
+  {skin:'#f6d2b0', hair:'#3b2a1a', shirt:'#e86a9a', pants:'#4a3060', long:true},
+  {skin:'#e8b98f', hair:'#1f1f1f', shirt:'#3cb371', pants:'#3a3a3a'},
+  {skin:'#f3c9a2', hair:'#6b3e1e', shirt:'#f0a030', pants:'#6b4a2a', long:true},
+];
+const BLINK = new WeakMap();
+function drawPerson(g, x, y, dir, L, step, still){
+  const cx = x+16;
+  if(!BLINK.has(L)) BLINK.set(L, Math.random()*5);
+  const blink = !still && (T + BLINK.get(L)) % 4.3 < .13;
+  g.save();
+  g.lineWidth=1.4; g.strokeStyle=OL; g.lineJoin='round'; g.lineCap='round';
+  ell(g, cx, y+29, 9, 3.2, 'rgba(30,20,40,.28)', false);
+  if(dir==='left'){ g.translate(2*cx,0); g.scale(-1,1); dir='right'; }
+  const side = dir==='right';
+  const by = y + (step ? -1 : 0);
+  const shoe = '#3b3044';
+  // 背後長髮
+  if(L.long && dir!=='up') rr(g, cx-8.5, by+1, 17, 15, 5, L.hair);
+  // 腿與鞋
+  const l1 = step===1?5:7, l2 = step===2?5:7;
+  const lx1 = side ? cx-4 : cx-5, lx2 = side ? cx : cx+1;
+  rr(g, lx1, by+21, 4, l1, 1, L.pants); rr(g, lx2, by+21, 4, l2, 1, L.pants);
+  rr(g, lx1-(side?0:.5), by+20+l1, side?6:5, 3, 1.2, shoe); rr(g, lx2-(side?0:.5), by+20+l2, side?6:5, 3, 1.2, shoe);
+  // 手臂（正面/背面）
+  const sw = step ? (step===1?2:-2) : 0;
+  if(!side){
+    rr(g, cx-10.5, by+13+sw, 4, 8, 1.5, L.shirt); circ(g, cx-8.5, by+21.5+sw, 1.9, L.skin);
+    rr(g, cx+6.5, by+13-sw, 4, 8, 1.5, L.shirt); circ(g, cx+8.5, by+21.5-sw, 1.9, L.skin);
+  }
+  // 披風（背面以外：先畫在身體後面）
+  if(L.cape && dir!=='up') rr(g, cx-9, by+11.5, 18, 14, 3, L.cape);
+  // 身體
+  rr(g, cx-7, by+12, 14, 11, 3.5, L.shirt);
+  g.fillStyle=darken(L.shirt,.2); g.fillRect(cx-6.3, by+19.5, 12.6, 2.6);
+  g.fillStyle='rgba(255,255,255,.22)'; g.fillRect(cx-5, by+13.5, 4, 2);
+  g.fillStyle='rgba(40,20,60,.14)'; g.fillRect(cx+3.4, by+14.2, 2.9, 5.3); // 背光側陰影
+  if(L.vest){ g.fillStyle=L.vest; g.fillRect(cx-6.3, by+13, 12.6, 9); g.fillStyle='#fff'; g.fillRect(cx-6.3, by+17, 12.6, 2); g.strokeRect(cx-7,by+12,14,11); }
+  if(L.tie && dir==='down'){ g.fillStyle=L.tie; g.beginPath(); g.moveTo(cx-1.5,by+12.5); g.lineTo(cx+1.5,by+12.5); g.lineTo(cx+1,by+19); g.lineTo(cx,by+20.5); g.lineTo(cx-1,by+19); g.closePath(); g.fill(); }
+  if(L.cape && dir==='up'){ g.beginPath(); g.moveTo(cx-7,by+12); g.lineTo(cx+7,by+12); g.lineTo(cx+9.5,by+26); g.quadraticCurveTo(cx,by+28,cx-9.5,by+26); g.closePath(); g.fillStyle=L.cape; g.fill(); g.stroke(); g.fillStyle='rgba(255,255,255,.2)'; g.fillRect(cx-5,by+14,3,9); }
+  if(side){ rr(g, cx-2+sw*.8, by+13, 4, 8, 1.5, L.shirt); circ(g, cx+sw*.8, by+21.5, 1.9, L.skin); }
+  // 頭
+  circ(g, cx, by+4.5, 8.5, L.skin);
+  // 頭髮
+  g.fillStyle=L.hair;
+  if(dir==='up'){
+    circ(g, cx, by+4.2, 9, L.hair);
+    if(L.long) rr(g, cx-7, by+8, 14, 8, 4, L.hair);
+  } else if(dir==='down'){
+    g.beginPath(); g.moveTo(cx-9,by+7); g.arc(cx,by+4.2,9,Math.PI,0); g.lineTo(cx+9,by+7);
+    g.quadraticCurveTo(cx+5,by+1.5,cx+1,by+3.5); g.quadraticCurveTo(cx-4,by+0.5,cx-9,by+7); g.closePath(); g.fill(); g.stroke();
+  } else {
+    g.beginPath(); g.moveTo(cx-9,by+10); g.arc(cx,by+4.2,9,Math.PI,0); g.lineTo(cx+9,by+4);
+    g.quadraticCurveTo(cx+3,by+1.5,cx-2,by+5); g.lineTo(cx-3,by+10); g.closePath(); g.fill(); g.stroke();
+  }
+  if(L.bald){ g.fillStyle=L.skin; g.beginPath(); g.ellipse(cx, by-0.5, 5.5, 4, 0, Math.PI, 0); g.fill(); }
+  g.strokeStyle=lighten(L.hair,.4); g.lineWidth=1.5; g.beginPath(); g.arc(cx-1, by+2.5, 5.5, Math.PI*1.15, Math.PI*1.45); g.stroke();
+  g.strokeStyle=OL; g.lineWidth=1.4;
+  // 臉
+  if(dir==='down'){
+    g.fillStyle=OL;
+    if(blink){ g.fillRect(cx-4.7,by+7.2,2.6,1); g.fillRect(cx+2.1,by+7.2,2.6,1); }
+    else { g.fillRect(cx-4.5,by+5.5,2.2,3.2); g.fillRect(cx+2.3,by+5.5,2.2,3.2);
+      g.fillStyle='#fff'; g.fillRect(cx-4.1,by+5.8,1,1); g.fillRect(cx+2.7,by+5.8,1,1); }
+    g.fillStyle='rgba(255,110,120,.45)'; g.beginPath(); g.ellipse(cx-5.6,by+9.3,2,1.2,0,0,7); g.ellipse(cx+5.6,by+9.3,2,1.2,0,0,7); g.fill();
+    g.strokeStyle=darken(L.skin,.45); g.lineWidth=1; g.beginPath(); g.moveTo(cx-1.2,by+10.2); g.quadraticCurveTo(cx,by+11.2,cx+1.2,by+10.2); g.stroke();
+  } else if(side){
+    g.fillStyle=OL;
+    if(blink) g.fillRect(cx+3.3,by+7.2,2.6,1);
+    else { g.fillRect(cx+3.5,by+5.5,2.2,3.2); g.fillStyle='#fff'; g.fillRect(cx+3.9,by+5.8,1,1); }
+    g.fillStyle='rgba(255,110,120,.45)'; g.beginPath(); g.ellipse(cx+5,by+9.3,1.8,1.1,0,0,7); g.fill();
+  }
+  g.strokeStyle=OL; g.lineWidth=1.1;
+  if(L.glasses && dir!=='up'){ if(dir==='down'){ g.strokeRect(cx-6,by+4.8,5,4.4); g.strokeRect(cx+1,by+4.8,5,4.4); g.beginPath(); g.moveTo(cx-1,by+6.5); g.lineTo(cx+1,by+6.5); g.stroke(); } else g.strokeRect(cx+2,by+4.8,6,4.4); }
+  g.lineWidth=1.4;
+  // 帽子
+  if(L.hat==='cap'){
+    g.beginPath(); g.arc(cx, by+3, 9, Math.PI, 0); g.closePath(); g.fillStyle=L.hatColor; g.fill(); g.stroke();
+    if(dir==='down') rr(g, cx-8, by+1.5, 16, 3, 1.5, darken(L.hatColor,.12));
+    else if(side) rr(g, cx+2, by+1, 10, 3, 1.5, darken(L.hatColor,.12));
+  }
+  if(L.hat==='helmet'){
+    g.beginPath(); g.arc(cx, by+3.5, 10.5, Math.PI, 0); g.closePath(); g.fillStyle='#d62d2d'; g.fill(); g.stroke();
+    rr(g, cx-11.5, by+2.5, 23, 3, 1.5, '#b01f1f');
+    if(dir!=='up'){ rr(g, (side?cx+1:cx-2.5), by-6, 5, 7, 1.5, '#f4c542'); }
+  }
+  if(L.crown){
+    g.beginPath(); g.moveTo(cx-6.5,by-1); g.lineTo(cx-6.5,by-8); g.lineTo(cx-3,by-4.5); g.lineTo(cx,by-10); g.lineTo(cx+3,by-4.5); g.lineTo(cx+6.5,by-8); g.lineTo(cx+6.5,by-1); g.closePath();
+    g.fillStyle='#f6c445'; g.fill(); g.stroke(); g.fillStyle='#e74c3c'; g.beginPath(); g.arc(cx,by-4,1.5,0,7); g.fill();
+  }
+  if(L.star && dir!=='up'){
+    const sx = side ? cx-5 : cx+6, sy = by+1;
+    g.beginPath(); for(let j=0;j<10;j++){ const r=j%2?1.8:4, a=-Math.PI/2+j*Math.PI/5; g.lineTo(sx+Math.cos(a)*r, sy+Math.sin(a)*r); } g.closePath();
+    g.fillStyle='#ffe066'; g.fill(); g.lineWidth=1; g.stroke();
+  }
+  g.restore();
+}
+function drawFace(canvas, L, scale){
+  const g = canvas.getContext('2d'); g.clearRect(0,0,canvas.width,canvas.height);
+  if(!L) return;
+  const s = scale || canvas.width/32;
+  g.save(); g.translate(canvas.width/2 - 16*s, canvas.height*0.18); g.scale(s,s); drawPerson(g,0,0,'down',L,0,true); g.restore();
+}
+
+/* ---------------- 遊戲狀態 ---------------- */
+let S = null;
+const P = {x:19, y:31, px:19*TS, py:31*TS, dir:'up', moving:false, step:0, anim:0, look:LOOKS[0]};
+let scene = 'title';
+let muted = false; try{ muted = localStorage.getItem('cgMuted')==='1'; }catch(e){}
+let showMini = true; try{ showMini = localStorage.getItem('cgMini')!=='0'; }catch(e){}
+let lightT = 0, T = 0;
+const LIGHT_CYCLE = 17;
+// 行人號誌：0~7 綠、7~10 閃、10~17 紅；車輛 10~15.5 綠燈，其餘停車（留 1.5 秒全紅清空路口）
+function light(){ const t = lightT % LIGHT_CYCLE; return t<7 ? 'green' : t<10 ? 'flash' : 'red'; }
+function carsGo(){ const t = lightT % LIGHT_CYCLE; return t>=10 && t<15.5; }
+function badgeCount(){ return S ? TOPIC_KEYS.filter(k=>S.badges[k]).length : 0; }
+function level(){ return Math.floor((S.exp||0)/60)+1; }
+
+function newSid(){ let s=''; const c='abcdefghijklmnopqrstuvwxyz0123456789'; for(let i=0;i<16;i++) s+=c[Math.random()*36|0]; return s; }
+function newSave(name, lookIdx, cls){ return {name, cls, sid:newSid(), look:lookIdx, badges:{}, exp:0, x:19, y:31, dir:'up', crossed:false, done:false, ts:{}, tries:{}, playT:0}; }
+/* 守護積分：每個主題取「過關那一場」答對×10、答錯×−5，第一次挑戰就過關 +30（每主題最高 80）；
+   大魔王：答對×10、答錯×−5、打倒 +100、第一次就打倒再 +50（最高 250）；
+   每完成一個隱藏任務 +20（最高 100）。滿分 750。練習模式與隨機事件不計分。 */
+function calcScore(){ if(!S||!S.ts) return 0; let s=0; for(const k of TOPIC_KEYS) s+=S.ts[k]||0; return s+(S.ts.boss||0)+hqDoneCount()*HQ_POINTS; }
+function fmtTime(sec){ sec=Math.round(sec||0); const h=Math.floor(sec/3600), m=Math.floor(sec%3600/60), s=sec%60; return (h?h+':'+String(m).padStart(2,'0'):m)+':'+String(s).padStart(2,'0'); }
+function save(){
+  if(!S) return;
+  S.x=P.x; S.y=P.y; S.dir=P.dir;
+  try{ localStorage.setItem('campusGuardianSave', JSON.stringify(S)); }catch(e){}
+}
+function loadSave(){
+  try{ const t = localStorage.getItem('campusGuardianSave'); const d = t ? JSON.parse(t) : null; return (d && typeof d==='object' && d.name) ? d : null; }catch(e){ return null; }
+}
+
+/* ---------------- NPC ---------------- */
+const NPCS = [];
+function addNPC(o){ o.px=o.x*TS; o.py=o.y*TS; o.dir=o.dir||'down'; o.moving=false; o.wt=1+Math.random()*2; o.step=0; o.anim=0; NPCS.push(o); return o; }
+function questTalk(topic, intro, after){
+  return function(npc){
+    if(!S.badges[topic]){
+      say(intro, {name:npc.name, choices:[{t:'⚔️ 接受挑戰！', f:()=>battleTopic(topic,npc,false)},{t:'等一下再來', f:()=>{}}]});
+    } else {
+      say(after, {name:npc.name, choices:[{t:'🔁 再練習一次', f:()=>battleTopic(topic,npc,true)},{t:'謝謝！', f:()=>{}}]});
+    }
+  };
+}
+addNPC({id:'rules', x:8, y:3, name:'班導師 王老師', quest:'rules',
+  look:{skin:'#f6d2b0',hair:'#2a2a2a',shirt:'#8e6bbf',pants:'#333',glasses:true,long:true},
+  talk:questTalk('rules',
+    ['{name}同學早安，我是王老師。','最近「散漫怪」跑進校園，讓大家上課遲到、走廊奔跑、亂丟垃圾……','讓老師看看你是不是守規矩的好學生吧！'],
+    ['你是全班的好榜樣！','守規矩不是為了怕被罵，而是讓大家都能安全、快樂地學習。'])});
+addNPC({id:'traffic', x:22, y:25, name:'導護志工 林阿姨', quest:'traffic',
+  look:{skin:'#f3c9a2',hair:'#4a2f1d',shirt:'#3c7fd0',pants:'#334',vest:'#ffe23a',hat:'cap',hatColor:'#ffd400',long:true},
+  talk:questTalk('traffic',
+    ['早安！我是導護志工林阿姨。','上下學時路上車子好多，「闖紅燈怪」最喜歡誘惑小朋友亂穿越馬路！','你知道怎麼保護自己的交通安全嗎？來挑戰看看！'],
+    ['你已經是交通安全小達人了！','記得：走斑馬線、看小綠人、左右看清楚、走路不滑手機！'])});
+addNPC({id:'disaster', x:6, y:17, name:'消防員 阿勇隊長', quest:'disaster',
+  look:{skin:'#e8b98f',hair:'#1f1f1f',shirt:'#c0392b',pants:'#2b2b2b',hat:'helmet',vest:'#f0c040'},
+  talk:questTalk('disaster',
+    ['你好！我是消防隊的阿勇隊長！','地震、火災、颱風來的時候，「慌張怪」會讓人手忙腳亂、做錯決定。','只要保持冷靜、記住正確的方法，就能保護自己！準備好了嗎？'],
+    ['很好！記住：地震「趴下、掩護、穩住」，火災「小火快逃、濃煙關門」！','回家也可以和家人一起準備緊急避難包喔。'])});
+addNPC({id:'bully', x:23, y:13, name:'學務主任 張主任', quest:'bully',
+  look:{skin:'#f6d2b0',hair:'#3a3a3a',shirt:'#2e9d5b',pants:'#2c3e60'},
+  talk:questTalk('bully',
+    ['我是學務處的張主任。','最近操場出現了「欺負怪」，讓同學們互相取笑、排擠……你看，那邊的小宇好像很難過。','霸凌不是開玩笑！學會辨識和面對霸凌，一起守護友善校園！'],
+    ['謝謝你！我已經找阿虎和小宇好好談過了。','看到霸凌：不起鬨、告訴大人、主動關心！友善校園需要每個人一起守護。'])});
+addNPC({id:'gender', x:31, y:5, name:'輔導老師 陳老師', quest:'gender',
+  look:{skin:'#f6d2b0',hair:'#7a4a2a',shirt:'#f08080',pants:'#555',long:true},
+  talk:questTalk('gender',
+    ['歡迎來到輔導室，我是陳老師。','「偏見怪」會讓人覺得「男生一定要怎樣、女生一定要怎樣」，還會讓人不懂得尊重別人的身體界線。','我們一起來打敗它吧！'],
+    ['每個人都很特別，都值得被尊重。','我的身體我作主，不舒服就說「不」，並告訴信任的大人！'])});
+addNPC({id:'principal', x:19, y:4, name:'校長',
+  look:{skin:'#f3c9a2',hair:'#888',shirt:'#2c3e60',pants:'#2c3e60',tie:'#c0392b',glasses:true,bald:true},
+  talk(npc){
+    if(S.done){
+      say(['{name}，你是我們學校的驕傲！','記得把學到的安全知識，分享給家人和朋友喔！'], {name:npc.name, choices:[
+        {t:'📜 再看一次獎狀', f:showCert},{t:'⚔️ 再挑戰大魔王', f:()=>bossBattle(npc)},{t:'離開', f:()=>{}}]});
+      return;
+    }
+    say(['太棒了，{name}！你收集了全部 5 枚守護徽章！','可是……「糊塗大魔王」聽說了這件事，牠要來搗亂了！','牠會把防災、交通、性平、反霸凌、校園常規的題目全部混在一起考你。','打倒牠，你就是真正的「校園守護者」！'],
+      {name:npc.name, choices:[{t:'⚔️ 我準備好了！', f:()=>bossBattle(npc)}, {t:'我再去複習一下', f:()=>{}}]});
+  }});
+addNPC({id:'s1', x:28, y:17, name:'小美', wander:[24,14,35,19],
+  look:{skin:'#f6d2b0',hair:'#222',shirt:'#ff9ecb',pants:'#555',long:true},
+  talk(n){
+    if(S.hq.friend===1){ S.hq.friend=2; save(); say(['小宇想跟我們一起玩？當然好啊！','你幫我跟他說，下一節下課來操場找我們玩鬼抓人！'],{name:n.name}); return; }
+    say(['下課在操場玩要注意安全，跑步不要推擠喔！','還有記得多喝水～'],{name:n.name}); }});
+addNPC({id:'s2', x:31, y:18, name:'小花', wander:[24,14,35,19],
+  look:{skin:'#e8b98f',hair:'#5a3a1a',shirt:'#ffd447',pants:'#3a5',long:true},
+  talk(n){
+    if(S.hq.bottle===2){ S.hq.bottle=3; say(['啊！這是我的粉紅色水壺！你在哪裡找到的？','謝謝你！撿到東西還給主人，你真的好棒！'],{name:n.name, onEnd:()=>hqComplete('bottle')}); return; }
+    if(S.hq.bottle<2 && !S.hq.done.bottle){ S.hq.bottle=1; hqDiscover('bottle'); say(['嗚嗚……我的粉紅色水壺不見了……','好像是在校園最右下角的草叢那邊玩的時候弄丟的……','如果你有看到，可以幫我拿回來嗎？'],{name:n.name}); return; }
+    say(['我們在玩鬼抓人，要一起玩嗎？','大家輪流當鬼才公平，也不可以故意不讓別人加入喔！'],{name:n.name}); }});
+addNPC({id:'s3', x:15, y:15, name:'阿哲', wander:[12,13,17,17],
+  look:{skin:'#f6d2b0',hair:'#3b2a1a',shirt:'#5aa9e6',pants:'#2c3e60'},
+  talk(n){ say(['那邊的水池好漂亮，還有魚在游！','不過老師說不可以在池邊追逐，很危險！'],{name:n.name}); }});
+addNPC({id:'s4', x:16, y:23, name:'學長', wander:[12,21,17,23],
+  look:{skin:'#e8b98f',hair:'#111',shirt:'#f4f4f4',pants:'#2c3e60'},
+  talk(n){ say(['早安！我每天坐爸爸的機車上學，安全帽一定戴好、扣環扣緊！'],{name:n.name}); }});
+addNPC({id:'s5', x:4, y:8, name:'小傑', wander:[3,8,12,8],
+  look:{skin:'#f6d2b0',hair:'#3b2a1a',shirt:'#e86a3c',pants:'#333'},
+  talk(n){ say(['我今天是值日生，要擦黑板、倒垃圾！','垃圾記得分類：紙類、塑膠、鋁箔包要分開回收喔。'],{name:n.name}); }});
+addNPC({id:'mom', x:9, y:31, name:'家長', wander:[2,30,15,31],
+  look:{skin:'#f3c9a2',hair:'#4a2f1d',shirt:'#6bbf8e',pants:'#555',long:true},
+  talk(n){ say(['早安！路上車子多，大人要牽好小朋友的手。','過馬路前，我們都會一起「停、看、聽」！'],{name:n.name}); }});
+addNPC({id:'s6', x:27, y:10, name:'小安', wander:[24,10,37,11],
+  look:{skin:'#f6d2b0',hair:'#222',shirt:'#9b6bd6',pants:'#2c3e60'},
+  talk(n){ say(['上下樓梯要靠右邊走，一階一階走才安全！','我剛剛在走廊看到有人奔跑，差點撞到人呢。'],{name:n.name}); }});
+addNPC({id:'tiger', x:33, y:16, name:'阿虎', dir:'right',
+  look:{skin:'#e8b98f',hair:'#111',shirt:'#4a4a52',pants:'#222'},
+  talk(n){
+    if(S.badges.bully){ say(['張主任跟我聊過了，我才知道我說的話讓小宇很難過。','我已經跟他道歉了，現在我們是好朋友！'],{name:n.name}); return; }
+    say(['哈哈，小宇你好矮喔，像一年級的！','你看什麼看？你也要一起笑他嗎？'],{name:n.name, choices:[
+      {t:'不可以這樣說別人！', f:()=>say([{n:'阿虎',t:'哼，開開玩笑而已嘛……'},{n:'旁白',t:'（對方覺得受傷，就不是玩笑。去找操場旁邊的張主任幫忙吧！）'}])},
+      {t:'跟著一起笑', f:()=>say([{n:'旁白',t:'（等等！跟著起鬨會讓被欺負的人更難過，這也是在助長霸凌喔。）'},{n:'旁白',t:'（去找操場旁邊的張主任，學習正確的做法吧！）'}])}
+    ]});
+  }});
+addNPC({id:'yu', x:34, y:16, name:'小宇', dir:'down',
+  look:{skin:'#f6d2b0',hair:'#6b3e1e',shirt:'#8fd0f5',pants:'#2c3e60'},
+  talk(n){
+    if(S.badges.bully){
+      if(S.hq.friend===0){ S.hq.friend=1; hqDiscover('friend'); save(); say(['謝謝你幫忙告訴張主任，阿虎已經跟我道歉了。','可是……我還是不太敢主動跟大家說話……','你可以幫我問問小美，願不願意跟我一起玩嗎？'],{name:n.name}); return; }
+      if(S.hq.friend===1){ say(['小美會願意跟我玩嗎……好緊張喔。'],{name:n.name}); return; }
+      if(S.hq.friend===2){ S.hq.friend=3; n.wander=[24,14,35,19]; say(['真的嗎？小美說好？','太好了！我現在就去找她們玩！謝謝你，你是我的好朋友！'],{name:n.name, onEnd:()=>hqComplete('friend')}); return; }
+      say(['現在下課，大家都會找我一起玩了 😊','謝謝你，好朋友！'],{name:n.name}); return;
+    }
+    say(['（小宇低著頭，眼眶紅紅的……）','……謝謝你過來陪我。'],{name:n.name});
+  }});
+// 新地點的角色
+addNPC({id:'librarian', x:43, y:4, name:'圖書館 黃老師',
+  look:{skin:'#f6d2b0',hair:'#5a3a2a',shirt:'#6b8e4e',pants:'#444',glasses:true,long:true},
+  talk(n){ say(['歡迎來到圖書館！在這裡要輕聲細語喔。','書架上有很多安全知識的書，面向書架按空白鍵就可以翻翻看。','看完的書記得放回原位，愛惜書本，下一位同學才能看到乾淨的書。'],{name:n.name}); }});
+addNPC({id:'nurse', x:44, y:16, name:'護理師 吳阿姨',
+  look:{skin:'#f6d2b0',hair:'#2a2a2a',shirt:'#ffffff',pants:'#7fb8d8',long:true},
+  talk(n){ say(['我是健康中心的吳阿姨。身體不舒服或受傷，都可以來找我。','小擦傷要先用清水沖洗傷口，再擦藥、貼紗布。','流鼻血時頭要微微往前傾，捏住鼻翼，不要仰頭喔！'],{name:n.name}); }});
+addNPC({id:'clerk', x:45, y:21, name:'福利社 蔡阿姨',
+  look:{skin:'#e8b98f',hair:'#4a2f1d',shirt:'#e86a3c',pants:'#555',long:true},
+  talk(n){
+    if(!S.flags.shop){
+      say(['歡迎光臨！下課口渴了嗎？想喝點什麼？'],{name:n.name, choices:[
+        {t:'💧 白開水', f:()=>{ S.flags.shop=true; gainExp(10); sfx('ok'); say(['好選擇！白開水最健康，下課多喝水，身體才有精神。（經驗 +10）'],{name:n.name}); }},
+        {t:'🥤 含糖飲料', f:()=>{ S.flags.shop=true; say(['含糖飲料偶爾喝一點就好，喝太多容易蛀牙、變胖。','阿姨推薦你喝白開水喔！'],{name:n.name}); }},
+        {t:'🧃 果汁牛奶各一大瓶', f:()=>{ S.flags.shop=true; say(['哇，一次喝太多會肚子痛喔！適量就好，白開水最健康。'],{name:n.name}); }}
+      ]});
+      return;
+    }
+    say(['福利社有賣文具和健康點心喔。','買東西要排隊，找的零錢要當面點清楚。'],{name:n.name});
+  }});
+addNPC({id:'patrol', x:30, y:10, name:'生教組長 李組長', wander:[2,10,49,11],
+  look:{skin:'#e8b98f',hair:'#222',shirt:'#2c3e60',pants:'#2c3e60',hat:'cap',hatColor:'#34495e',vest:'#4a6da7'},
+  talk(n){ careChat(n, 'chat', null); }});
+
+const EXTRA_LOOKS = { '陌生叔叔': {skin:'#d9a77c',hair:'#333',shirt:'#5a5a5a',pants:'#2b2b2b',hat:'cap',hatColor:'#222'} };
+function lookByName(n){
+  if(!n) return null;
+  if(EXTRA_LOOKS[n]) return EXTRA_LOOKS[n];
+  const npc = NPCS.find(o=>o.name===n || o.name.split(' ').pop()===n);
+  return npc ? npc.look : null;
+}
+
+/* ---------------- 車輛 ---------------- */
+const CARS = [];
+const CAR_TYPES = [
+  {c:'#e74c3c',len:56},{c:'#3498db',len:56},{c:'#f6c445',len:56,taxi:true},
+  {c:'#ecf0f1',len:56},{c:'#2e9d5b',len:92,bus:true},{c:'#9b59b6',len:56}
+];
+for(let i=0;i<3;i++){
+  CARS.push(Object.assign({lane:27, dir:1,  x: i*470 + 40,  v:110+Math.random()*30}, CAR_TYPES[i]));
+  CARS.push(Object.assign({lane:28, dir:-1, x: i*470 + 220, v:100+Math.random()*30}, CAR_TYPES[i+3]));
+}
+function updateCars(dt){
+  const onRoad = P.y>=26 && P.y<=29;
+  const mustStop = !carsGo() || onRoad;
+  const lineR = 18*TS-10, lineL = 21*TS+10;
+  for(const c of CARS){
+    let nx = c.x + c.dir*c.v*dt;
+    if(mustStop){
+      if(c.dir>0 && c.x+c.len<=lineR && nx+c.len>lineR) nx = lineR-c.len;
+      if(c.dir<0 && c.x>=lineL && nx<lineL) nx = lineL;
+    }
+    for(const o of CARS){
+      if(o===c || o.lane!==c.lane) continue;
+      if(c.dir>0 && o.x>c.x && nx+c.len+14>o.x) nx = Math.min(nx, o.x-c.len-14);
+      if(c.dir<0 && o.x<c.x && nx<o.x+o.len+14) nx = Math.max(nx, o.x+o.len+14);
+    }
+    if(c.dir>0) c.x = Math.max(c.x, nx); else c.x = Math.min(c.x, nx);
+    if(c.dir>0 && c.x > MW*TS+60){ const minX = Math.min(...CARS.filter(o=>o.lane===c.lane&&o!==c).map(o=>o.x)); c.x = Math.min(-c.len-40, minX-c.len-60-Math.random()*200); }
+    if(c.dir<0 && c.x < -c.len-60){ const maxX = Math.max(...CARS.filter(o=>o.lane===c.lane&&o!==c).map(o=>o.x+o.len)); c.x = Math.max(MW*TS+40, maxX+60+Math.random()*200); }
+  }
+}
+function drawCar(g,c){
+  const y = c.lane*TS+3, x = c.x, L=c.len, f = c.dir>0;
+  g.lineWidth=1.5; g.strokeStyle=OL;
+  g.fillStyle='rgba(20,15,30,.3)'; g.beginPath(); g.roundRect(x+3,y+5,L,24,7); g.fill();
+  // 輪子
+  g.fillStyle='#1e1e24';
+  for(const wx of [x+9, x+L-19]){ g.fillRect(wx,y-2,10,4); g.fillRect(wx,y+24,10,4); }
+  rr(g, x, y, L, 26, 7, c.c);
+  g.fillStyle=lighten(c.c,.3); g.fillRect(x+4,y+2,L-8,3);
+  g.fillStyle=darken(c.c,.18); g.fillRect(x+4,y+21,L-8,3);
+  if(c.bus){
+    g.fillStyle='#bfe6fb'; for(let i=0;i<5;i++) g.fillRect(x+10+i*15, y+5, 11, 16);
+    g.fillStyle='#fff'; g.font='bold 9px sans-serif'; g.textAlign='center'; g.textBaseline='middle';
+  } else {
+    rr(g, x+(f?14:12), y+4, L-28, 18, 4, lighten(c.c,.12));
+    g.fillStyle='#9fd3f0';
+    if(f){ g.fillRect(x+L-15,y+5,6,16); g.fillRect(x+9,y+6,4,14); } else { g.fillRect(x+9,y+5,6,16); g.fillRect(x+L-13,y+6,4,14); }
+    if(c.taxi){ rr(g, x+L/2-6, y+9, 12, 8, 1, '#fff'); g.fillStyle=OL; g.font='bold 7px sans-serif'; g.textAlign='center'; g.textBaseline='middle'; g.fillText('TAXI',x+L/2,y+13.5); }
+  }
+  g.fillStyle='#fff6b0'; if(f){ g.fillRect(x+L-3,y+3,3,5); g.fillRect(x+L-3,y+18,3,5);} else { g.fillRect(x,y+3,3,5); g.fillRect(x,y+18,3,5); }
+  g.fillStyle='#ff5a5a'; if(f){ g.fillRect(x,y+4,2,4); g.fillRect(x,y+18,2,4);} else { g.fillRect(x+L-2,y+4,2,4); g.fillRect(x+L-2,y+18,2,4); }
+}
+
+/* ---------------- 環境特效 ---------------- */
+const FX = {petals:[], flies:[], dust:[], clouds:[], birds:[]};
+for(let i=0;i<16;i++) FX.petals.push({x:Math.random()*MW*TS, y:Math.random()*MH*TS, s:Math.random()*Math.PI*2, c:Math.random()<.6?'#ffc6d9':'#fff4c2'});
+for(const [hx,hy] of [[14.5,18.5],[28,16],[33,11.5],[22,22.5],[6,11.5]]) FX.flies.push({hx:hx*TS, hy:hy*TS, p:Math.random()*10, c:['#fff','#ffd447','#8fd0f5','#ff9ecb'][FX.flies.length%4]});
+for(let i=0;i<3;i++) FX.clouds.push({x:Math.random()*MW*TS, y:Math.random()*MH*TS, r:160+Math.random()*120});
+const vignette = document.createElement('canvas'); vignette.width=VW; vignette.height=VH;
+(function(){
+  const g = vignette.getContext('2d');
+  const gr = g.createRadialGradient(VW/2,VH/2,VH*.35,VW/2,VH/2,VW*.68);
+  gr.addColorStop(0,'rgba(255,230,180,0)'); gr.addColorStop(1,'rgba(40,20,50,.32)');
+  g.fillStyle=gr; g.fillRect(0,0,VW,VH);
+  const g2 = g.createLinearGradient(0,0,VW,VH); g2.addColorStop(0,'rgba(255,240,200,.10)'); g2.addColorStop(1,'rgba(255,200,150,0)');
+  g.fillStyle=g2; g.fillRect(0,0,VW,VH);
+})();
+function updateFX(dt){
+  for(const p of FX.petals){
+    p.s += dt*2; p.y += dt*18; p.x += dt*14 + Math.sin(p.s)*.4;
+    if(p.y > cam.y+VH+20 || p.x > cam.x+VW+20){ p.y = cam.y - 10 - Math.random()*40; p.x = cam.x + Math.random()*VW - 60; }
+  }
+  for(const f of FX.flies) f.p += dt;
+  // 飛鳥：每隔一段時間從畫面左側飛過一小群
+  FX.birdT = (FX.birdT===undefined ? 6 : FX.birdT) - dt;
+  if(FX.birdT<=0){
+    FX.birdT = 22 + Math.random()*20;
+    const n = 3 + (Math.random()*3|0), y0 = cam.y + 60 + Math.random()*(VH-200);
+    for(let i=0;i<n;i++) FX.birds.push({x:cam.x - 40 - i*26, y:y0 + (i%2?1:-1)*i*12, p:Math.random()*6, v:95+Math.random()*10});
+  }
+  for(let i=FX.birds.length-1;i>=0;i--){ const b=FX.birds[i]; b.x += b.v*dt; b.y -= dt*10; b.p += dt*9; if(b.x > cam.x+VW+120) FX.birds.splice(i,1); }
+  for(const c of FX.clouds){ c.x += dt*14; c.y += dt*4; if(c.x - c.r > MW*TS){ c.x = -c.r; c.y = Math.random()*MH*TS; } }
+  for(let i=FX.dust.length-1;i>=0;i--){ const d=FX.dust[i]; d.l -= dt; d.r += dt*10; if(d.l<=0) FX.dust.splice(i,1); }
+}
+function puff(x,y){ for(let i=0;i<2;i++) FX.dust.push({x:x+16+(i?5:-5), y:y+29, r:2, l:.35}); }
+function drawWater(g,t){
+  const {x,y,w,h}=POND;
+  g.save(); g.beginPath(); g.roundRect(x+10,y+10,w-20,h-20,18); g.clip();
+  const gr = g.createLinearGradient(0,y,0,y+h); gr.addColorStop(0,'#3d98d8'); gr.addColorStop(1,'#2a6fb0'); g.fillStyle=gr; g.fillRect(x,y,w,h);
+  g.strokeStyle='rgba(255,255,255,.45)'; g.lineWidth=1.5;
+  for(let i=0;i<6;i++){ const yy = y+20+i*17, ph = t*1.5+i; g.beginPath(); for(let xx=x+12; xx<x+w-12; xx+=4){ const yv = yy+Math.sin(xx*.08+ph)*2; xx===x+12?g.moveTo(xx,yv):g.lineTo(xx,yv); } g.globalAlpha=.35+.25*Math.sin(t*2+i); g.stroke(); }
+  g.globalAlpha=1;
+  // 魚影
+  const fx = x+w/2+Math.cos(t*.7)*34, fy = y+h/2+Math.sin(t*.7)*26, a = t*.7+Math.PI/2;
+  g.save(); g.translate(fx,fy); g.rotate(a); g.fillStyle='rgba(255,140,60,.85)'; g.beginPath(); g.ellipse(0,0,7,3.5,0,0,7); g.fill(); g.beginPath(); g.moveTo(-6,0); g.lineTo(-11,-4); g.lineTo(-11,4); g.fill(); g.restore();
+  // 水面反光閃爍
+  g.fillStyle='#fff';
+  for(let i=0;i<7;i++){
+    const tw = Math.pow(Math.max(0, Math.sin(t*2.2 + i*2.7)), 6); if(tw<.05) continue;
+    const sx = x+18+hash(i,1,9)*(w-36), sy = y+18+hash(i,2,9)*(h-36), r = 1+tw*2.6;
+    g.globalAlpha = tw*.9; g.beginPath(); g.moveTo(sx-r,sy); g.lineTo(sx,sy-.6); g.lineTo(sx+r,sy); g.lineTo(sx,sy+.6); g.closePath(); g.fill();
+    g.beginPath(); g.moveTo(sx,sy-r); g.lineTo(sx+.6,sy); g.lineTo(sx,sy+r); g.lineTo(sx-.6,sy); g.closePath(); g.fill();
+  }
+  g.globalAlpha=1;
+  // 內緣淺色水波
+  g.strokeStyle='rgba(200,235,255,.5)'; g.lineWidth=2; g.beginPath(); g.roundRect(x+12,y+12,w-24,h-24,16); g.stroke();
+  g.restore();
+  // 荷葉
+  g.lineWidth=1.2; g.strokeStyle=OL;
+  for(const [lx,ly,r] of [[x+28,y+30,8],[x+96,y+88,9],[x+40,y+100,6]]){ g.fillStyle='#4fb35a'; g.beginPath(); g.arc(lx,ly,r,0.3,Math.PI*2-0.1); g.lineTo(lx,ly); g.closePath(); g.fill(); g.stroke(); }
+  g.fillStyle='#ff9ecb'; g.beginPath(); g.arc(x+98,y+86,3.5,0,7); g.fill();
+}
+
+/* ---------------- 碰撞與移動 ---------------- */
+function occupied(x,y,except){
+  if(except!==P && P.x===x && P.y===y && scene!=='title') return true;
+  for(const n of NPCS){ if(n!==except && n.x===x && n.y===y) return true; }
+  return false;
+}
+const DIRS = {up:[0,-1], down:[0,1], left:[-1,0], right:[1,0]};
+let lastWarn = '', lastWarnT = 0;
+function warn(msg, good){
+  const now = performance.now();
+  if(msg===lastWarn && now-lastWarnT<1800) return;
+  lastWarn = msg; lastWarnT = now;
+  toast(msg, good);
+  if(!good) sfx('warn');
+}
+function tryStep(dir){
+  P.dir = dir;
+  const [dx,dy] = DIRS[dir];
+  const nx=P.x+dx, ny=P.y+dy;
+  const c = tileAt(nx,ny), cur = tileAt(P.x,P.y);
+  if(c==='='){ warn('⚠️ 危險！不可以隨意穿越馬路，要走斑馬線喔！'); return; }
+  if(c==='z' && cur!=='z'){
+    const L = light();
+    if(L!=='green'){ warn(L==='flash' ? '⏳ 小綠人在閃爍了，不要衝！等下一次綠燈吧。' : '🔴 紅燈！請在人行道上等待小綠人亮起。'); return; }
+  }
+  if(c==='Q' && badgeCount()<5){ warn(`🔒 校長室門上寫著：「集滿 5 枚守護徽章才能進入」（目前 ${badgeCount()}/5）`); return; }
+  if(SOLID.has(c) || (c==='Q' && badgeCount()<5) || occupied(nx,ny,P)) return;
+  P.prev = cur;
+  P.x=nx; P.y=ny; P.moving=true;
+}
+function onArrive(){
+  const c = tileAt(P.x,P.y);
+  if(P.prev==='z' && c==='_' && P.y===25 && !S.crossed){
+    S.crossed = true; gainExp(10); warn('👍 有遵守紅綠燈、走斑馬線過馬路！經驗 +10', true); sfx('ok');
+  }
+  hqStep();
+  checkZone();
+}
+const ZONES = [
+  {n:'🚸 校門口',x1:0,y1:24,x2:MW-1,y2:32},
+  {n:'📚 教室',x1:2,y1:2,x2:13,y2:9},
+  {n:'🏫 校長室',x1:16,y1:2,x2:23,y2:8},
+  {n:'🤝 輔導室',x1:26,y1:2,x2:37,y2:9},
+  {n:'🧯 防災教育中心',x1:2,y1:13,x2:11,y2:20},
+  {n:'🏃 操場',x1:22,y1:12,x2:37,y2:21},
+  {n:'📖 圖書館',x1:41,y1:2,x2:49,y2:9},
+  {n:'🏥 健康中心',x1:42,y1:13,x2:49,y2:18},
+  {n:'🏪 福利社',x1:42,y1:20,x2:49,y2:23},
+];
+let curZone = '';
+function checkZone(){
+  const z = ZONES.find(z=>P.x>=z.x1&&P.x<=z.x2&&P.y>=z.y1&&P.y<=z.y2);
+  const n = z ? z.n : '🌳 校園中庭';
+  if(n!==curZone){ curZone=n; const w=$('#where'); w.textContent=n; w.style.opacity=1; clearTimeout(w._t); w._t=setTimeout(()=>w.style.opacity=0,1800); }
+}
+function updateNPCs(dt){
+  for(const n of NPCS){
+    if(n.moving){
+      const tx=n.x*TS, ty=n.y*TS, sp=60*dt;
+      n.px += clamp(tx-n.px,-sp,sp); n.py += clamp(ty-n.py,-sp,sp);
+      n.anim += dt; n.step = Math.floor(n.anim*6)%2 ? 1 : 2;
+      if(n.px===tx && n.py===ty){ n.moving=false; n.step=0; }
+      continue;
+    }
+    if(!n.wander || (DLG && DLG.npc===n)) continue;
+    n.wt -= dt;
+    if(n.wt<=0){
+      n.wt = 1.2 + Math.random()*2.5;
+      const d = ['up','down','left','right'][Math.random()*4|0];
+      const [dx,dy] = DIRS[d]; const nx=n.x+dx, ny=n.y+dy; const [x1,y1,x2,y2]=n.wander;
+      n.dir = d;
+      if(nx>=x1&&nx<=x2&&ny>=y1&&ny<=y2 && NPC_WALK.has(tileAt(nx,ny)) && !NO_WANDER.has(nx+','+ny) && !occupied(nx,ny,n)){ n.x=nx; n.y=ny; n.moving=true; }
+    }
+  }
+}
+
+/* ---------------- 輸入 ---------------- */
+const held = {};
+const KEYMAP = {ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right',w:'up',s:'down',a:'left',d:'right',W:'up',S:'down',A:'left',D:'right'};
+const order = [];
+function clearHeld(){ for(const k in held) held[k]=false; order.length=0; }
+window.addEventListener('keydown', e=>{
+  if(e.target.tagName==='INPUT'){ if(e.key==='Enter'){ e.preventDefault(); $('#btnNew').click(); } return; }
+  const k = KEYMAP[e.key];
+  // 阻止空白鍵／Enter 觸發「目前聚焦的按鈕」，避免一次按鍵被執行兩次
+  if(k || e.key===' ' || e.key==='Enter') e.preventDefault();
+  if(e.repeat && (e.key===' '||e.key==='Enter')) return;
+  if(scene==='title'){ if(boardOpen() && (e.key==='Escape'||e.key===' '||e.key==='Enter')) closeBoard(); return; }
+  if(scene==='cert'){ if(e.key==='Escape') $('#btnCertClose').click(); return; }
+  if(scene==='battle'){ battleKey(e.key); return; }
+  if(scene!=='play') return;
+  if(QTE){ if(e.key===' '||e.key==='Enter') endQTE(true); return; }
+  if(DLG){ dialogKey(e.key); return; }
+  if(!$('#panel').classList.contains('hidden')){ if(['q','Q','r','R','Escape',' ','Enter'].includes(e.key)) togglePanel(); return; }
+  if(e.key==='r'||e.key==='R'){ showBoard(); return; }
+  if(k){ if(!held[k]){ held[k]=true; order.push(k); } return; }
+  if(e.key===' '||e.key==='Enter'||e.key==='e'||e.key==='E') interact();
+  if(e.key==='q'||e.key==='Q') togglePanel();
+  if(e.key==='m'||e.key==='M') toggleMini();
+});
+window.addEventListener('keyup', e=>{ const k=KEYMAP[e.key]; if(k){ held[k]=false; const i=order.indexOf(k); if(i>=0) order.splice(i,1);} });
+window.addEventListener('blur', clearHeld);
+// 點完按鈕後移除焦點，避免之後的鍵盤操作誤觸
+document.addEventListener('click', e=>{ const b=e.target.closest('button'); if(b) setTimeout(()=>b.blur(),0); });
+function currentDir(){ for(let i=order.length-1;i>=0;i--) if(held[order[i]]) return order[i]; return null; }
+document.querySelectorAll('#pad button').forEach(b=>{
+  const k=b.dataset.k;
+  const on=e=>{ e.preventDefault(); if(scene!=='play'||DLG) return; held[k]=true; if(!order.includes(k)) order.push(k); };
+  const off=e=>{ e.preventDefault(); held[k]=false; const i=order.indexOf(k); if(i>=0) order.splice(i,1); };
+  b.addEventListener('pointerdown',on); b.addEventListener('pointerup',off); b.addEventListener('pointerleave',off); b.addEventListener('pointercancel',off);
+});
+$('#abtn').addEventListener('pointerdown', e=>{ e.preventDefault(); if(scene!=='play') return; if(QTE){ endQTE(true); return; } if(DLG) dialogKey(' '); else if($('#panel').classList.contains('hidden')) interact(); });
+
+function facingTarget(){
+  const [dx,dy] = DIRS[P.dir];
+  let ax=P.x+dx, ay=P.y+dy;
+  let npc = NPCS.find(n=>n.x===ax&&n.y===ay);
+  if(!npc && tileAt(ax,ay)==='k'){ npc = NPCS.find(n=>n.x===ax+dx&&n.y===ay+dy); }
+  if(npc) return {npc, x:npc.x, y:npc.y};
+  const key = ax+','+ay;
+  if(P.dir==='up' && EXITS.some(([x,y])=>x===ax&&y===ay)) return {exit:key, x:ax, y:ay};
+  if(SIGNS[key]) return {text:SIGNS[key], x:ax, y:ay};
+  const c = tileAt(ax,ay);
+  if(c==='B') return {book:true, x:ax, y:ay};
+  if(c==='Q' && badgeCount()<5) return {text:`🔒 校長室：集滿 5 枚守護徽章才能進入（目前 ${badgeCount()}/5）。還沒拿到的徽章可以按「📋 任務」查看。`, x:ax, y:ay};
+  if(EXTRA_TALK[c]) return {text:EXTRA_TALK[c], x:ax, y:ay};
+  return null;
+}
+function interact(){
+  if(P.moving) return;
+  const t = facingTarget();
+  if(!t) return;
+  sfx('talk');
+  if(t.npc){
+    const n=t.npc;
+    const opp={up:'down',down:'up',left:'right',right:'left'};
+    if(n.id!=='principal' && n.id!=='tiger') n.dir = opp[P.dir];
+    hqTalked(n);
+    n.talk(n);
+    if(DLG) DLG.npc = n;
+  } else if(t.exit) hqExit(t.exit);
+  else if(t.book){ S.bookI = ((S.bookI||0) + 1) % BOOK_TIPS.length; say(['你從書架上拿了一本書……', BOOK_TIPS[S.bookI]], {name:'📚 書架'}); }
+  else say([t.text], {name:'📋 告示'});
+}
+
+/* ---------------- 對話系統 ---------------- */
+let DLG = null;
+function say(lines, opts={}){
+  const nm = S ? S.name : '';
+  const arr = lines.map(l => typeof l==='string' ? {n:opts.name||'', t:l} : l)
+                   .map(l => ({n:l.n, t:l.t.replace(/\{name\}/g, ()=>nm)}));
+  DLG = {lines:arr, i:0, shown:0, choices:opts.choices||null, onEnd:opts.onEnd||null, sel:0, npc:null, face:null};
+  $('#dlg').classList.remove('hidden');
+  renderDlg();
+}
+function renderDlg(){
+  if(!DLG) return;
+  const L = DLG.lines[DLG.i];
+  if(DLG.face !== L.n){
+    DLG.face = L.n;
+    const look = lookByName(L.n);
+    $('#dlg').classList.toggle('noface', !look);
+    if(look) drawFace($('#dFace'), look, 3.2);
+  }
+  $('#dName').textContent = L.n || '';
+  $('#dName').style.display = L.n ? '' : 'none';
+  $('#dText').textContent = L.t.slice(0, Math.floor(DLG.shown));
+  const done = DLG.shown >= L.t.length;
+  const last = DLG.i === DLG.lines.length-1;
+  const ch = $('#dChoices');
+  if(done && last && DLG.choices){
+    if(!ch.childElementCount){
+      DLG.choices.forEach((c,i)=>{ const b=document.createElement('button'); b.className='cbtn'+(i===DLG.sel?' sel':''); b.textContent=`${i+1}. ${c.t}`;
+        b.onclick=e=>{ e.stopPropagation(); pickChoice(i); }; ch.appendChild(b); });
+    }
+    $('#dNext').style.display='none';
+  } else { if(ch.childElementCount) ch.innerHTML=''; $('#dNext').style.display = done ? '' : 'none'; }
+}
+function pickChoice(i){ if(!DLG||!DLG.choices) return; const c = DLG.choices[i]; closeDlg(); sfx('talk'); c.f && c.f(); }
+function advanceDlg(){
+  if(!DLG) return;
+  const L = DLG.lines[DLG.i];
+  if(DLG.shown < L.t.length){ DLG.shown = L.t.length; renderDlg(); return; }
+  if(DLG.i === DLG.lines.length-1){
+    if(DLG.choices) return;
+    const cb = DLG.onEnd; closeDlg(); cb && cb(); return;
+  }
+  DLG.i++; DLG.shown=0; renderDlg(); sfx('talk');
+}
+function closeDlg(){ DLG=null; $('#dlg').classList.add('hidden'); $('#dChoices').innerHTML=''; }
+function dialogKey(k){
+  const last = DLG.i===DLG.lines.length-1 && DLG.shown>=DLG.lines[DLG.i].t.length;
+  if(last && DLG.choices){
+    const n = DLG.choices.length;
+    if(/^[1-9]$/.test(k) && +k<=n){ pickChoice(+k-1); return; }
+    if(KEYMAP[k]==='left'||KEYMAP[k]==='up'){ DLG.sel=(DLG.sel+n-1)%n; $('#dChoices').innerHTML=''; renderDlg(); return; }
+    if(KEYMAP[k]==='right'||KEYMAP[k]==='down'){ DLG.sel=(DLG.sel+1)%n; $('#dChoices').innerHTML=''; renderDlg(); return; }
+    if(k===' '||k==='Enter'){ pickChoice(DLG.sel); return; }
+    return;
+  }
+  if(k===' '||k==='Enter'||k==='e'||k==='E') advanceDlg();
+}
+$('#dlg').addEventListener('click', ()=>advanceDlg());
+
+/* ---------------- 任務面板 / 小地圖 ---------------- */
+function togglePanel(){
+  const p = $('#panel');
+  if(!p.classList.contains('hidden')){ p.classList.add('hidden'); p.dataset.mode=''; return; }
+  clearHeld();
+  p.dataset.mode = 'quest';
+  let h = `<h2>📋 守護者任務（${badgeCount()}/5）</h2>`;
+  for(const k of TOPIC_KEYS){
+    const T=TOPICS[k];
+    h += `<div class="qrow"><span style="font-size:22px">${S.badges[k]?'✅':'⬜'}</span><b>${T.icon} ${T.name}</b><small>找 ${T.npc}｜📍${T.place}</small></div>`;
+  }
+  h += `<div class="qrow"><span style="font-size:22px">${S.done?'✅':'⬜'}</span><b>👑 最終挑戰</b><small>集滿 5 枚徽章後，到校長室（上方中間）</small></div>`;
+  h += `<h3>🔍 隱藏任務（${hqDoneCount()}/5，每個 +${HQ_POINTS} 分）</h3>`;
+  for(const k of HQ_KEYS){
+    const q=HQ[k], seen=S.hq.seen[k]||S.hq.done[k], done=S.hq.done[k];
+    h += `<div class="qrow"><span style="font-size:22px">${done?'✅':seen?'🔎':'❓'}</span><b>${seen?q.name:'❓❓❓'}</b><small>${seen ? q.desc+'（'+hqProgress(k)+'）' : '還沒發現……到處走走、跟大家聊聊吧！'}</small></div>`;
+  }
+  const owned = Object.keys(ACC).filter(a=>HQ_KEYS.some(k=>S.hq.done[k] && HQ[k].reward===a));
+  if(owned.length){
+    h += `<h3>👕 我的造型</h3><div><button class="cbtn acc ${!S.acc?'on':''}" data-a="">不穿戴</button>` +
+         owned.map(a=>`<button class="cbtn acc ${S.acc===a?'on':''}" data-a="${a}">${ACC[a].name}</button>`).join('') + '</div>';
+  }
+  h += `<div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
+    <button class="cbtn" id="pClose">關閉</button>
+    ${S.done?'<button class="cbtn" id="pCert">📜 我的獎狀</button>':''}
+    <button class="cbtn" id="pReset">🔄 重新開始</button></div>`;
+  p.innerHTML = h; p.classList.remove('hidden');
+  $('#pClose').onclick = togglePanel;
+  p.querySelectorAll('.acc').forEach(b=>b.onclick=()=>{ S.acc = b.dataset.a; refreshLook(); save(); sfx('talk'); togglePanel(); togglePanel(); });
+  if($('#pCert')) $('#pCert').onclick = ()=>{ togglePanel(); showCert(); };
+  $('#pReset').onclick = ()=>{ if(confirm('確定要清除進度、回到標題畫面嗎？')){ try{ localStorage.removeItem('campusGuardianSave'); }catch(e){} location.reload(); } };
+}
+function toggleMini(){ showMini=!showMini; try{ localStorage.setItem('cgMini', showMini?'1':'0'); }catch(e){} $('#mini').classList.toggle('hidden', !showMini || scene==='title'); }
+$('#btnQuest').onclick = ()=>{ if(scene==='play' && !DLG) togglePanel(); };
+$('#btnMap').onclick = ()=>{ if(scene==='play') toggleMini(); };
+function setMuteBtn(){ $('#btnMute').textContent = muted?'🔇':'🔊'; }
+$('#btnMute').onclick = ()=>{ muted=!muted; try{ localStorage.setItem('cgMuted', muted?'1':'0'); }catch(e){} setMuteBtn(); };
+setMuteBtn();
+const miniCtx = $('#mini').getContext('2d');
+function renderMini(){
+  if(!showMini || scene==='title') return;
+  const g = miniCtx;
+  g.drawImage(miniCv,0,0);
+  const f = MS/TS;
+  g.strokeStyle='rgba(255,255,255,.9)'; g.lineWidth=1; g.strokeRect(cam.x*f+.5, cam.y*f+.5, VW*f, VH*f);
+  for(const n of NPCS){
+    let col = null;
+    if(n.quest && !S.badges[n.quest]) col='#f6c445';
+    if(n.id==='principal' && badgeCount()>=5 && !S.done) col='#f6c445';
+    if(col){ g.fillStyle=OL; g.fillRect(n.x*MS-2,n.y*MS-2,MS+4,MS+4); g.fillStyle=col; g.fillRect(n.x*MS-1,n.y*MS-1,MS+2,MS+2); }
+  }
+  if(Math.floor(T*3)%2===0){ g.fillStyle='#fff'; g.fillRect(P.x*MS-2,P.y*MS-2,MS+4,MS+4); g.fillStyle='#e8433c'; g.fillRect(P.x*MS-1,P.y*MS-1,MS+2,MS+2); }
+}
+
+/* ---------------- HUD ---------------- */
+function updateHUD(pop){
+  if(!S) return;
+  const lv = level();
+  $('#hLvN').textContent = lv;
+  $('#hName').textContent = (S.cls ? S.cls+' ' : '') + S.name;
+  $('#hTitle').textContent = (S.done ? '👑 校園守護者' : LV_TITLES[Math.min(lv-1, LV_TITLES.length-1)]) + `｜⭐ ${calcScore()} 分`;
+  $('#hExp').style.width = ((S.exp%60)/60*100)+'%';
+  $('#badges').innerHTML = TOPIC_KEYS.map(k=>`<span class="${S.badges[k]?'on':''}${pop===k?' pop':''}" title="${TOPICS[k].badge}">${TOPICS[k].icon}</span>`).join('');
+}
+function gainExp(n){
+  const before = level(); S.exp += n; updateHUD();
+  if(level()>before){ setTimeout(()=>{ toast(`⭐ 升級了！Lv.${level()}`, true); sfx('win'); }, 300); }
+}
+let toastT;
+function toast(msg, good, ms){
+  const t=$('#toast'); t.textContent=msg; t.classList.toggle('good',!!good); t.classList.add('show');
+  clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'), ms||2600);
+}
+
+/* ---------------- 戰鬥（答題） ---------------- */
+let BT = null, battleId = 0;
+const monCv = $('#moncv'), mctx = monCv.getContext('2d');
+const fxCv = $('#fxcv'), fctx = fxCv.getContext('2d');
+function battleTopic(topic, npc, practice){
+  const T = TOPICS[topic];
+  if(!practice && !S.badges[topic]) S.tries[topic] = (S.tries[topic]||0) + 1;
+  startBattle({monster:T.monster, hp:5, hearts:3, pool:QUIZ[topic], tag:T.icon+' '+T.name, bg:T.bg,
+    onWin(b){
+      if(!practice && !S.badges[topic]){
+        stuckT = 0;
+        const pts = Math.max(0, b.correct*10 - b.wrong*5) + (S.tries[topic]===1 ? 30 : 0);
+        S.ts[topic] = pts;
+        S.badges[topic]=true; updateHUD(topic); save(); sfx('win'); submitScore();
+        const c = badgeCount();
+        say([`恭喜你打倒了${T.monster.name}，獲得【${T.badge}】${T.icon}！`,
+             `本關守護積分 +${pts}${S.tries[topic]===1?'（含一次過關獎勵 +30）':''}，目前總積分 ${calcScore()} 分。`,
+             c<5 ? `目前收集了 ${c}/5 枚徽章，繼續加油！（按「📋 任務」可以查看還有哪些）` : '你已經集滿 5 枚守護徽章了！快去校長室接受最終挑戰吧！'], {name:npc.name});
+      } else { save(); say(['練習得很好！複習越多次，記得越清楚喔！'],{name:npc.name}); }
+    },
+    onLose(b){ save(); say(['沒關係，失敗是學習的開始！','想一想剛剛的解說，準備好再來挑戰吧！'],{name:npc.name, onEnd:()=>setTimeout(()=>teacherCare('lose', b.lastWrong), 500)}); }
+  });
+}
+function bossBattle(npc){
+  const pool = [];
+  for(const k of TOPIC_KEYS) for(const q of QUIZ[k]) pool.push(Object.assign({topic:k}, q));
+  const first = !S.done;
+  if(first) S.tries.boss = (S.tries.boss||0) + 1;
+  startBattle({monster:BOSS, hp:10, hearts:5, pool, tag:'👑 綜合挑戰', bg:'boss',
+    onWin(b){
+      if(first){ S.ts.boss = Math.max(0, b.correct*10 - b.wrong*5) + 100 + (S.tries.boss===1 ? 50 : 0); }
+      S.done=true; save(); updateHUD(); sfx('win');
+      if(first) submitScore();
+      say(['你打倒了糊塗大魔王！', ...(first?[`大魔王守護積分 +${S.ts.boss}，總積分 ${calcScore()} 分！`]:[]),'從今天起，你就是我們學校的「校園守護者」！','這是頒給你的獎狀，恭喜你！'],{name:npc.name, onEnd:showCert});
+    },
+    onLose(b){ save(); say(['大魔王果然很厲害……','回去找各位老師複習一下，再來挑戰吧！'],{name:npc.name, onEnd:()=>setTimeout(()=>teacherCare('lose', b.lastWrong), 500)}); }
+  });
+}
+function startBattle(o){
+  BT = Object.assign({}, o, {mhp:o.hp, h:o.hearts, deck:buildDeck(o.pool), qi:0, hurt:0, t:0, done:false, parts:[], id:++battleId, correct:0, wrong:0});
+  scene='battle'; clearHeld();
+  const b = $('#battle'); b.classList.remove('hidden','in'); void b.offsetWidth; b.classList.add('in');
+  const mb = $('#monBox'); mb.classList.remove('enter'); void mb.offsetWidth; mb.classList.add('enter');
+  drawBattleBG($('#bgcv').getContext('2d'), o.bg);
+  drawFace($('#meFace'), P.look, 1.6);
+  $('#mName').textContent = o.monster.name;
+  $('#bMe').textContent = S.name;
+  $('#bTag').textContent = o.tag;
+  sfx('warn');
+  nextQ();
+  const id = BT.id;
+  let lastT = performance.now();
+  (function monLoop(now){
+    if(!BT || BT.id!==id) return;
+    const dt = Math.min(.05,((now||lastT)-lastT)/1000); lastT = now||lastT;
+    BT.t += dt; if(BT.hurt>0) BT.hurt -= dt;
+    drawMonster(mctx, BT.monster, BT.t, BT.hurt>0 && Math.floor(BT.hurt*20)%2===0, BT.mhp<=0);
+    drawBattleFX(dt);
+    requestAnimationFrame(monLoop);
+  })();
+}
+function updateBars(){
+  $('#mHp').style.width = (BT.mhp/BT.hp*100)+'%';
+  $('#bHearts').textContent = '❤️'.repeat(Math.max(0,BT.h)) + '🤍'.repeat(BT.hearts-Math.max(0,BT.h));
+}
+/* 出題順序：先出 1～2 題以前答錯的（穿插在第 2、4 題），再出沒看過的，最後才是看過的；
+   整個題庫都看過一輪後，重新計算。 */
+function buildDeck(pool){
+  S.seen = S.seen||{}; S.wrong = S.wrong||{};
+  if(pool.every(q=>S.seen[q.id])) pool.forEach(q=>{ delete S.seen[q.id]; });
+  const wrong = shuffle(pool.filter(q=>S.wrong[q.id])).slice(0,2);
+  const rest = pool.filter(q=>!wrong.includes(q));
+  const deck = shuffle(rest.filter(q=>!S.seen[q.id])).concat(shuffle(rest.filter(q=>S.seen[q.id])));
+  wrong.forEach((q,i)=>deck.splice(Math.min(deck.length, 1+i*2), 0, q));
+  return deck;
+}
+function nextQ(){
+  if(BT.qi>=BT.deck.length){ BT.deck=buildDeck(BT.pool); BT.qi=0; }
+  const q = BT.q = BT.deck[BT.qi++];
+  S.seen[q.id] = true;
+  BT.answered=false;
+  updateBars();
+  $('#bFb').classList.add('hidden');
+  $('#bFlee').classList.remove('hidden');
+  const body = $('#bBody'); body.innerHTML='';
+  if(q.topic){ $('#bTag').textContent = TOPICS[q.topic].icon+' '+TOPICS[q.topic].name; }
+  if(q.type==='order'){
+    $('#bQ').textContent = q.q + '（依序點選）';
+    BT.picked = [];
+    const pk = document.createElement('div'); pk.className='picked'; pk.id='picked';
+    body.appendChild(pk);
+    const box = document.createElement('div'); box.className='bopts'; box.style.marginTop='8px';
+    shuffle(q.items.slice()).forEach((it,i)=>{
+      const b=document.createElement('button'); b.className='obtn'; b.innerHTML=`<span class="k">${i+1}</span>`; b.appendChild(document.createTextNode(it)); b.dataset.v=it;
+      b.onclick=()=>pickOrder(b); box.appendChild(b);
+    });
+    body.appendChild(box);
+    const rs=document.createElement('button'); rs.className='cbtn'; rs.textContent='↺ 重排'; rs.style.marginTop='8px'; rs.style.fontSize='15px';
+    rs.onclick=()=>{ if(BT.answered) return; BT.picked=[]; box.querySelectorAll('.obtn').forEach(b=>{b.disabled=false; b.classList.remove('picked');}); renderPicked(); };
+    body.appendChild(rs);
+    renderPicked();
+  } else {
+    $('#bQ').textContent = q.q;
+    const box = document.createElement('div'); box.className='bopts';
+    const opts = shuffle(q.a.map((t,i)=>({t, ok:i===0})));
+    opts.forEach((o,i)=>{
+      const b=document.createElement('button'); b.className='obtn'; b.innerHTML=`<span class="k">${i+1}</span>`; b.appendChild(document.createTextNode(o.t));
+      b.onclick=()=>answerChoice(b, o.ok, box, q.a[0]); b.dataset.ok = o.ok?'1':''; box.appendChild(b);
+    });
+    body.appendChild(box);
+  }
+}
+function renderPicked(){
+  const pk=$('#picked'); if(!pk) return;
+  pk.innerHTML = '';
+  if(!BT.picked.length){ pk.innerHTML='<span style="color:#b3a07a">← 依序點選下面的選項</span>'; return; }
+  BT.picked.forEach((v,i)=>{ const s=document.createElement('span'); s.className='chip'; s.textContent=`${i+1}. ${v}`; pk.appendChild(s); });
+}
+function pickOrder(b){
+  if(BT.answered || b.disabled) return;
+  b.disabled = true; b.classList.add('picked'); BT.picked.push(b.dataset.v); renderPicked(); sfx('talk');
+  if(BT.picked.length===BT.q.items.length){
+    BT.answered = true;
+    const ok = BT.picked.every((v,i)=>v===BT.q.items[i]);
+    setTimeout(()=>resolveAnswer(ok, BT.q.items.map((v,i)=>`${i+1}. ${v}`).join(' → ')), 300);
+  }
+}
+function answerChoice(b, ok, box, right){
+  if(BT.answered) return; BT.answered=true;
+  box.querySelectorAll('.obtn').forEach(x=>{ x.disabled=true; if(x.dataset.ok) x.classList.add('right'); });
+  if(!ok) b.classList.add('wrong');
+  setTimeout(()=>resolveAnswer(ok, right), 450);
+}
+function burst(x,y,n,colors,kind){
+  for(let i=0;i<n;i++){ const a=Math.random()*Math.PI*2, sp=80+Math.random()*220;
+    BT.parts.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-(kind==='conf'?160:60),l:1+Math.random()*.6,c:colors[i%colors.length],k:kind,r:Math.random()*6}); }
+}
+function resolveAnswer(ok, rightText){
+  if(!BT) return;
+  $('#bFlee').classList.add('hidden');
+  if(ok){
+    BT.mhp--; BT.correct++; BT.hurt=0.5; sfx('ok'); gainExp(10); delete S.wrong[BT.q.id];
+    const mb=$('#monBox'); mb.classList.remove('shake','enter'); void mb.offsetWidth; mb.classList.add('shake');
+    const d=document.createElement('div'); d.className='dmg'; d.textContent='-1'; mb.appendChild(d); setTimeout(()=>d.remove(),1000);
+    burst(182, 100, 18, ['#ffe066','#fff','#ffb347'], 'star');
+  } else {
+    BT.h--; BT.wrong++; BT.lastWrong = BT.q; S.wrong[BT.q.id] = true; sfx('bad');
+    const bt=$('#battle'); bt.classList.remove('redflash'); void bt.offsetWidth; bt.classList.add('redflash');
+    const me=$('#meBox'); me.classList.remove('hit'); void me.offsetWidth; me.classList.add('hit');
+  }
+  updateBars();
+  const fb = $('#bFb');
+  const end = BT.mhp<=0 || BT.h<=0;
+  fb.innerHTML = `<div class="res" style="color:${ok?'var(--ok)':'var(--bad)'}">${ok?'⭕ 答對了！攻擊成功！':'❌ 答錯了……'}</div>
+    ${ok?'':'<div class="ans" id="fbAns"></div>'}
+    <div class="exp" id="fbExp"></div>
+    <button class="big" id="bCont">${end?(BT.mhp<=0?'🎉 繼續':'繼續'):'下一題 ▶'}</button>`;
+  if(!ok) $('#fbAns').textContent = '正確答案：' + rightText;
+  $('#fbExp').textContent = '💡 ' + (BT.q.exp||'');
+  fb.classList.remove('hidden');
+  $('#bCont').onclick = contBattle;
+}
+function contBattle(){
+  if(!BT) return;
+  if($('#bFb').classList.contains('hidden')) return;
+  if(BT.done){ finishBattle(); return; }
+  if(BT.mhp<=0 || BT.h<=0){
+    BT.done = true; BT.win = BT.mhp<=0;
+    const gain = BT.monster.boss ? 50 : 20;
+    if(BT.win) gainExp(gain);
+    const fb=$('#bFb');
+    fb.innerHTML = BT.win
+      ? `<div class="res" style="font-size:42px">🎉 打倒了${BT.monster.name}！</div><div class="exp">太厲害了！額外經驗值 +${gain}</div><button class="big" id="bCont">太好了！</button>`
+      : `<div class="res" style="font-size:38px;color:var(--bad)">💦 體力用完了……</div><div class="exp">${BT.monster.name}逃走了。沒關係，複習之後再來挑戰！</div><button class="big" id="bCont">回到校園</button>`;
+    $('#bCont').onclick = contBattle;
+    if(BT.win){ sfx('win'); burst(400, 160, 70, ['#ff6b8a','#ffd447','#5fc3ff','#7be07b','#c78bff'], 'conf'); }
+    return;
+  }
+  nextQ();
+}
+function finishBattle(fled){
+  const b = BT; BT=null; scene='play'; clearHeld();
+  $('#battle').classList.add('hidden');
+  fctx.clearRect(0,0,800,576);
+  if(fled){ say(['（你先撤退了。準備好再回來挑戰吧！）'],{name:'旁白'}); return; }
+  b.win ? b.onWin(b) : b.onLose(b);
+}
+$('#bFlee').onclick = ()=>{ if(BT && !BT.answered) finishBattle(true); };
+function battleKey(k){
+  if(!BT) return;
+  const fbOpen = !$('#bFb').classList.contains('hidden');
+  if(fbOpen){ if(k===' '||k==='Enter') contBattle(); return; }
+  if(/^[1-9]$/.test(k)){
+    const btns = $('#bBody').querySelectorAll('.obtn');
+    const b = btns[+k-1]; if(b && !b.disabled) b.click();
+  }
+}
+function drawBattleFX(dt){
+  const g=fctx; g.clearRect(0,0,800,576);
+  for(let i=BT.parts.length-1;i>=0;i--){
+    const p=BT.parts[i]; p.l-=dt; if(p.l<=0){ BT.parts.splice(i,1); continue; }
+    p.x+=p.vx*dt; p.y+=p.vy*dt; p.vy+= (p.k==='conf'?260:120)*dt; p.vx*=.98; p.r+=dt*6;
+    g.globalAlpha=Math.min(1,p.l*1.5); g.fillStyle=p.c;
+    if(p.k==='star'){ g.save(); g.translate(p.x,p.y); g.rotate(p.r); g.beginPath(); for(let j=0;j<10;j++){ const rr=j%2?3:7, a=j/10*Math.PI*2; g.lineTo(Math.cos(a)*rr,Math.sin(a)*rr);} g.fill(); g.restore(); }
+    else { g.save(); g.translate(p.x,p.y); g.rotate(p.r); g.fillRect(-4,-2.5,8,5); g.restore(); }
+  }
+  g.globalAlpha=1;
+}
+function drawBattleBG(g, kind){
+  g.clearRect(0,0,800,576);
+  const sky = {class:['#fdf3dc','#f3dfb8'], road:['#7ec8ff','#d3eeff'], alert:['#ffb36b','#ffe3b3'], field:['#73c2ff','#cfeeff'], soft:['#f7d9f0','#e5dcff'], boss:['#1d1640','#4b3a7a']}[kind]||['#7ec8ff','#d3eeff'];
+  let gr=g.createLinearGradient(0,0,0,250); gr.addColorStop(0,sky[0]); gr.addColorStop(1,sky[1]); g.fillStyle=gr; g.fillRect(0,0,800,250);
+  g.lineWidth=2; g.strokeStyle=OL;
+  if(kind==='class'){
+    g.fillStyle='#f6e7c8'; g.fillRect(0,0,800,250);
+    rr(g,300,30,320,150,6,'#2e5d45'); g.fillStyle='#7a4a24'; g.fillRect(300,176,320,8);
+    g.fillStyle='rgba(255,255,255,.85)'; g.font='bold 26px "Microsoft JhengHei",sans-serif'; g.textAlign='center'; g.fillText('守規矩・有禮貌',460,95); g.font='18px "Microsoft JhengHei",sans-serif'; g.fillText('準時上課　走廊慢行　垃圾分類',460,135);
+    for(const x of [660,730]){ rr(g,x,40,56,80,3,'#9fd3f0'); g.beginPath(); g.moveTo(x+28,40); g.lineTo(x+28,120); g.stroke(); }
+    circ(g,90,60,24,'#fff'); g.beginPath(); g.moveTo(90,60); g.lineTo(90,44); g.moveTo(90,60); g.lineTo(102,66); g.stroke();
+  } else if(kind==='road'){
+    g.fillStyle='#9fb6c9'; for(const [x,w,h] of [[20,70,120],[100,60,160],[480,90,130],[590,70,170],[680,100,110]]){ g.fillRect(x,250-h,w,h); g.fillStyle='rgba(255,255,255,.5)'; for(let yy=250-h+12; yy<240; yy+=22) for(let xx=x+8; xx<x+w-10; xx+=18) g.fillRect(xx,yy,9,10); g.fillStyle='#9fb6c9'; }
+    g.fillStyle='#55585f'; g.fillRect(0,170,800,80); g.fillStyle='#f4f4f4'; for(let i=0;i<8;i++) g.fillRect(560+i*0,176+i*9,120,5);
+    for(let x=0;x<800;x+=60){ g.fillStyle='#f2c230'; g.fillRect(x,208,34,3); }
+    rr(g,736,60,10,120,2,'#6d7178'); rr(g,724,40,34,58,5,'#2a2d33'); circ(g,741,56,9,'#ff4040',false); circ(g,741,82,9,'#173d22',false);
+  } else if(kind==='alert'){
+    g.fillStyle='#c0392b'; g.fillRect(0,200,800,50);
+    for(let x=-40;x<840;x+=40){ g.fillStyle='#f2c230'; g.beginPath(); g.moveTo(x,200); g.lineTo(x+20,200); g.lineTo(x+40,250); g.lineTo(x+20,250); g.fill(); }
+    g.fillStyle='rgba(255,255,255,.6)'; for(let i=0;i<5;i++){ g.beginPath(); g.arc(520+i*60,80+(i%2)*30,30+i*4,0,7); g.fill(); }
+    rr(g,690,90,34,80,8,'#d62d2d'); rr(g,698,74,18,18,2,'#333'); g.fillStyle='#fff'; g.fillRect(692,118,30,10);
+    g.fillStyle='#fff'; g.font='bold 30px sans-serif'; g.textAlign='center'; g.strokeText('119',600,190); g.fillText('119',600,190);
+  } else if(kind==='field'){
+    g.fillStyle='#c9573f'; g.fillRect(0,190,800,60); g.strokeStyle='#fff'; for(const yy of [205,222,239]){ g.beginPath(); g.moveTo(0,yy); g.lineTo(800,yy); g.stroke(); }
+    g.strokeStyle=OL;
+    for(const [x,y] of [[60,150],[140,165],[620,150],[700,160],[770,150]]){ rr(g,x-4,y,8,30,2,'#80522b'); circ(g,x,y-8,24,'#3a9446'); }
+    circ(g,690,60,30,'#ffe680',false);
+  } else if(kind==='soft'){
+    for(let i=0;i<14;i++){ const x=(i*97)%800, y=20+(i*53)%200, s=8+(i%4)*4; g.fillStyle=['#ffb3cf','#c9b3ff','#b3e0ff','#ffe0a3'][i%4]; g.beginPath(); g.moveTo(x,y+s*.3); g.bezierCurveTo(x,y-s*.4,x-s,y-s*.2,x-s,y+s*.3); g.bezierCurveTo(x-s,y+s*.8,x,y+s*1.1,x,y+s*1.4); g.bezierCurveTo(x,y+s*1.1,x+s,y+s*.8,x+s,y+s*.3); g.bezierCurveTo(x+s,y-s*.2,x,y-s*.4,x,y+s*.3); g.fill(); }
+    rr(g,560,150,180,60,18,'#a689e2'); rr(g,575,165,150,40,12,'#c4b0f0');
+  } else if(kind==='boss'){
+    for(let i=0;i<60;i++){ g.fillStyle=`rgba(255,255,255,${.3+hash(i,1,2)*.7})`; g.fillRect(hash(i,2,3)*800, hash(i,3,4)*230, 2, 2); }
+    circ(g,680,70,34,'#fff4c2',false); g.fillStyle='#1d1640'; g.beginPath(); g.arc(694,62,30,0,7); g.fill();
+    g.fillStyle='#2a2050'; for(const [x,w,h] of [[0,120,90],[110,80,130],[520,100,110],[620,180,80]]) g.fillRect(x,250-h,w,h);
+  }
+  // 地面
+  gr=g.createLinearGradient(0,250,0,576);
+  const ground = kind==='class' ? ['#e2b77e','#c99a5f'] : kind==='boss' ? ['#3c2f66','#231a45'] : kind==='soft' ? ['#d7eee0','#bfe0cf'] : ['#8fd17a','#5fa64c'];
+  gr.addColorStop(0,ground[0]); gr.addColorStop(1,ground[1]); g.fillStyle=gr; g.fillRect(0,250,800,326);
+  if(kind==='class'){ g.fillStyle='rgba(0,0,0,.08)'; for(let y=262;y<576;y+=18) g.fillRect(0,y,800,2); }
+  // 怪獸舞台
+  g.fillStyle='rgba(30,20,40,.25)'; g.beginPath(); g.ellipse(182,180,110,20,0,0,7); g.fill();
+  g.fillStyle = kind==='boss' ? 'rgba(244,197,66,.25)' : 'rgba(255,255,255,.3)'; g.beginPath(); g.ellipse(182,175,98,15,0,0,7); g.fill();
+}
+function drawMonster(g, m, t, flash, dead){
+  g.clearRect(0,0,280,178);
+  const kind = m.kind;
+  const jit = kind==='panic' && !dead ? Math.sin(t*40)*1.5 : 0;
+  const cx=140+jit, cy=98 + Math.sin(t*3)*4 + (dead?24:0);
+  const s = m.boss ? 1.12 : 1;
+  g.save(); g.translate(cx,cy); g.scale(s, dead? .55 : s);
+  g.lineWidth=3; g.strokeStyle=OL; g.lineJoin='round'; g.lineCap='round';
+  if(dead) g.globalAlpha = .55;
+  const body = flash ? '#ffffff' : m.color;
+  // 披風（魔王）
+  if(m.boss){ g.fillStyle='#a3242a'; g.beginPath(); g.moveTo(-50,-20); g.quadraticCurveTo(-90,40+Math.sin(t*3)*6,-70,70); g.lineTo(70,70); g.quadraticCurveTo(90,40-Math.sin(t*3)*6,50,-20); g.closePath(); g.fill(); g.stroke(); }
+  // 角／頭上裝飾
+  if(kind==='traffic'){
+    rr(g,-14,-92,28,44,6,'#2a2d33');
+    circ(g,0,-80,7,Math.floor(t*3)%2?'#ff4040':'#5a1a1a'); circ(g,0,-60,7,Math.floor(t*3)%2?'#1d3d22':'#3bff6b');
+  } else if(kind==='bully'){
+    g.fillStyle=m.horn; for(let i=-2;i<=2;i++){ g.beginPath(); g.moveTo(i*18-10,-42); g.lineTo(i*18,-70+Math.abs(i)*8); g.lineTo(i*18+10,-42); g.closePath(); g.fill(); g.stroke(); }
+  } else if(kind==='lazy'){
+    g.fillStyle=m.horn; g.beginPath(); g.ellipse(-26,-46,10,16,-.5,0,7); g.fill(); g.stroke(); g.beginPath(); g.ellipse(26,-46,10,16,.5,0,7); g.fill(); g.stroke();
+  } else if(!m.boss){
+    g.fillStyle=m.horn;
+    g.beginPath(); g.moveTo(-42,-30); g.lineTo(-54,-72); g.lineTo(-20,-44); g.closePath(); g.fill(); g.stroke();
+    g.beginPath(); g.moveTo(42,-30); g.lineTo(54,-72); g.lineTo(20,-44); g.closePath(); g.fill(); g.stroke();
+  }
+  // 身體
+  g.fillStyle = body;
+  g.beginPath();
+  for(let i=0;i<=48;i++){ const a=i/48*Math.PI*2; const r=1+Math.sin(a*5+t*4)*.035; const x=Math.cos(a)*66*r, y=Math.sin(a)*54*r; i?g.lineTo(x,y):g.moveTo(x,y); }
+  g.closePath(); g.fill(); g.stroke();
+  if(!flash){ g.fillStyle=darken(m.color,.18); g.beginPath(); g.ellipse(0,30,52,20,0,0,Math.PI); g.fill(); }
+  g.fillStyle='rgba(255,255,255,.25)'; g.beginPath(); g.ellipse(-24,-26,20,11,-.4,0,7); g.fill();
+  if(!flash){ g.fillStyle=lighten(m.color,.35); g.beginPath(); g.ellipse(0,22,30,20,0,0,7); g.fill(); }
+  // 手腳
+  g.fillStyle = body;
+  ell(g,-32,54,15,8,body); ell(g,32,54,15,8,body);
+  const wave = Math.sin(t*(kind==='panic'?14:6))*8;
+  if(kind==='bully'){ circ(g,-74,4+wave,12,body); circ(g,74,4-wave,12,body); }
+  else { ell(g,-72,6+wave,12,9,body); ell(g,72,6-wave,12,9,body); }
+  // 眼睛
+  const look = Math.sin(t*1.5)*3;
+  if(kind==='bias'){
+    circ(g,0,-12,20,'#fff'); circ(g,look,-10,9,OL,false); g.fillStyle='#fff'; g.fillRect(look-4,-15,3,3);
+    g.strokeStyle='#f4c542'; g.lineWidth=4; g.beginPath(); g.arc(0,-12,24,0,7); g.stroke(); g.strokeStyle=OL; g.lineWidth=3;
+  } else {
+    for(const ex of [-22,22]){
+      if(kind==='lazy' && !dead){
+        circ(g,ex,-10,12,'#fff'); g.fillStyle=body; g.beginPath(); g.arc(ex,-10,13,Math.PI,0); g.fill(); g.beginPath(); g.moveTo(ex-12,-10); g.lineTo(ex+12,-10); g.stroke();
+        g.fillStyle=OL; g.beginPath(); g.arc(ex,-6,4,0,7); g.fill();
+      } else {
+        circ(g,ex,-10,13,'#fff');
+        if(dead){ g.beginPath(); g.moveTo(ex-6,-16); g.lineTo(ex+6,-4); g.moveTo(ex+6,-16); g.lineTo(ex-6,-4); g.stroke(); }
+        else if(kind==='panic'){ g.fillStyle=OL; g.beginPath(); g.arc(ex+look*.5,-9,3,0,7); g.fill(); }
+        else { g.fillStyle=OL; g.beginPath(); g.arc(ex+look,-8,6,0,7); g.fill(); g.fillStyle='#fff'; g.fillRect(ex+look-3,-12,2.5,2.5); }
+      }
+    }
+    if(kind!=='lazy' && kind!=='panic'){ g.beginPath(); g.moveTo(-38,-30); g.lineTo(-12,-22); g.moveTo(38,-30); g.lineTo(12,-22); g.stroke(); }
+    if(kind==='panic'){ g.beginPath(); g.moveTo(-36,-24); g.lineTo(-12,-30); g.moveTo(36,-24); g.lineTo(12,-30); g.stroke(); }
+  }
+  // 嘴
+  if(kind==='lazy'){ g.fillStyle='#5a1020'; g.beginPath(); g.ellipse(0,20,10,6+Math.sin(t*2)*3,0,0,7); g.fill(); g.stroke(); }
+  else if(kind==='panic'){ g.fillStyle='#5a1020'; g.beginPath(); g.ellipse(0,20,12,12,0,0,7); g.fill(); g.stroke(); }
+  else {
+    g.fillStyle='#5a1020'; g.beginPath(); g.ellipse(0,18,22,dead?3:11+Math.sin(t*5)*2,0,0,Math.PI); g.closePath(); g.fill(); g.stroke();
+    if(!dead){ g.fillStyle='#fff'; g.beginPath(); g.moveTo(-15,18); g.lineTo(-10,27); g.lineTo(-5,18); g.moveTo(5,18); g.lineTo(10,27); g.lineTo(15,18); g.fill(); }
+  }
+  // 臉頰
+  if(!dead){ g.fillStyle='rgba(255,120,140,.4)'; g.beginPath(); g.ellipse(-42,8,8,5,0,0,7); g.ellipse(42,8,8,5,0,0,7); g.fill(); }
+  // 特效小物
+  g.lineWidth=2;
+  if(kind==='lazy' && !dead){ g.fillStyle=OL; g.font='bold 20px sans-serif'; g.textAlign='center'; const z=(t%2)/2; g.globalAlpha=1-z; g.fillText('Z', 58+z*20, -50-z*30); g.font='bold 14px sans-serif'; g.fillText('z', 46+z*14, -40-z*20); g.globalAlpha=dead?.55:1; }
+  if(kind==='panic' && !dead){ for(const [sx,sy] of [[-60,-40],[62,-34]]){ g.fillStyle='#8fd0f5'; g.beginPath(); g.moveTo(sx,sy-10+Math.sin(t*8)*2); g.quadraticCurveTo(sx+7,sy+2,sx,sy+4); g.quadraticCurveTo(sx-7,sy+2,sx,sy-10+Math.sin(t*8)*2); g.fill(); g.stroke(); } }
+  if(kind==='bias' && !dead){ g.fillStyle=OL; g.font='bold 22px sans-serif'; g.textAlign='center'; g.fillText('?', -62, -46+Math.sin(t*3)*4); g.fillText('?', 64, -52+Math.cos(t*3)*4); }
+  if(m.boss){
+    g.fillStyle='#f4c542'; g.lineWidth=2.5;
+    g.beginPath(); g.moveTo(-28,-48); g.lineTo(-28,-78); g.lineTo(-14,-62); g.lineTo(0,-84); g.lineTo(14,-62); g.lineTo(28,-78); g.lineTo(28,-48); g.closePath(); g.fill(); g.stroke();
+    circ(g,0,-60,4.5,'#e74c3c'); circ(g,-18,-56,3,'#3c7fd0'); circ(g,18,-56,3,'#2e9d5b');
+    if(!dead){ g.globalAlpha=.25+.15*Math.sin(t*4); g.strokeStyle='#f4c542'; g.lineWidth=5; g.beginPath(); g.ellipse(0,0,84,70,0,0,7); g.stroke(); g.globalAlpha=1; }
+  }
+  g.restore();
+}
+
+/* ---------------- 隱藏任務 ---------------- */
+const HQ = {
+  bottle: {name:'🎒 失物招領', desc:'找到遺失的水壺，還給主人', reward:'cap'},
+  trash:  {name:'♻️ 環保小尖兵', desc:'撿起藏在校園各處的 8 個垃圾', reward:'cape'},
+  exits:  {name:'🚪 逃生達人', desc:'找出藏在各建築裡的 5 個逃生指示牌', reward:'helmet'},
+  friend: {name:'🤝 友誼橋樑', desc:'幫小宇交到新朋友', reward:'star'},
+  social: {name:'💬 交友達人', desc:'和校園裡的每一個人說過話', reward:'crown'},
+};
+const HQ_KEYS = Object.keys(HQ);
+const HQ_POINTS = 20;
+const ACC = {
+  cap:    {name:'🧢 藍色棒球帽', look:{hat:'cap', hatColor:'#3c7fd0'}},
+  cape:   {name:'🍃 環保綠披風', look:{cape:'#2e9d5b'}},
+  helmet: {name:'⛑️ 防災安全帽', look:{hat:'helmet'}},
+  star:   {name:'🌟 友誼星星髮夾', look:{star:true}},
+  crown:  {name:'👑 交友皇冠', look:{crown:true}},
+};
+const TRASH = [[1,1],[38,1],[12,21],[21,14],[38,21],[50,9],[1,23],[30,23]];
+const EXITS = [[3,2],[35,2],[10,13],[45,2],[44,13]];
+const BOTTLE = [50,22];
+const socialList = () => NPCS.filter(n=>n.id!=='principal').map(n=>n.id);
+function hqInit(){ S.hq = Object.assign({trash:{}, exits:{}, bottle:0, friend:0, talked:{}, done:{}, seen:{}}, S.hq||{}); S.flags = S.flags||{}; }
+function hqDoneCount(){ return S && S.hq ? HQ_KEYS.filter(k=>S.hq.done[k]).length : 0; }
+function hqProgress(k){
+  const h=S.hq;
+  if(k==='trash') return `${Object.keys(h.trash).length}/${TRASH.length}`;
+  if(k==='exits') return `${Object.keys(h.exits).length}/${EXITS.length}`;
+  if(k==='bottle') return h.done.bottle ? '已歸還' : h.bottle===2 ? '已找到，快還給主人！' : '尋找中';
+  if(k==='friend') return `${Math.min(3,h.friend)}/3`;
+  if(k==='social') return `${socialList().filter(id=>h.talked[id]).length}/${socialList().length}`;
+  return '';
+}
+function hqDiscover(k){
+  if(S.hq.seen[k] || S.hq.done[k]) return;
+  S.hq.seen[k] = true; save();
+  setTimeout(()=>toast(`🔍 發現隱藏任務：${HQ[k].name}！（按 Q 查看）`, true), 300);
+}
+function hqComplete(k){
+  if(S.hq.done[k]) return;
+  S.hq.seen[k] = true; S.hq.done[k] = true;
+  const a = HQ[k].reward; S.acc = a; refreshLook();
+  save(); updateHUD(); sfx('win'); submitScore();
+  toast(`🎉 完成隱藏任務「${HQ[k].name}」！獲得造型「${ACC[a].name}」，積分 +${HQ_POINTS}`, true, 4500);
+}
+function refreshLook(){ const base = LOOKS[S.look]||LOOKS[0]; P.look = Object.assign({}, base, (S.acc && ACC[S.acc]) ? ACC[S.acc].look : {}); }
+function hqStep(){ // 走到某格時檢查
+  const key = P.x+','+P.y;
+  if(TRASH.some(([x,y])=>x===P.x&&y===P.y) && !S.hq.trash[key]){
+    S.hq.trash[key] = true; hqDiscover('trash'); sfx('ok'); gainExp(5);
+    const n = Object.keys(S.hq.trash).length;
+    if(n>=TRASH.length) hqComplete('trash'); else toast(`♻️ 撿起一個垃圾！（${n}/${TRASH.length}）`, true);
+    save();
+  }
+  if(P.x===BOTTLE[0] && P.y===BOTTLE[1] && S.hq.bottle<2 && !S.hq.done.bottle){
+    S.hq.bottle = 2; hqDiscover('bottle'); sfx('ok'); save();
+    say(['（草叢裡有東西在發亮……）','你找到一個粉紅色水壺，上面寫著「小花」。','拿去操場還給小花吧！'],{name:'旁白'});
+  }
+}
+function hqTalked(n){
+  if(n.id==='principal' || S.hq.talked[n.id]) return;
+  S.hq.talked[n.id] = true;
+  const c = socialList().filter(id=>S.hq.talked[id]).length;
+  if(c>=5) hqDiscover('social');
+  if(c>=socialList().length) setTimeout(()=>hqComplete('social'), 400);
+}
+function hqExit(key){
+  if(S.hq.exits[key]){ say(['（綠色的逃生指示牌，你已經找過這一個了。）'],{name:'🚪 逃生指示'}); return; }
+  S.hq.exits[key] = true; hqDiscover('exits'); sfx('ok'); gainExp(5);
+  const n = Object.keys(S.hq.exits).length;
+  say([`你找到了逃生指示牌！（${n}/${EXITS.length}）`,'綠色的小人往門口跑，代表逃生的方向。到每個地方都要先看看逃生出口在哪裡喔！'],{name:'🚪 逃生指示', onEnd:()=>{ if(n>=EXITS.length) hqComplete('exits'); }});
+  save();
+}
+function drawHidden(g,t){
+  if(!S) return;
+  g.lineWidth=1.2; g.strokeStyle=OL;
+  for(const [x,y] of TRASH){
+    if(S.hq.trash[x+','+y]) continue;
+    const X=x*TS, Y=y*TS, i=x*7+y;
+    g.fillStyle='rgba(30,20,40,.2)'; g.beginPath(); g.ellipse(X+16,Y+24,7,2.5,0,0,7); g.fill();
+    if(i%2){ rr(g, X+11, Y+14, 10, 10, 2, '#cfd6dc'); g.fillStyle='#e74c3c'; g.fillRect(X+11.5,Y+17,9,3); }
+    else { g.fillStyle='#f4f1e6'; g.beginPath(); g.moveTo(X+10,Y+20); g.lineTo(X+14,Y+13); g.lineTo(X+21,Y+15); g.lineTo(X+22,Y+22); g.lineTo(X+15,Y+24); g.closePath(); g.fill(); g.stroke(); }
+    if(((t*1.3 + i*0.37) % 3) < 0.35) sparkle(g, X+22, Y+12, 4);
+  }
+  if(S.hq.bottle<2 && !S.hq.done.bottle){ const [x,y]=BOTTLE; const ph=(t*1.2)%2.2; if(ph<0.7) sparkle(g, x*TS+16, y*TS+14, 3+ph*5); }
+  for(const [x,y] of EXITS){
+    const X=x*TS, Y=y*TS+13, found=S.hq.exits[x+','+y];
+    rr(g, X+7, Y+1, 18, 10, 1.5, '#2e9d5b');
+    g.fillStyle='#fff'; g.beginPath(); g.arc(X+12,Y+3.5,1.4,0,7); g.fill();
+    g.fillRect(X+11,Y+5,2,3.5); g.fillRect(X+9.5,Y+8,2,2); g.fillRect(X+13,Y+7.5,2,2);
+    g.beginPath(); g.moveTo(X+16,Y+4); g.lineTo(X+22,Y+6); g.lineTo(X+16,Y+8); g.closePath(); g.fill();
+    if(found){ g.fillStyle='#ffe066'; g.font='bold 10px sans-serif'; g.textAlign='center'; g.fillText('✓', X+27, Y+3); }
+  }
+}
+function sparkle(g,x,y,r){
+  g.save(); g.fillStyle='rgba(255,255,220,.95)'; g.beginPath();
+  g.moveTo(x,y-r); g.lineTo(x+r*.25,y-r*.25); g.lineTo(x+r,y); g.lineTo(x+r*.25,y+r*.25); g.lineTo(x,y+r); g.lineTo(x-r*.25,y+r*.25); g.lineTo(x-r,y); g.lineTo(x-r*.25,y-r*.25);
+  g.closePath(); g.fill(); g.restore();
+}
+
+/* ---------------- 校園隨機事件（不計入排行榜，只給經驗值） ---------------- */
+let evT = 70, evBusy = false, QTE = null, rainT = 0, lastEv = '';
+const RECYCLE = [
+  {item:'喝完的鋁箔包', bin:'鋁箔包／紙容器', tip:'鋁箔包要先抽出吸管、壓扁，再放進鋁箔包／紙容器回收。'},
+  {item:'空的寶特瓶', bin:'塑膠類', tip:'寶特瓶倒乾淨、壓扁，放進塑膠類回收。'},
+  {item:'寫完的考卷廢紙', bin:'紙類', tip:'乾淨的廢紙屬於紙類回收。'},
+  {item:'用過的衛生紙', bin:'一般垃圾', tip:'用過的衛生紙不能回收，要丟一般垃圾。'},
+  {item:'乾淨的塑膠袋', bin:'塑膠類', tip:'乾淨的塑膠袋可以回收，髒的就丟一般垃圾。'},
+  {item:'喝完的紙杯', bin:'鋁箔包／紙容器', tip:'紙杯內有防水膜，要放在鋁箔包／紙容器，不是紙類喔。'}
+];
+const BINS = ['紙類','塑膠類','鋁箔包／紙容器','一般垃圾'];
+function evReward(ok){ if(ok){ S.ev=(S.ev||0)+1; gainExp(15); sfx('ok'); } else sfx('bad'); }
+function choiceEvent(intro, choices){
+  evBusy = true; clearHeld();
+  say(intro, {choices: shuffle(choices.slice()).map(c=>({t:c.t, f:()=>{
+    evReward(c.ok);
+    say([{n: c.ok?'✅ 做得好！':'💡 想一想', t: c.r + (c.ok?'（經驗 +15）':'')}], {onEnd:()=>{ evBusy=false; if(c.after) c.after(c.ok); }});
+  }}))});
+}
+const EVENTS = {
+  quake(){ startQTE(); },
+  rain(){ if(rainT>0) return false; rainT = 55; toast('🌧️ 下雨了！走廊和樓梯會變滑，要放慢腳步喔。', true, 3500); },
+  spill(){
+    choiceEvent([{n:'旁白',t:'（嘩啦！旁邊的同學不小心打翻了一整杯水，地板濕答答的……）'}], [
+      {t:'提醒大家小心，並告訴老師來處理', ok:true, r:'濕地板很容易讓人滑倒，提醒大家並請大人處理最安全。'},
+      {t:'在水上溜冰好好玩', ok:false, r:'在濕地板上玩很容易滑倒撞到頭！應該提醒大家小心，並告訴老師。'},
+      {t:'假裝沒看到走開', ok:false, r:'如果有人滑倒就糟了！看到危險要提醒大家，並告訴老師處理。'}]);
+  },
+  stranger(){
+    if(P.y < 17) return false;
+    choiceEvent([{n:'旁白',t:'（校門外有一位不認識的叔叔，隔著圍牆向你招手……）'},{n:'陌生叔叔',t:'小朋友，我是你爸爸的朋友，他叫我來載你去吃好吃的，跟我走吧！'}], [
+      {t:'不跟他走，馬上告訴老師或警衛', ok:true, r:'非常正確！不管對方怎麼說，都不能跟不認識的人走，要馬上告訴老師或警衛。'},
+      {t:'有好吃的耶，跟他走', ok:false, r:'千萬不可以！壞人常常用「爸媽的朋友」或「請你吃東西」當藉口。要拒絕，並馬上告訴老師或警衛。'},
+      {t:'把家裡地址告訴他，請他去找爸爸', ok:false, r:'個人資料不能告訴陌生人！要拒絕，並馬上告訴老師或警衛。'}]);
+  },
+  phone(){
+    $('#phone').classList.remove('hidden');
+    choiceEvent([{n:'📱 手機',t:'（叮咚！班級群組跳出新訊息，有人在傳惡搞同學的照片……）'}], [
+      {t:'不轉傳，截圖後告訴老師', ok:true, r:'這就是正確的旁觀者行動！網路霸凌傳得又快又廣，不參與、保留證據、告訴大人。', after:hidePhone},
+      {t:'好好笑，按讚轉傳', ok:false, r:'轉傳就是在幫忙霸凌！被惡搞的同學會非常難過。應該不轉傳，截圖告訴老師。', after:hidePhone},
+      {t:'留言「哈哈哈」', ok:false, r:'跟著起鬨會讓被欺負的人更受傷。應該不參與，截圖告訴老師。', after:hidePhone}]);
+  },
+  fall(){
+    choiceEvent([{n:'旁白',t:'（哎呀！旁邊的同學跑太快跌倒了，膝蓋擦傷流血……）'}], [
+      {t:'扶他到健康中心，並告訴老師', ok:true, r:'謝謝你這麼熱心！受傷要讓護理師處理傷口。', after:goHealth},
+      {t:'叫他自己起來，繼續去玩', ok:false, r:'同學受傷需要幫忙！應該陪他去健康中心，並告訴老師。'},
+      {t:'拍照傳到群組', ok:false, r:'這樣會讓同學很難堪，也沒有幫到他。應該陪他去健康中心，並告訴老師。'}]);
+  },
+  bell(){
+    choiceEvent([{n:'旁白',t:'（噹～噹～噹～上課鐘聲響了！你和同學還在外面玩……）'}], [
+      {t:'馬上回教室準備上課', ok:true, r:'準時上課是尊重老師和同學的表現！'},
+      {t:'再玩一下下就好', ok:false, r:'聽到鐘聲就要回教室，遲到會影響大家上課喔。'},
+      {t:'躲起來，不想上課', ok:false, r:'老師和同學會很擔心你的安全！聽到鐘聲就要回教室。'}]);
+  },
+  recycle(){
+    const r = RECYCLE[Math.random()*RECYCLE.length|0];
+    choiceEvent([{n:'旁白',t:`（地上有人亂丟了一個「${r.item}」……你把它撿了起來。）`},{n:'旁白',t:'要丟進哪一個回收桶呢？'}],
+      BINS.map(b=>({t:'🗑️ '+b, ok:b===r.bin, r:(b===r.bin?'分類正確！':'丟錯囉！正確答案是「'+r.bin+'」。')+r.tip})));
+  }
+};
+function hidePhone(){ $('#phone').classList.add('hidden'); }
+function goHealth(){
+  P.x=43; P.y=15; P.px=P.x*TS; P.py=P.y*TS; P.moving=false; P.dir='right'; checkZone();
+  say([{n:'護理師 吳阿姨',t:'謝謝你陪同學過來！我先用清水幫他沖洗傷口，再擦藥、貼上紗布。'},{n:'護理師 吳阿姨',t:'以後看到同學受傷，也要像這樣陪他來，並告訴老師喔！'}]);
+}
+function triggerEvent(){
+  const keys = shuffle(Object.keys(EVENTS).filter(k=>k!==lastEv));
+  for(const k of keys){ if(EVENTS[k]()!==false){ lastEv=k; return; } }
+}
+function startQTE(){
+  evBusy = true; QTE = {t:3}; clearHeld();
+  $('#qte').classList.remove('hidden'); $('#cv').classList.add('quake'); sfx('warn');
+}
+function endQTE(ok){
+  if(!QTE) return; QTE=null;
+  $('#qte').classList.add('hidden'); $('#cv').classList.remove('quake'); evReward(ok);
+  say(ok ? [{n:'✅ 做得好！',t:'反應很快！地震時立刻「趴下、掩護、穩住」，保護頭頸部，等搖晃停止再聽老師指示疏散。（經驗 +15）'}]
+         : [{n:'💡 想一想',t:'地震來的時候，要立刻「趴下、掩護、穩住」！不要慌張亂跑，用書包或手臂保護頭頸部。'}],
+      {onEnd:()=>{ evBusy=false; }});
+}
+$('#qBtn').onclick = ()=>endQTE(true);
+function updateEvents(dt, free){
+  if(rainT>0) rainT -= dt;
+  if(QTE){ QTE.t -= dt; $('#qBar').style.width = Math.max(0, QTE.t/3*100)+'%'; if(QTE.t<=0) endQTE(false); return; }
+  if(!free || !S.crossed) return;
+  evT -= dt;
+  if(evT<=0){ evT = 60 + Math.random()*50; triggerEvent(); }
+}
+// 時間光線：遊戲時間 0→30 分鐘，畫面從清晨的清爽光線漸漸變成午後的暖金色
+function drawDaylight(){
+  const p = S ? Math.min(1, (S.playT||0)/1800) : .3;
+  const rainA = rainT>0 ? Math.min(1, rainT/4, (55-rainT)/3) : 0;
+  ctx.save();
+  // 斜射陽光
+  const ra = .055*(1-rainA);
+  if(ra>.005){
+    ctx.globalCompositeOperation='screen';
+    for(let i=0;i<4;i++){
+      const x0 = ((i*290 + T*6 + hash(i,4,4)*120) % 1300) - 300, wd = 50 + hash(i,6,6)*60;
+      const gr = ctx.createLinearGradient(0,0,0,VH); gr.addColorStop(0,`rgba(255,244,210,${ra*(1+.4*Math.sin(T*.5+i))})`); gr.addColorStop(1,'rgba(255,244,210,0)');
+      ctx.fillStyle=gr; ctx.beginPath(); ctx.moveTo(x0,0); ctx.lineTo(x0+wd,0); ctx.lineTo(x0+wd+260,VH); ctx.lineTo(x0+260,VH); ctx.closePath(); ctx.fill();
+    }
+  }
+  // 色調
+  ctx.globalCompositeOperation='multiply';
+  if(p<.3){ ctx.fillStyle=`rgba(225,240,255,${(.3-p)/.3*.5})`; ctx.fillRect(0,0,VW,VH); }
+  if(p>.55){ const k=(p-.55)/.45; ctx.fillStyle=`rgba(255,${222-k*20|0},${180-k*40|0},${k*.55})`; ctx.fillRect(0,0,VW,VH); }
+  ctx.restore();
+}
+function drawRain(){
+  if(rainT<=0) return;
+  const a = Math.min(1, rainT/4, (55-rainT)/3);
+  ctx.fillStyle=`rgba(40,60,100,${.2*a})`; ctx.fillRect(0,0,VW,VH);
+  // 地面雨滴漣漪
+  ctx.strokeStyle=`rgba(220,235,255,${.5*a})`; ctx.lineWidth=1;
+  for(let i=0;i<36;i++){
+    const ph = (T*1.6 + hash(i,9,1)) % 1, cyc = Math.floor(T*1.6 + hash(i,9,1));
+    const x = hash(i,cyc,2)*VW, y = hash(i,cyc,3)*VH;
+    ctx.globalAlpha = 1-ph; ctx.beginPath(); ctx.ellipse(x, y, 2+ph*7, (2+ph*7)*.4, 0, 0, 7); ctx.stroke();
+  }
+  ctx.globalAlpha=1;
+  ctx.strokeStyle=`rgba(210,225,255,${.55*a})`; ctx.lineWidth=1.2; ctx.beginPath();
+  for(let i=0;i<110;i++){
+    const sp = .8 + hash(i,7,3)*.5;
+    const x = ((hash(i,3,1)*960 + T*70*sp) % 960) - 80, y = ((hash(i,5,2)*720 + T*520*sp) % 720) - 70;
+    ctx.moveTo(x,y); ctx.lineTo(x-5,y+15);
+  }
+  ctx.stroke();
+}
+
+/* ---------------- 老師關心學生 ---------------- */
+let careT = 150, stuckT = 0;
+function dirTo(a,b){ const dx=b.x-a.x, dy=b.y-a.y; return Math.abs(dx)>=Math.abs(dy) ? (dx>0?'right':'left') : (dy>0?'down':'up'); }
+function nextGoal(){
+  for(const k of TOPIC_KEYS) if(!S.badges[k]) return `可以去「${TOPICS[k].place}」找${TOPICS[k].npc}挑戰看看喔！`;
+  return S.done ? '你已經是校園守護者了！還可以找找看隱藏任務喔。' : '你已經集滿 5 枚徽章了，快去校長室接受最終挑戰吧！';
+}
+function careChat(t, kind, q, onEnd){
+  const nm = t.name;
+  const done = ()=>{ if(onEnd) onEnd(); };
+  if(kind==='lose'){
+    const lines = ['剛剛的挑戰沒有成功？沒關係，老師看到你很努力了！'];
+    if(q){ const ans = q.type==='order' ? q.items.join(' → ') : q.a[0]; lines.push(`老師給你一個提示：「${q.q}」`, `答案是「${ans}」。${q.exp||''}`); }
+    lines.push('休息一下，準備好再去挑戰吧！加油！');
+    say(lines, {name:nm, onEnd:done}); return;
+  }
+  if(kind==='hint'){ say(['老師看你在校園裡逛了好一陣子～', nextGoal()], {name:nm, onEnd:done}); return; }
+  const chats = [
+    ()=>say(['{name}，最近在學校還開心嗎？'], {name:nm, choices:[
+      {t:'很開心！', f:()=>say(['太好了！有開心的事，也可以回家跟家人分享喔。'],{name:nm,onEnd:done})},
+      {t:'普通普通', f:()=>say(['普通的日子也很好。如果有什麼想聊的，老師們隨時都在。'],{name:nm,onEnd:done})},
+      {t:'有點煩惱……', f:()=>say(['謝謝你願意說出來。','煩惱可以找導師、輔導室的陳老師，或信任的家人聊聊。說出來，心裡會舒服很多。','輔導室在校園右上方，門隨時為你打開。'],{name:nm,onEnd:done})}]}),
+    ()=>say(['下課的時候，都跟誰一起玩呢？'], {name:nm, choices:[
+      {t:'跟好朋友一起', f:()=>say(['真好！也可以邀請還沒有朋友的同學一起玩喔。'],{name:nm,onEnd:done})},
+      {t:'自己一個人', f:()=>say(['一個人也沒關係。如果想交朋友，主動打個招呼試試看！','聽說操場上的小宇，也很想交朋友呢。'],{name:nm,onEnd:done})},
+      {t:'還在找朋友', f:()=>say(['交朋友需要一點勇氣，先從微笑和打招呼開始吧！老師幫你加油！'],{name:nm,onEnd:done})}]}),
+    ()=>say(['今天有好好吃早餐、多喝水嗎？'], {name:nm, choices:[
+      {t:'有！', f:()=>say(['很棒！吃早餐、多喝水，上課才有精神。'],{name:nm,onEnd:done})},
+      {t:'還沒有……', f:()=>say(['早餐是一天的能量來源喔！下課記得去喝水，福利社也有健康的點心。'],{name:nm,onEnd:done})}]}),
+    ()=>say(['最近有沒有遇到讓你不舒服的事？像是被取笑、被欺負？'], {name:nm, choices:[
+      {t:'沒有', f:()=>say(['那就好！如果看到別人被欺負，也要記得告訴老師喔。'],{name:nm,onEnd:done})},
+      {t:'好像有……', f:()=>say(['謝謝你告訴老師，這一定很不容易。','被欺負不是你的錯！你可以隨時找導師、學務處或輔導室，我們一定會保護你。'],{name:nm,onEnd:done})}]}),
+    ()=>say(['走路慢慢走，不要在走廊奔跑喔！', nextGoal()], {name:nm, onEnd:done})
+  ];
+  chats[Math.random()*chats.length|0]();
+}
+function teacherCare(kind, q){
+  const t = NPCS.find(n=>n.id==='patrol'); if(!t || DLG || scene!=='play') return false;
+  let spot = null;
+  for(const [dx,dy] of [[0,1],[1,0],[-1,0],[0,-1],[1,1],[-1,1],[1,-1],[-1,-1]]){
+    const x=P.x+dx, y=P.y+dy;
+    if(NPC_WALK.has(tileAt(x,y)) && !occupied(x,y,t)){ spot=[x,y]; break; }
+  }
+  if(!spot) return false;
+  puff(t.px,t.py);
+  t.x=spot[0]; t.y=spot[1]; t.px=t.x*TS; t.py=t.y*TS; t.moving=false; t.wt=6;
+  puff(t.px,t.py); sfx('talk');
+  t.dir = dirTo(t,P); P.dir = dirTo(P,t); clearHeld();
+  hqTalked(t);
+  careChat(t, kind, q, ()=>sendHome(t));
+  if(DLG) DLG.npc = t;
+  return true;
+}
+function sendHome(t){
+  const spots = [[30,10],[25,11],[35,10],[20,11],[40,11],[12,10]];
+  for(const [x,y] of spots){ if(!occupied(x,y,t)){ puff(t.px,t.py); t.x=x; t.y=y; t.px=x*TS; t.py=y*TS; return; } }
+}
+function updateCare(dt, free){
+  if(!free) return;
+  careT -= dt; stuckT += dt;
+  if(stuckT > 240 && !S.done){ stuckT = 0; careT = Math.max(careT, 90); teacherCare('hint'); return; }
+  if(careT <= 0){ careT = 150 + Math.random()*60; teacherCare('chat'); }
+}
+
+/* ---------------- 排行榜 ---------------- */
+let boardScope = 'all', boardReq = 0;
+function boardOpen(){ return !$('#panel').classList.contains('hidden') && $('#panel').dataset.mode==='board'; }
+function submitScore(){
+  if(!SCRIPT_URL || !S || !S.cls || !S.sid) return;
+  // 參數名稱用 pid：Google 會攔截名為 sid 的網址參數
+  const q = new URLSearchParams({action:'submit', pid:S.sid, cls:S.cls, nick:S.name, score:calcScore(), badges:badgeCount(), hidden:hqDoneCount(), done:S.done?1:0, time:Math.round(S.playT||0)});
+  fetch(SCRIPT_URL + '?' + q.toString())
+    .then(r=>r.json())
+    .then(d=>{ if(d && d.ok){ if(d.rank) setTimeout(()=>toast(`🏆 成績已上傳！目前全校第 ${d.rank} 名`, true), 1200); } else if(d && d.error){ setTimeout(()=>toast('排行榜上傳失敗：'+d.error), 1200); } })
+    .catch(()=>{ setTimeout(()=>toast('⚠️ 排行榜連線失敗，成績先保存在這台裝置'), 1200); });
+}
+function showBoard(scope){
+  const p = $('#panel');
+  if(scope) boardScope = scope;
+  if(boardScope==='class' && !(S && S.cls)) boardScope = 'all';
+  clearHeld();
+  p.dataset.mode = 'board';
+  p.innerHTML = `<h2>🏆 守護者排行榜</h2>
+    <div class="btabs">
+      <button class="cbtn ${boardScope==='all'?'on':''}" id="bAll">全校</button>
+      ${S && S.cls ? `<button class="cbtn ${boardScope==='class'?'on':''}" id="bCls">${escapeHTML(S.cls)} 班</button>` : ''}
+      <span style="flex:1"></span>
+      ${S ? `<span style="align-self:center;font-size:15px">我的積分：<b>${calcScore()}</b>　徽章 ${badgeCount()}/5</span>` : ''}
+    </div>
+    <div class="bscroll" id="bList"><div class="bmsg">讀取中……</div></div>
+    <div style="margin-top:10px;display:flex;gap:10px;align-items:center">
+      <button class="cbtn" id="bClose">關閉</button>
+      <small style="color:#8a6127">積分相同時，徽章多、時間短的排前面。練習模式不計分。</small>
+    </div>`;
+  p.classList.remove('hidden');
+  $('#bClose').onclick = closeBoard;
+  $('#bAll').onclick = ()=>showBoard('all');
+  if($('#bCls')) $('#bCls').onclick = ()=>showBoard('class');
+  const list = $('#bList');
+  if(!SCRIPT_URL){ list.innerHTML = '<div class="bmsg">排行榜還沒有設定喔！<br>請老師依照「排行榜設定說明」完成設定。</div>'; return; }
+  const req = ++boardReq;
+  const q = new URLSearchParams({action:'top', cls: boardScope==='class' ? S.cls : '', pid: S ? S.sid||'' : ''});
+  fetch(SCRIPT_URL + '?' + q.toString()).then(r=>r.json()).then(d=>{
+    if(req!==boardReq || !boardOpen()) return;
+    if(!d || !d.ok){ list.innerHTML = '<div class="bmsg">排行榜讀取失敗，請稍後再試。</div>'; return; }
+    if(!d.list.length){ list.innerHTML = '<div class="bmsg">還沒有人上榜，快來當第一名！</div>'; return; }
+    const medal = r => r===1?'🥇':r===2?'🥈':r===3?'🥉':r;
+    const t = document.createElement('table'); t.className='btable';
+    t.innerHTML = '<tr><th>名次</th><th>班級</th><th>暱稱</th><th>徽章</th><th>積分</th><th>時間</th></tr>';
+    for(const r of d.list){
+      const tr = document.createElement('tr'); if(r.me) tr.className='mine';
+      const cells = [medal(r.rank), r.cls, r.nick + (r.me?'（我）':''), (r.done ? '👑 破關' : `🏅 ${Math.min(5,r.badges)}/5`), r.score, fmtTime(r.time)];
+      for(const c of cells){ const td=document.createElement('td'); td.textContent = c; tr.appendChild(td); }
+      t.appendChild(tr);
+    }
+    list.innerHTML=''; list.appendChild(t);
+    if(d.myRank && boardScope==='all' && !d.list.some(r=>r.me)){ const m=document.createElement('div'); m.className='bmsg'; m.style.padding='8px 0'; m.textContent=`你目前是全校第 ${d.myRank} 名，加油！`; list.appendChild(m); }
+  }).catch(()=>{ if(req===boardReq && boardOpen()) list.innerHTML = '<div class="bmsg">排行榜連線失敗，請檢查網路後再試。</div>'; });
+}
+function closeBoard(){ const p=$('#panel'); p.classList.add('hidden'); p.dataset.mode=''; }
+$('#btnBoard').onclick = ()=>{ if(scene==='play' && !DLG){ boardOpen() ? closeBoard() : showBoard(); } };
+$('#btnBoardT').onclick = ()=>showBoard('all');
+
+/* ---------------- 獎狀 ---------------- */
+function showCert(){
+  const d = new Date();
+  const roc = d.getFullYear()-1911;
+  $('#paper').innerHTML = `
+    <h1>獎　狀</h1>
+    <div class="bd">🧯🚦🤝🛡️📚</div>
+    <div class="who"><input class="certname" value="${escapeHTML(S.name)}" maxlength="10" aria-label="獎狀姓名"> 同學</div>
+    <div class="noprint">✏️ 可以點上面的名字，改成真實姓名再列印（不會上傳）</div>
+    <p>在「校園守護者」挑戰中，完成防災、交通安全、性別平等、反霸凌、校園常規五大任務，並打倒糊塗大魔王，展現守護自己與他人的知識與勇氣，表現優異，特頒此狀，以資鼓勵。</p>
+    <div style="font-size:24px;margin-top:6px">榮獲「校園守護者」稱號・Lv.${level()}</div>
+    <div style="font-size:20px;margin-top:4px">守護積分 ${calcScore()} 分・隱藏任務 ${hqDoneCount()}/5・遊戲時間 ${fmtTime(S.playT)}</div>
+    <div class="date">${escapeHTML(SCHOOL_NAME)}　　中華民國 ${roc} 年 ${d.getMonth()+1} 月 ${d.getDate()} 日</div>
+    <div class="seal">校園<br>守護者</div>`;
+  $('#cert').classList.remove('hidden');
+  scene='cert'; clearHeld();
+}
+function escapeHTML(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+$('#btnPrint').onclick = ()=>window.print();
+$('#btnCertClose').onclick = ()=>{ $('#cert').classList.add('hidden'); scene='play'; };
+
+/* ---------------- 音效 ---------------- */
+let actx = null;
+function tone(f, d, type, when, vol){
+  const o=actx.createOscillator(), g=actx.createGain();
+  const v=vol||.06;
+  o.type=type||'square'; o.frequency.value=f;
+  g.gain.setValueAtTime(v, actx.currentTime+when); g.gain.exponentialRampToValueAtTime(.0001, actx.currentTime+when+d);
+  o.connect(g); g.connect(actx.destination); o.start(actx.currentTime+when); o.stop(actx.currentTime+when+d+.02);
+}
+function sfx(kind){
+  if(muted) return;
+  try{
+    actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+    if(actx.state==='suspended') actx.resume();
+    if(kind==='talk') tone(660,.05,'square',0,.03);
+    else if(kind==='ok'){ tone(660,.1,'square',0); tone(990,.15,'square',.1); }
+    else if(kind==='bad'){ tone(200,.25,'sawtooth',0,.05); tone(150,.3,'sawtooth',.15,.05); }
+    else if(kind==='warn'){ tone(440,.08,'triangle',0,.08); tone(330,.12,'triangle',.09,.08); }
+    else if(kind==='win'){ [523,659,784,1047].forEach((f,i)=>tone(f,.15,'square',i*.11)); }
+  }catch(e){}
+}
+
+/* ---------------- 標題畫面 ---------------- */
+let lookSel = 0;
+(function buildLooks(){
+  const box=$('#looks');
+  LOOKS.forEach((L,i)=>{
+    const c=document.createElement('canvas'); c.width=72; c.height=80;
+    const g=c.getContext('2d'); g.save(); g.translate(4,14); g.scale(2,2); drawPerson(g,0,0,'down',L,0,true); g.restore();
+    if(i===0) c.classList.add('sel');
+    c.onclick=()=>{ lookSel=i; box.querySelectorAll('canvas').forEach((x,j)=>x.classList.toggle('sel',j===i)); sfx('talk'); };
+    box.appendChild(c);
+  });
+  const sv = loadSave();
+  if(sv){ $('#btnLoad').classList.remove('hidden'); if(sv.cls) $('#inCls').value = sv.cls; $('#inName').value = sv.name||''; lookSel = LOOKS[sv.look] ? sv.look : 0; box.querySelectorAll('canvas').forEach((x,j)=>x.classList.toggle('sel',j===lookSel)); }
+})();
+function startGame(data, isNew){
+  S = data;
+  S.badges = S.badges||{}; S.exp = S.exp||0; S.ts = S.ts||{}; S.tries = S.tries||{}; S.playT = S.playT||0;
+  if(!S.sid) S.sid = newSid();
+  if(!S.cls) S.cls = '';
+  S.seen = S.seen||{}; S.wrong = S.wrong||{}; S.acc = S.acc||'';
+  hqInit(); refreshLook();
+  if(S.hq.friend>=3){ const yu = NPCS.find(n=>n.id==='yu'); if(yu) yu.wander=[24,14,35,19]; }
+  evT = 70; careT = 150; stuckT = 0; evBusy = false;
+  P.x = Number.isInteger(S.x) ? S.x : 19; P.y = Number.isInteger(S.y) ? S.y : 31;
+  if(SOLID.has(tileAt(P.x,P.y)) || tileAt(P.x,P.y)==='='){ P.x=19; P.y=31; }
+  // 讀檔時若有 NPC 站在玩家位置，把 NPC 移回原位
+  for(const n of NPCS) if(n.x===P.x && n.y===P.y){ n.x = n.wander ? n.wander[0] : n.x; n.y = n.wander ? n.wander[1] : n.y; n.px=n.x*TS; n.py=n.y*TS; }
+  P.px=P.x*TS; P.py=P.y*TS; P.dir=S.dir||'up'; P.moving=false;
+  $('#title').classList.add('hidden'); $('#hud').classList.remove('hidden'); $('#hint').classList.remove('hidden');
+  $('#mini').classList.toggle('hidden', !showMini);
+  if(matchMedia('(pointer:coarse)').matches){ $('#pad').classList.remove('hidden'); $('#abtn').classList.remove('hidden'); $('#mini').classList.add('top'); }
+  scene='play'; updateHUD(); curZone=''; checkZone(); save();
+  if(isNew){
+    say([
+      '（叮咚～早上 7 點 30 分，新的一天開始了！）',
+      '今天是「校園守護者」培訓日！',
+      '學校裡有五位老師，要考驗你：防災、交通安全、性別平等、反霸凌、校園常規。',
+      '和頭上有「！」的老師對話、打倒搗蛋怪獸，就能得到「守護徽章」。',
+      '集滿 5 枚徽章後，到校長室接受最終挑戰吧！',
+      '首先……請等小綠人亮起，走斑馬線安全地過馬路進校園！（方向鍵移動，空白鍵對話）'
+    ], {name:'旁白'});
+  } else {
+    toast(`歡迎回來，${S.name}！目前徽章 ${badgeCount()}/5`, true);
+  }
+}
+function cleanNick(s){ return String(s||'').replace(/[<>"'&\u0000-\u001f]/g,'').trim().slice(0,8); }
+$('#btnNew').onclick = ()=>{
+  const cls = ($('#inCls').value||'').replace(/\D/g,'');
+  const name = cleanNick($('#inName').value);
+  const err = $('#tErr');
+  if(!/^\d{3,4}$/.test(cls)){ err.textContent='請輸入班級（3～4 位數字，例如 301）'; $('#inCls').focus(); sfx('warn'); return; }
+  if(!name){ err.textContent='請輸入暱稱（最多 8 個字）'; $('#inName').focus(); sfx('warn'); return; }
+  err.textContent='';
+  const old = loadSave();
+  if(old && !confirm('開始新遊戲會覆蓋這台裝置上原本的進度，確定嗎？')) return;
+  sfx('ok');
+  startGame(newSave(name, lookSel, cls), true);
+};
+$('#btnLoad').onclick = ()=>{ const d=loadSave(); if(d){ sfx('ok'); startGame(d,false); } };
+
+/* ---------------- 主迴圈 ---------------- */
+let last = performance.now(), saveT = 0;
+const cam = {x:0, y:0};
+function update(dt){
+  T += dt; lightT += dt;
+  updateCars(dt);
+  updateNPCs(dt);
+  updateFX(dt);
+  if(S && (scene==='play' || scene==='battle') && !document.hidden) S.playT = (S.playT||0) + dt;
+  if(DLG){
+    const L=DLG.lines[DLG.i];
+    if(DLG.shown < L.t.length){ DLG.shown = Math.min(L.t.length, DLG.shown + dt*40); renderDlg(); }
+  }
+  if(scene!=='play') return;
+  const panelOpen = !$('#panel').classList.contains('hidden');
+  const free = !DLG && !panelOpen && !evBusy && !QTE && !P.moving;
+  updateEvents(dt, free);
+  updateCare(dt, free);
+  if(P.moving){
+    const tx=P.x*TS, ty=P.y*TS, sp=150*dt;
+    P.px += clamp(tx-P.px,-sp,sp); P.py += clamp(ty-P.py,-sp,sp);
+    P.anim += dt; P.step = Math.floor(P.anim*8)%2 ? 1 : 2;
+    if(P.px===tx && P.py===ty){ P.moving=false; puff(P.px,P.py); onArrive(); }
+  }
+  if(!P.moving){
+    const d = (!DLG && !panelOpen && !evBusy && !QTE) ? currentDir() : null;
+    if(d) tryStep(d); else P.step=0;
+  }
+  saveT += dt; if(saveT>5){ saveT=0; save(); }
+  const t = (!DLG && !P.moving && !panelOpen) ? facingTarget() : null;
+  P.target = t;
+  const hint = $('#hint');
+  const txt = t ? (t.npc ? `💬 空白鍵：和「${t.npc.name}」說話` : '📋 空白鍵：查看') : '方向鍵移動｜Q 任務｜M 地圖｜R 排行榜';
+  if(hint.textContent!==txt) hint.textContent = txt;
+}
+function render(){
+  if(scene==='title'){
+    cam.x = Math.round((Math.sin(T*0.07)+1)/2*(MW*TS-VW));
+    cam.y = Math.round(clamp(15*TS + Math.sin(T*0.05)*170 - VH/2, 0, MH*TS-VH));
+  } else {
+    cam.x = Math.round(clamp(P.px+16-VW/2, 0, MW*TS-VW));
+    cam.y = Math.round(clamp(P.py+16-VH/2, 0, MH*TS-VH));
+  }
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(mapCv, cam.x, cam.y, VW, VH, 0, 0, VW, VH);
+  ctx.save(); ctx.translate(-cam.x, -cam.y);
+  drawWater(ctx, T);
+  if(S && badgeCount()>=5){ // 校長室門打開
+    const X=19*TS, Y=8*TS; drawFloor(ctx,X,Y+12,19,7,BLD[1]); ctx.fillStyle='#a8343a'; ctx.fillRect(X+4,Y+12,TS-8,20);
+    ctx.fillStyle='#7a4a24'; ctx.fillRect(X,Y+12,4,20); ctx.fillRect(X+TS-4,Y+12,4,20);
+  }
+  drawHidden(ctx, T);
+  for(const c of CARS) drawCar(ctx,c);
+  // 地面光圈（任務 NPC）
+  for(const n of NPCS){
+    if(S && ((n.quest && !S.badges[n.quest]) || (n.id==='principal' && badgeCount()>=5 && !S.done))){
+      ctx.globalAlpha = .35 + .2*Math.sin(T*4);
+      ctx.fillStyle='#ffe066'; ctx.beginPath(); ctx.ellipse(n.px+16, n.py+29, 14, 5, 0, 0, 7); ctx.fill(); ctx.globalAlpha=1;
+    }
+  }
+  for(const d of FX.dust){ ctx.globalAlpha = d.l*2; ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(d.x,d.y,d.r,0,7); ctx.fill(); }
+  ctx.globalAlpha=1;
+  // 角色＋道具依深度排序
+  const ents = NPCS.map(n=>({k:'p',o:n,py:n.py}));
+  if(scene!=='title') ents.push({k:'p',o:P,py:P.py});
+  for(const p of PROPS) if(p.x*TS > cam.x-64 && p.x*TS < cam.x+VW+32 && p.y*TS > cam.y-32 && p.y*TS < cam.y+VH+64) ents.push({k:'r',o:p,py:p.py});
+  ents.sort((a,b)=>a.py-b.py || (a.k==='r') - (b.k==='r'));
+  for(const e of ents){
+    if(e.k==='r') drawProp(ctx, e.o, T);
+    else drawPerson(ctx, e.o.px, e.o.py, e.o.dir, e.o.look, e.o.step);
+  }
+  // 蝴蝶
+  for(const f of FX.flies){
+    const fx = f.hx + Math.sin(f.p*.9)*40 + Math.sin(f.p*2.3)*10, fy = f.hy + Math.cos(f.p*.7)*24 - 6;
+    const w = Math.abs(Math.sin(f.p*14))*4+1;
+    ctx.fillStyle=f.c; ctx.strokeStyle=OL; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.ellipse(fx-w/2-1, fy, w/2+.5, 3, 0, 0, 7); ctx.ellipse(fx+w/2+1, fy, w/2+.5, 3, 0, 0, 7); ctx.fill(); ctx.stroke();
+  }
+  // 名牌與標記
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  for(const n of NPCS){
+    if(!n.quest && n.id!=='principal') continue;
+    const short = n.name.split(' ').pop();
+    ctx.font='bold 12px "Microsoft JhengHei",sans-serif';
+    const w = ctx.measureText(short).width+10;
+    ctx.fillStyle='rgba(43,34,51,.8)'; ctx.beginPath(); ctx.roundRect(n.px+16-w/2, n.py+33, w, 16, 8); ctx.fill();
+    ctx.fillStyle='#fff'; ctx.fillText(short, n.px+16, n.py+41.5);
+    let mark = null;
+    if(S && n.quest && !S.badges[n.quest]) mark='!';
+    if(S && n.id==='principal' && badgeCount()>=5 && !S.done) mark='★';
+    if(mark){
+      const by = n.py - 22 + Math.sin(T*5)*3;
+      ctx.lineWidth=2; ctx.strokeStyle=OL;
+      ctx.fillStyle='#ffe066'; ctx.beginPath(); ctx.roundRect(n.px+7, by-10, 18, 20, 6); ctx.fill(); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(n.px+13,by+10); ctx.lineTo(n.px+16,by+15); ctx.lineTo(n.px+19,by+10); ctx.fillStyle='#ffe066'; ctx.fill(); ctx.stroke();
+      ctx.fillStyle='#ffe066'; ctx.fillRect(n.px+13.5,by+8,5,3);
+      ctx.fillStyle=OL; ctx.font='900 15px sans-serif'; ctx.fillText(mark, n.px+16, by+1);
+    }
+  }
+  // 互動提示箭頭
+  if(scene==='play' && P.target && !DLG){
+    const t=P.target, ax = t.x*TS+16, ay = t.y*TS - (t.npc?30:14) + Math.sin(T*6)*3;
+    if(!(t.npc && t.npc.quest && !S.badges[t.npc.quest])){
+      ctx.fillStyle='#fff'; ctx.strokeStyle=OL; ctx.lineWidth=2;
+      ctx.beginPath(); ctx.moveTo(ax-7,ay-6); ctx.lineTo(ax+7,ay-6); ctx.lineTo(ax,ay+3); ctx.closePath(); ctx.fill(); ctx.stroke();
+    }
+  }
+  // 雲影、花瓣
+  for(const c of FX.clouds){ const gr=ctx.createRadialGradient(c.x,c.y,0,c.x,c.y,c.r); gr.addColorStop(0,'rgba(30,30,60,.10)'); gr.addColorStop(1,'rgba(30,30,60,0)'); ctx.fillStyle=gr; ctx.fillRect(c.x-c.r,c.y-c.r,c.r*2,c.r*2); }
+  for(const p of FX.petals){ ctx.fillStyle=p.c; ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.s); ctx.beginPath(); ctx.ellipse(0,0,3,1.8,0,0,7); ctx.fill(); ctx.restore(); }
+  // 飛鳥與地面影子
+  for(const b of FX.birds){
+    ctx.fillStyle='rgba(30,20,50,.18)'; ctx.beginPath(); ctx.ellipse(b.x+50, b.y+90, 4, 1.6, 0, 0, 7); ctx.fill();
+    const f = Math.sin(b.p)*4;
+    ctx.strokeStyle='#3a3248'; ctx.lineWidth=1.8; ctx.lineCap='round';
+    ctx.beginPath(); ctx.moveTo(b.x-6, b.y-f); ctx.quadraticCurveTo(b.x-3, b.y-2-f*.3, b.x, b.y); ctx.quadraticCurveTo(b.x+3, b.y-2-f*.3, b.x+6, b.y-f); ctx.stroke();
+  }
+  ctx.restore();
+  drawDaylight();
+  drawRain();
+  ctx.drawImage(vignette,0,0);
+  renderMini();
+}
+function loop(now){
+  const dt = Math.min(.05, (now-last)/1000); last = now;
+  update(dt); render();
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+/* ---------------- 縮放 ---------------- */
+function fit(){
+  const s = Math.min(innerWidth/816, innerHeight/592);
+  $('#game').style.transform = `translate(-50%,-50%) scale(${s})`;
+}
+addEventListener('resize', fit); fit();
+</script>
+</body>
+</html>
+
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
 <title>校園守護者</title>
