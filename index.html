@@ -124,6 +124,28 @@
   #looks canvas{border:3px solid #bba98a;border-radius:12px;background:radial-gradient(circle at 50% 40%,#f3fbe9,#c9e8b5);cursor:pointer;transition:transform .15s}
   #looks canvas:hover{transform:translateY(-3px)}
   #looks canvas.sel{border-color:var(--ink);box-shadow:0 0 0 3px var(--gold)}
+  .mytile{position:relative;cursor:pointer;transition:transform .15s}
+  .mytile:hover{transform:translateY(-3px)}
+  .mytile canvas{display:block;border-style:dashed !important;background:radial-gradient(circle at 50% 40%,#fff6e0,#f6dca0) !important}
+  .mytile span{position:absolute;left:50%;bottom:-6px;transform:translateX(-50%);white-space:nowrap;font-size:12px;font-weight:bold;background:var(--ink);color:#fff;border-radius:8px;padding:1px 7px}
+  .mytile.sel canvas{border-style:solid !important;border-color:var(--ink) !important;box-shadow:0 0 0 3px var(--gold)}
+  #dresser{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:620px;padding:14px 20px;color:var(--ink);z-index:5;box-shadow:0 0 0 2000px rgba(10,15,35,.55),0 10px 30px rgba(0,0,0,.5)}
+  #dresser h3{margin:0 0 8px;font-size:22px}
+  .dwrap{display:flex;gap:16px;align-items:flex-start}
+  .dleft{text-align:center}
+  #dPrev{border:3px solid var(--ink);border-radius:14px;background:radial-gradient(circle at 50% 40%,#f3fbe9,#c9e8b5);cursor:pointer}
+  .drot{display:flex;gap:8px;justify-content:center;margin-top:6px}
+  .drot .cbtn{padding:2px 14px;font-size:18px}
+  #dOpts{flex:1}
+  .dline{display:flex;align-items:center;gap:10px;margin:5px 0;min-height:34px}
+  .dline b{width:42px;flex:none;font-size:16px}
+  .dchips{display:flex;flex-wrap:wrap;gap:6px}
+  .sw{width:28px;height:28px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 2px #bba98a;cursor:pointer;padding:0}
+  .sw.on{box-shadow:0 0 0 3px var(--ink),0 0 0 6px var(--gold)}
+  .chip2{font:inherit;font-size:14px;font-weight:bold;padding:3px 10px;border:2px solid #bba98a;border-radius:16px;background:#fff;color:var(--ink);cursor:pointer}
+  .chip2.on{border-color:var(--ink);background:linear-gradient(#ffe48f,var(--gold))}
+  .dbtns{display:flex;gap:10px;justify-content:flex-end;margin-top:12px}
+  .dbtns .big{font-size:18px;padding:6px 16px}
   .tbtns{display:flex;gap:10px;margin-top:10px}
   .big{font:inherit;font-size:21px;font-weight:bold;padding:9px 20px;border:3px solid var(--ink);border-radius:12px;
     background:linear-gradient(#ffe48f,var(--gold));cursor:pointer;color:var(--ink);box-shadow:0 4px 0 var(--ink)}
@@ -322,6 +344,17 @@
         📱 平板可使用畫面上的方向鍵。題目可按數字鍵 1～4 作答。</div>
     </div>
   </div>
+    <div id="dresser" class="frame hidden">
+      <h3>🎨 打扮我的角色</h3>
+      <div class="dwrap">
+        <div class="dleft">
+          <canvas id="dPrev" width="150" height="170" title="點一下可以轉身"></canvas>
+          <div class="drot"><button class="cbtn" id="dRotL">↺</button><button class="cbtn" id="dRotR">↻</button></div>
+        </div>
+        <div id="dOpts"></div>
+      </div>
+      <div class="dbtns"><button class="big alt" id="dRand">🎲 隨機</button><button class="big alt" id="dCancel">取消</button><button class="big" id="dDone">✔ 完成</button></div>
+    </div>
 </div>
 
 <div id="cert" class="hidden">
@@ -1038,6 +1071,14 @@ function drawPerson(g, x, y, dir, L, step, still){
   const headOn = ()=>{ g.save(); g.translate(cx, by+5.2); g.scale(HS,HS); g.translate(-cx, -(by+4.5)); g.lineWidth=1.4/HS*1.1; };
   // 背後長髮
   if(L.long && dir!=='up'){ headOn(); if(side) rr(g, cx-9.6, by+1.5, 11, 14.5, 5, L.hair); else rr(g, cx-8.8, by+1, 17.6, 15, 6, L.hair); g.restore(); }
+  if(L.hstyle==='pony' && dir!=='up'){ // 馬尾（在頭後面）
+    headOn();
+    g.fillStyle=L.hair; g.beginPath();
+    if(side){ g.moveTo(cx-6,by+1); g.quadraticCurveTo(cx-15,by+3,cx-12,by+14); g.quadraticCurveTo(cx-9,by+9,cx-5,by+6); }
+    else { g.moveTo(cx+5,by-1); g.quadraticCurveTo(cx+15,by+1,cx+12,by+13); g.quadraticCurveTo(cx+10,by+7,cx+5,by+5); }
+    g.closePath(); g.fill(); g.stroke();
+    g.restore();
+  }
   // 腿與鞋（短短的腿）
   const l1 = step===1?3.5:5, l2 = step===2?3.5:5;
   const lx1 = side ? cx-4 : cx-5, lx2 = side ? cx : cx+1;
@@ -1080,6 +1121,22 @@ function drawPerson(g, x, y, dir, L, step, still){
     g.quadraticCurveTo(cx+3,by+1.5,cx-2,by+5); g.lineTo(cx-3,by+10); g.closePath(); g.fill(); g.stroke();
   }
   if(L.bald){ g.fillStyle=L.skin; g.beginPath(); g.ellipse(cx, by-0.5, 5.5, 4, 0, Math.PI, 0); g.fill(); }
+  if(L.hstyle==='spiky'){ // 刺刺頭
+    g.fillStyle=L.hair; g.beginPath();
+    for(const [a0,len] of [[-2.6,4],[-2.05,5],[-1.5,5.5],[-0.95,5],[-0.45,4]]){
+      const r=8.6, x0=cx+Math.cos(a0-.22)*r, y0=by+4.2+Math.sin(a0-.22)*r, x1=cx+Math.cos(a0+.22)*r, y1=by+4.2+Math.sin(a0+.22)*r;
+      g.moveTo(x0,y0); g.lineTo(cx+Math.cos(a0)*(r+len), by+4.2+Math.sin(a0)*(r+len)); g.lineTo(x1,y1);
+    }
+    g.fill(); g.stroke();
+  }
+  if(L.hstyle==='bun'){ circ(g, cx, by-5.2, 4.2, L.hair); g.fillStyle='rgba(255,255,255,.3)'; g.beginPath(); g.arc(cx-1.3, by-6.4, 1.2, 0, 7); g.fill(); }
+  if(L.hstyle==='pony' && dir==='up'){ g.fillStyle=L.hair; g.beginPath(); g.moveTo(cx-2.5,by+5); g.quadraticCurveTo(cx-4,by+13,cx,by+16); g.quadraticCurveTo(cx+4,by+13,cx+2.5,by+5); g.closePath(); g.fill(); g.stroke(); }
+  if(L.hstyle==='pony'){ g.fillStyle='#ff6b8a'; const tx = dir==='up'?cx: side?cx-6.5:cx+6; circ(g, tx, by+(dir==='up'?5:2), 1.6, '#ff6b8a'); }
+  if(L.bow && dir!=='up'){ // 蝴蝶結髮夾
+    const bx = side ? cx-1 : cx+5, bY = by-1.5;
+    g.fillStyle='#ff5d8f'; g.beginPath(); g.moveTo(bx,bY); g.lineTo(bx-4.5,bY-3); g.lineTo(bx-4.5,bY+3); g.closePath(); g.moveTo(bx,bY); g.lineTo(bx+4.5,bY-3); g.lineTo(bx+4.5,bY+3); g.closePath(); g.fill(); g.lineWidth=1; g.stroke();
+    circ(g, bx, bY, 1.4, '#ffd1df');
+  }
   g.strokeStyle=lighten(L.hair,.4); g.lineWidth=1.5; g.beginPath(); g.arc(cx-1, by+2.5, 5.5, Math.PI*1.15, Math.PI*1.45); g.stroke();
   if(dir!=='up'){ g.fillStyle='rgba(255,255,255,.45)'; g.beginPath(); g.ellipse(cx+3.5, by-1.2, 1.6, .8, -.4, 0, 7); g.fill(); }
   g.strokeStyle=OL; g.lineWidth=1.25;
@@ -1660,12 +1717,14 @@ function togglePanel(){
   }
   h += `<div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
     <button class="cbtn" id="pClose">關閉</button>
+    <button class="cbtn" id="pDress">🎨 換裝</button>
     ${S.done?'<button class="cbtn" id="pCert">📜 我的獎狀</button>':''}
     <button class="cbtn" id="pReset">🔄 重新開始</button></div>`;
   p.innerHTML = h; p.classList.remove('hidden');
   $('#pClose').onclick = togglePanel;
   p.querySelectorAll('.acc').forEach(b=>b.onclick=()=>{ S.acc = b.dataset.a; refreshLook(); save(); sfx('talk'); togglePanel(); togglePanel(); });
   if($('#pCert')) $('#pCert').onclick = ()=>{ togglePanel(); showCert(); };
+  $('#pDress').onclick = ()=>{ togglePanel(); openDresser(true); };
   $('#pReset').onclick = ()=>{ if(confirm('確定要清除進度、回到標題畫面嗎？')){ try{ localStorage.removeItem('campusGuardianSave'); }catch(e){} location.reload(); } };
 }
 function toggleMini(){ showMini=!showMini; try{ localStorage.setItem('cgMini', showMini?'1':'0'); }catch(e){} $('#mini').classList.toggle('hidden', !showMini || scene==='title'); }
@@ -2300,7 +2359,7 @@ function hqComplete(k){
   toast(`🎉 完成隱藏任務「${HQ[k].name}」！獲得造型「${ACC[a].name}」，積分 +${HQ_POINTS}`, true, 4500);
   setTimeout(()=>giveItem('shield', 1, 'hq_'+k), 4600);
 }
-function refreshLook(){ const base = LOOKS[S.look]||LOOKS[0]; P.look = Object.assign({}, base, (S.acc && ACC[S.acc]) ? ACC[S.acc].look : {}); }
+function refreshLook(){ const base = S.custom ? buildLook(S.custom) : (LOOKS[S.look]||LOOKS[0]); P.look = Object.assign({}, base, (S.acc && ACC[S.acc]) ? ACC[S.acc].look : {}); }
 function hqStep(){ // 走到某格時檢查
   const key = P.x+','+P.y;
   if(TRASH.some(([x,y])=>x===P.x&&y===P.y) && !S.hq.trash[key]){
@@ -2684,19 +2743,94 @@ function sfx(kind){
 }
 
 /* ---------------- 標題畫面 ---------------- */
-let lookSel = 0;
+/* 紙娃娃：快速造型 4 款＋自己打扮 */
+let lookSel = 0, custom = null;
+const DRESS = {
+  hs:    {label:'髮型', type:'text',  opts:[['short','短髮'],['long','長髮'],['pony','馬尾'],['spiky','刺刺頭'],['bun','包包頭']]},
+  hc:    {label:'髮色', type:'color', opts:['#1f1f1f','#3b2a1a','#6b3e1e','#a0652e','#e0b04a','#b8456a']},
+  skin:  {label:'膚色', type:'color', opts:['#fbe0c6','#f6d2b0','#e8b98f','#c98e62','#9a6640']},
+  shirt: {label:'上衣', type:'color', opts:['#3c8de0','#e86a9a','#3cb371','#f0a030','#9b6bd6','#e25555','#4fc3c3','#ffd447','#f4f4f4']},
+  pants: {label:'褲子', type:'color', opts:['#2c3e60','#3a3a3a','#4a3060','#6b4a2a','#3a7a4a','#8a2c3c']},
+  acc:   {label:'配件', type:'text',  opts:[['','無'],['glasses','眼鏡'],['cap','棒球帽'],['bow','蝴蝶結']]},
+};
+const PRESETS = [
+  {hs:'short', hc:'#3b2a1a', skin:'#f6d2b0', shirt:'#3c8de0', pants:'#2c3e60', acc:''},
+  {hs:'long',  hc:'#3b2a1a', skin:'#f6d2b0', shirt:'#e86a9a', pants:'#4a3060', acc:''},
+  {hs:'short', hc:'#1f1f1f', skin:'#e8b98f', shirt:'#3cb371', pants:'#3a3a3a', acc:''},
+  {hs:'long',  hc:'#6b3e1e', skin:'#f3c9a2', shirt:'#f0a030', pants:'#6b4a2a', acc:''},
+];
+function buildLook(c){
+  c = Object.assign({}, PRESETS[0], c||{});
+  return {skin:c.skin, hair:c.hc, shirt:c.shirt, pants:c.pants, long:c.hs==='long', hstyle:c.hs,
+          glasses:c.acc==='glasses', hat:c.acc==='cap'?'cap':undefined, hatColor:c.shirt==='#f4f4f4'?'#e25555':c.shirt, bow:c.acc==='bow'};
+}
+function paintAvatar(cv, L, dir, scale, oy){
+  const g=cv.getContext('2d'); g.clearRect(0,0,cv.width,cv.height);
+  g.save(); g.translate(cv.width/2-16*scale, oy); g.scale(scale,scale); drawPerson(g,0,0,dir||'down',L,0,true); g.restore();
+}
 (function buildLooks(){
   const box=$('#looks');
-  LOOKS.forEach((L,i)=>{
-    const c=document.createElement('canvas'); c.width=72; c.height=80;
-    const g=c.getContext('2d'); g.save(); g.translate(4,15); g.scale(2,2); drawPerson(g,0,0,'down',L,0,true); g.restore();
-    if(i===0) c.classList.add('sel');
-    c.onclick=()=>{ lookSel=i; box.querySelectorAll('canvas').forEach((x,j)=>x.classList.toggle('sel',j===i)); sfx('talk'); };
-    box.appendChild(c);
+  const tiles = [];
+  const select = i=>{ lookSel=i; tiles.forEach((x,j)=>x.classList.toggle('sel',j===i)); };
+  PRESETS.forEach((p,i)=>{
+    const c=document.createElement('canvas'); c.width=72; c.height=80; paintAvatar(c, buildLook(p), 'down', 2, 15);
+    c.title='快速造型'; c.onclick=()=>{ custom=Object.assign({},p); select(i); sfx('talk'); };
+    box.appendChild(c); tiles.push(c);
   });
+  // 第 5 格：自己打扮
+  const my=document.createElement('div'); my.className='mytile'; my.innerHTML='<canvas width="72" height="80"></canvas><span>🎨 自己打扮</span>';
+  my.onclick=()=>{ openDresser(); };
+  box.appendChild(my); tiles.push(my);
+  window.__refreshMyTile = ()=>{ paintAvatar(my.querySelector('canvas'), buildLook(custom), 'down', 2, 15); };
+  window.__selectTile = select;
+  custom = Object.assign({}, PRESETS[0]); select(0); __refreshMyTile();
   const sv = loadSave();
-  if(sv){ $('#btnLoad').classList.remove('hidden'); if(sv.cls) $('#inCls').value = sv.cls; $('#inName').value = sv.name||''; lookSel = LOOKS[sv.look] ? sv.look : 0; box.querySelectorAll('canvas').forEach((x,j)=>x.classList.toggle('sel',j===lookSel)); }
+  if(sv){
+    $('#btnLoad').classList.remove('hidden'); if(sv.cls) $('#inCls').value = sv.cls; $('#inName').value = sv.name||'';
+    if(sv.custom){ custom = Object.assign({}, PRESETS[0], sv.custom); select(4); }
+    else { const i = PRESETS[sv.look] ? sv.look : 0; custom = Object.assign({}, PRESETS[i]); select(i); }
+    __refreshMyTile();
+  }
 })();
+let dressDir = 0, dressBackup = null;
+const DIRS4 = ['down','right','up','left'];
+function renderDresser(){
+  paintAvatar($('#dPrev'), buildLook(custom), DIRS4[dressDir], 3.6, 34);
+  let h='';
+  for(const k of Object.keys(DRESS)){
+    const d=DRESS[k];
+    h += `<div class="dline"><b>${d.label}</b><div class="dchips">` + d.opts.map(o=>{
+      const v = d.type==='color' ? o : o[0], on = custom[k]===v ? ' on' : '';
+      return d.type==='color' ? `<button class="sw${on}" data-k="${k}" data-v="${v}" style="background:${v}" aria-label="${d.label}"></button>`
+                              : `<button class="chip2${on}" data-k="${k}" data-v="${v}">${o[1]}</button>`;
+    }).join('') + '</div></div>';
+  }
+  $('#dOpts').innerHTML = h;
+  $('#dOpts').querySelectorAll('button').forEach(b=>b.onclick=()=>{ custom[b.dataset.k]=b.dataset.v; sfx('talk'); renderDresser(); });
+}
+let dressInGame = false;
+function openDresser(inGame){
+  dressInGame = !!inGame;
+  if(dressInGame){ custom = Object.assign({}, buildCustomFromSave()); scene='dress'; clearHeld(); }
+  dressBackup = Object.assign({}, custom); dressDir = 0;
+  $('#dresser').classList.remove('hidden'); renderDresser(); sfx('talk');
+}
+function buildCustomFromSave(){ return S.custom ? Object.assign({}, PRESETS[0], S.custom) : Object.assign({}, PRESETS[S.look]||PRESETS[0]); }
+function closeDresser(ok){
+  if(!ok && dressBackup) custom = dressBackup;
+  $('#dresser').classList.add('hidden');
+  if(dressInGame){
+    if(ok){ S.custom = Object.assign({}, custom); refreshLook(); save(); toast('🎨 換好新造型了！', true); sfx('ok'); }
+    scene='play'; dressInGame=false; return;
+  }
+  if(ok){ __refreshMyTile(); __selectTile(4); sfx('ok'); }
+}
+$('#dRotL').onclick = ()=>{ dressDir=(dressDir+3)%4; renderDresser(); };
+$('#dRotR').onclick = ()=>{ dressDir=(dressDir+1)%4; renderDresser(); };
+$('#dPrev').onclick = ()=>{ dressDir=(dressDir+1)%4; renderDresser(); };
+$('#dRand').onclick = ()=>{ for(const k of Object.keys(DRESS)){ const o=DRESS[k].opts; const v=o[Math.random()*o.length|0]; custom[k] = DRESS[k].type==='color'?v:v[0]; } sfx('talk'); renderDresser(); };
+$('#dDone').onclick = ()=>closeDresser(true);
+$('#dCancel').onclick = ()=>closeDresser(false);
 function startGame(data, isNew){
   S = data;
   S.badges = S.badges||{}; S.exp = S.exp||0; S.ts = S.ts||{}; S.tries = S.tries||{}; S.playT = S.playT||0;
@@ -2740,7 +2874,8 @@ $('#btnNew').onclick = ()=>{
   const old = loadSave();
   if(old && !confirm('開始新遊戲會覆蓋這台裝置上原本的進度，確定嗎？')) return;
   sfx('ok');
-  startGame(newSave(name, lookSel, cls), true);
+  const ns = newSave(name, lookSel<4 ? lookSel : 0, cls); ns.custom = Object.assign({}, custom);
+  startGame(ns, true);
 };
 $('#btnLoad').onclick = ()=>{ const d=loadSave(); if(d){ sfx('ok'); startGame(d,false); } };
 
