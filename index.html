@@ -466,7 +466,7 @@ const QUIZ = {
     {q:'遇到霸凌問題時，可以向誰求助？', a:['導師、輔導老師、學務處，或家長','只能自己處理','只能找同學','不能告訴任何人'], exp:'學校和家裡有很多大人願意幫你，說出來，就有人可以一起想辦法。'}
   ],
   rules: [
-    {q:'上課鐘聲響了，你正在操場玩，應該怎麼做？', a:['馬上回教室，準備好上課要用的東西','玩完這一局再說','慢慢逛福利社','躲起來不上課'], exp:'聽到鐘聲就回教室，準時上課是尊重老師和同學的表現。'},
+    {q:'上課鐘聲響了，你正在操場玩，應該怎麼做？', a:['馬上回教室，準備好上課要用的東西','玩完這一局再說','在走廊慢慢逛','躲起來不上課'], exp:'聽到鐘聲就回教室，準時上課是尊重老師和同學的表現。'},
     {q:'在走廊上，應該怎麼走？', a:['慢慢走，靠右行，不奔跑追逐','用跑的比較快','跟同學在走廊玩鬼抓人','倒退著走'], exp:'走廊奔跑很容易撞到人或滑倒受傷，要放慢腳步、靠右走。'},
     {q:'上下樓梯時，下列哪一個做法正確？', a:['靠右邊一階一階走，不推擠','兩三階一起跳','從扶手溜下去','在樓梯上玩耍'], exp:'樓梯是最容易發生意外的地方之一，靠右、一階一階、不推擠才安全。'},
     {q:'你想借用同學的彩色筆，應該怎麼做？', a:['先詢問同學，得到同意再用，用完歸還並說謝謝','直接拿來用','用完放著不還','趁他不在偷偷拿'], exp:'尊重別人的物品：先問、再借、要還、說謝謝！'},
@@ -493,15 +493,15 @@ for(const k of Object.keys(QUIZ)) QUIZ[k].forEach((q,i)=>{ q.id = k + '_' + i; }
 /* ===================================================================== */
 
 const TOPICS = {
-  rules:    {name:'校園常規', badge:'常規徽章',   icon:'📚', place:'教室（左上方）',       npc:'王老師',  bg:'class',
+  rules:    {name:'校園常規', badge:'常規徽章',   icon:'📚', place:'教室（左上方）',       npc:'黃老師',  bg:'class',
              monster:{name:'散漫怪',   kind:'lazy',    color:'#4fb393', horn:'#2d6b57'}},
-  traffic:  {name:'交通安全', badge:'交通徽章',   icon:'🚦', place:'校門口（下方）',       npc:'林阿姨',  bg:'road',
+  traffic:  {name:'交通安全', badge:'交通徽章',   icon:'🚦', place:'校門口（下方）',       npc:'方阿伯',  bg:'road',
              monster:{name:'闖紅燈怪', kind:'traffic', color:'#e25555', horn:'#5a1d1d'}},
   disaster: {name:'防災',     badge:'防災徽章',   icon:'🧯', place:'防災教育中心（左方）', npc:'阿勇隊長',bg:'alert',
              monster:{name:'慌張怪',   kind:'panic',   color:'#f0913f', horn:'#8a3b0b'}},
-  bully:    {name:'反霸凌',   badge:'反霸凌徽章', icon:'🛡️', place:'操場（右方）',         npc:'張主任',  bg:'field',
+  bully:    {name:'反霸凌',   badge:'反霸凌徽章', icon:'🛡️', place:'操場（右方）',         npc:'陳主任',  bg:'field',
              monster:{name:'欺負怪',   kind:'bully',   color:'#6b7f96', horn:'#26303b'}},
-  gender:   {name:'性別平等', badge:'性平徽章',   icon:'🤝', place:'輔導室（右上方）',     npc:'陳老師',  bg:'soft',
+  gender:   {name:'性別平等', badge:'性平徽章',   icon:'🤝', place:'輔導室（右上方）',     npc:'蘇主任',  bg:'soft',
              monster:{name:'偏見怪',   kind:'bias',    color:'#a074dc', horn:'#4a2a73'}},
 };
 const TOPIC_KEYS = Object.keys(TOPICS);
@@ -552,8 +552,8 @@ function building(x1,y1,x2,y2){ R('#',x1,y1,x2,y2); R(',',x1+1,y1+1,x2-1,y2-1); 
   building(41,2,49,9); map[9][45]='D'; for(const x of [42,43,44,46,47,48]) map[3][x]='B'; for(const x of [43,44,46,47]) map[6][x]='k'; map[8][42]='p'; map[8][48]='p';
   // 健康中心
   building(42,13,49,18); map[15][42]='D'; map[14][46]='Y'; map[14][48]='Y'; map[14][47]='C'; map[17][48]='h';
-  // 福利社
-  building(42,20,49,23); map[21][42]='D'; map[21][47]='h'; map[21][48]='h'; map[22][48]='h';
+  // 性別友善廁所：4 間獨立隔間、2 個洗手台、1 面說明牌
+  building(42,20,49,23); map[21][42]='D'; for(const x of [45,46,47,48]) map[21][x]='U'; map[22][47]='V'; map[22][48]='V'; map[22][43]='G';
   R('t',22,12,37,21); R('.',24,14,35,19);
   R('W',13,19,16,22); R('F',13,18,16,18);
   map[13][16]='P';
@@ -570,7 +570,7 @@ function building(x1,y1,x2,y2){ R('#',x1,y1,x2,y2); R(',',x1+1,y1+1,x2-1,y2-1); 
 /* 告示牌內容（座標 'x,y'：文字） */
 const SIGNS = {
   '21,23':'【校園公告】上下學請走斑馬線，並遵守導護志工的指揮。',
-  '17,12':'【校園地圖】左上：教室｜中上：校長室｜右上：輔導室｜左：防災教育中心｜右：操場｜最右邊：圖書館、健康中心、福利社｜下：校門口',
+  '17,12':'【校園地圖】左上：教室｜中上：校長室｜右上：輔導室｜左：防災教育中心｜右：操場｜最右邊：圖書館、健康中心、性別友善廁所｜下：校門口',
   '12,13':'【防災小叮嚀】地震：趴下、掩護、穩住。火災：小火快逃、濃煙關門。報案請撥 119。',
   '14,12':'【生活常規】走廊不奔跑，上下樓梯靠右走，見到師長要問好。',
   '24,22':'【友善校園】反霸凌三步驟：不旁觀、要求助、多關心。',
@@ -588,12 +588,14 @@ const EXTRA_TALK = {
   p:'（綠油油的盆栽，有人每天細心澆水。）',
   Y:'（健康中心的病床，身體不舒服時可以在這裡休息。）',
   C:'（病床之間的隔簾，讓休息的同學有隱私。）',
+  U:'（獨立的廁所隔間，門可以上鎖，每個人都能安心使用。使用完記得沖水、洗手喔！）',
+  V:'（洗手台。上完廁所要用肥皂洗手：濕、搓、沖、捧、擦！）',
   f:'（白色的校園圍牆。要從校門進出喔！）'
 };
 
-const SOLID = new Set(['#','T','W','f','k','b','c','e','h','p','S','P','L','B','Y','C']);
+const SOLID = new Set(['#','T','W','f','k','b','c','e','h','p','S','P','L','B','Y','C','U','V','G']);
 const NPC_WALK = new Set(['.','_','t',',','F']);
-const BG = {T:'.',F:'.',f:'.',S:'.',P:'.',L:'_',k:',',c:',',e:',',h:',',p:',',b:'#',Q:'#',D:',',g:'_',B:',',Y:',',C:','};
+const BG = {T:'.',F:'.',f:'.',S:'.',P:'.',L:'_',k:',',c:',',e:',',h:',',p:',',b:'#',Q:'#',D:',',g:'_',B:',',Y:',',C:',',U:',',V:',',G:','};
 const BOOK_TIPS = [
   '📕《小心！陌生人》：不跟陌生人走、不吃陌生人給的東西、不告訴陌生人個人資料。',
   '📗《地震來了怎麼辦》：趴下、掩護、穩住！搖晃停止後再聽指示疏散。',
@@ -615,7 +617,7 @@ const BLD = [
   {k:'disaster',  x1:2, y1:13,x2:11,y2:20, roof:'#b83b3b', wall:'#f4f4f4', trim:'#7a2020', glow:'255,200,170'},
   {k:'library',   x1:41,y1:2, x2:49,y2:9,  roof:'#6b4a8a', wall:'#f7efe0', trim:'#4a2f63', glow:'255,205,130'},
   {k:'health',    x1:42,y1:13,x2:49,y2:18, roof:'#3f95bf', wall:'#ffffff', trim:'#2a6f8f', glow:'205,238,255'},
-  {k:'shop',      x1:42,y1:20,x2:49,y2:23, roof:'#e09a2a', wall:'#fff3dc', trim:'#8a5a10', glow:'255,225,150'},
+  {k:'shop',      x1:42,y1:20,x2:49,y2:23, roof:'#7b6cc4', wall:'#f4f1ff', trim:'#4e4294', glow:'225,220,255'},
 ];
 const bldAt = (x,y) => BLD.find(b=>x>=b.x1&&x<=b.x2&&y>=b.y1&&y<=b.y2);
 const isWall = c => c==='#'||c==='b'||c==='Q';
@@ -642,7 +644,7 @@ const miniCv = document.createElement('canvas'); miniCv.width = MW*MS; miniCv.he
   plaque(g,'防災教育中心', 6.5*TS, 13*TS+20);
   plaque(g,'圖書館', 43*TS, 9*TS+20);
   plaque(g,'健康中心', 46*TS, 13*TS+20);
-  plaque(g,'福利社', 46*TS, 20*TS+20);
+  plaque(g,'性別友善廁所', 46*TS, 20*TS+20);
   // 健康中心紅十字
   g.lineWidth=1.5; g.strokeStyle=OL; rr(g, 48*TS+6, 13*TS+12, 18, 18, 3, '#fff'); g.fillStyle='#d62d2d'; g.fillRect(48*TS+13, 13*TS+15, 4, 12); g.fillRect(48*TS+9, 13*TS+19, 12, 4);
   plaque(g, SCHOOL_NAME, 14.5*TS, 24*TS+16, true);
@@ -742,9 +744,9 @@ function drawFloor(g,X,Y,tx,ty,B){
   } else if(k==='health'){
     g.fillStyle=((tx+ty)%2)?'#f4fbfd':'#e6f4f8'; g.fillRect(X,Y,TS,TS);
     g.fillStyle='rgba(63,149,191,.25)'; g.fillRect(X,Y,TS,1); g.fillRect(X,Y,1,TS);
-  } else if(k==='shop'){
-    g.fillStyle=((tx+ty)%2)?'#fde7b0':'#f7d58a'; g.fillRect(X,Y,TS,TS);
-    g.fillStyle='rgba(255,255,255,.35)'; g.fillRect(X,Y,TS,1); g.fillRect(X,Y,1,TS);
+  } else if(k==='shop'){ // 廁所：小方磁磚
+    g.fillStyle='#e3f1f6'; g.fillRect(X,Y,TS,TS);
+    g.fillStyle='#c9dfe8'; for(let i=1;i<4;i++){ g.fillRect(X, Y+i*8, TS, 1); g.fillRect(X+i*8, Y, 1, TS); }
   } else {
     g.fillStyle=((tx+ty)%2)?'#e2e6eb':'#d5dae0'; g.fillRect(X,Y,TS,TS);
     g.fillStyle='rgba(255,255,255,.5)'; g.fillRect(X,Y,TS,1); g.fillRect(X,Y,1,TS);
@@ -818,6 +820,32 @@ function drawStatic(g,c,tx,ty){
       for(let r=0;r<2;r++){ g.fillStyle='#5b3518'; g.fillRect(X+3,Y+3+r*12,26,11);
         for(let i=0;i<5;i++){ g.fillStyle=['#d62d2d','#3c7fd0','#f4c542','#2e9d5b','#9b6bd6'][(i+tx+r)%5]; g.fillRect(X+4+i*5,Y+4+r*12+(i%2),4,10-(i%2)); } }
       break;
+    case 'U': { // 廁所隔間（門＋使用中/無人指示）
+      g.fillStyle='rgba(0,0,0,.15)'; g.fillRect(X+1,Y+27,30,4);
+      rr(g, X+1, Y-6, 30, 33, 2, '#9b8fd9');
+      rr(g, X+4, Y-2, 24, 27, 2, '#c4bbf0');
+      g.fillStyle='rgba(255,255,255,.35)'; g.fillRect(X+6, Y, 3, 22);
+      circ(g, X+24, Y+12, 1.6, '#4e4294');
+      rr(g, X+10, Y+1, 12, 6, 2, '#fff'); g.fillStyle='#2e9d5b'; g.fillRect(X+12, Y+3, 8, 2);
+      // 門上的通用圖示（人形）
+      g.fillStyle='#4e4294'; g.beginPath(); g.arc(X+16, Y+11, 2.2, 0, 7); g.fill(); g.fillRect(X+14, Y+14, 4, 6);
+      break; }
+    case 'V': // 洗手台＋鏡子
+      g.fillStyle='rgba(0,0,0,.15)'; g.fillRect(X+3,Y+26,26,4);
+      rr(g, X+6, Y-6, 20, 12, 2, '#cfe9f5'); g.fillStyle='rgba(255,255,255,.7)'; g.fillRect(X+9,Y-4,3,8);
+      rr(g, X+3, Y+8, 26, 18, 3, '#f4f4f4'); ell(g, X+16, Y+15, 8, 4, '#bfe0ee');
+      rr(g, X+14.5, Y+7, 3, 6, 1, '#9aa6b2');
+      break;
+    case 'G': { // 性別友善廁所說明牌
+      g.fillStyle='rgba(0,0,0,.18)'; g.fillRect(X+5,Y+26,22,4);
+      rr(g, X+14, Y+14, 4, 14, 1, '#7a4a24');
+      rr(g, X+3, Y-4, 26, 20, 3, '#fff');
+      const cs=['#e25555','#f0a030','#ffd447','#3cb371','#3c8de0','#9b6bd6'];
+      cs.forEach((c,i)=>{ g.fillStyle=c; g.fillRect(X+5+i*3.7, Y-2, 3.7, 3); });
+      g.fillStyle='#4e4294'; g.beginPath(); g.arc(X+11, Y+5, 2, 0, 7); g.arc(X+21, Y+5, 2, 0, 7); g.fill();
+      g.fillRect(X+9.5, Y+8, 3, 5); g.beginPath(); g.moveTo(X+21, Y+7.5); g.lineTo(X+24, Y+13); g.lineTo(X+18, Y+13); g.closePath(); g.fill();
+      g.fillRect(X+15.5, Y+3, 1, 10);
+      break; }
     case 'Y':
       g.fillStyle='rgba(0,0,0,.15)'; g.fillRect(X+4,Y+27,26,4);
       rr(g, X+3, Y+2, 26, 26, 3, '#dfe6ea'); rr(g, X+5, Y+4, 22, 8, 3, '#ffffff'); rr(g, X+5, Y+13, 22, 13, 2, '#8fd0f5');
@@ -1152,7 +1180,9 @@ function drawPerson(g, x, y, dir, L, step, still){
     eye(cx-3.5, by+7); eye(cx+3.5, by+7);
     g.fillStyle='rgba(255,110,120,.5)'; g.beginPath(); g.ellipse(cx-5.6,by+9.8,1.9,1.1,0,0,7); g.ellipse(cx+5.6,by+9.8,1.9,1.1,0,0,7); g.fill();
     g.strokeStyle=darken(L.skin,.5); g.lineWidth=.9; g.beginPath(); g.moveTo(cx-1,by+10.4); g.quadraticCurveTo(cx,by+11.4,cx+1,by+10.4); g.stroke();
+    if(L.mustache){ g.fillStyle=L.mustache; g.beginPath(); g.ellipse(cx-1.7,by+9.6,2,.9,.2,0,7); g.ellipse(cx+1.7,by+9.6,2,.9,-.2,0,7); g.fill(); }
   } else if(side){
+    if(L.mustache){ g.fillStyle=L.mustache; g.beginPath(); g.ellipse(cx+6,by+9.7,1.8,.8,0,0,7); g.fill(); }
     eye(cx+4.3, by+7);
     g.fillStyle='rgba(255,110,120,.5)'; g.beginPath(); g.ellipse(cx+5.2,by+9.9,1.6,1,0,0,7); g.fill();
     g.strokeStyle=darken(L.skin,.5); g.lineWidth=.9; g.beginPath(); g.moveTo(cx+6.3,by+10.6); g.lineTo(cx+7.4,by+10.4); g.stroke();
@@ -1233,33 +1263,33 @@ function questTalk(topic, intro, after){
     }
   };
 }
-addNPC({id:'rules', x:8, y:3, name:'班導師 王老師', quest:'rules',
+addNPC({id:'rules', x:8, y:3, name:'班導師 黃老師', quest:'rules',
   look:{skin:'#f6d2b0',hair:'#2a2a2a',shirt:'#8e6bbf',pants:'#333',glasses:true,long:true,item:'book'},
   talk:questTalk('rules',
-    ['{name}同學早安，我是王老師。','最近「散漫怪」跑進校園，讓大家上課遲到、走廊奔跑、亂丟垃圾……','讓老師看看你是不是守規矩的好學生吧！'],
+    ['{name}同學早安，我是黃老師。','最近「散漫怪」跑進校園，讓大家上課遲到、走廊奔跑、亂丟垃圾……','讓老師看看你是不是守規矩的好學生吧！'],
     ['你是全班的好榜樣！','守規矩不是為了怕被罵，而是讓大家都能安全、快樂地學習。'])});
-addNPC({id:'traffic', x:22, y:25, name:'導護志工 林阿姨', quest:'traffic',
-  look:{skin:'#f3c9a2',hair:'#4a2f1d',shirt:'#3c7fd0',pants:'#334',vest:'#ffe23a',hat:'cap',hatColor:'#ffd400',long:true,item:'flag'},
+addNPC({id:'traffic', x:22, y:25, name:'導護志工 方阿伯', quest:'traffic',
+  look:{skin:'#e8b98f',hair:'#9a9a9a',shirt:'#3c7fd0',pants:'#334',vest:'#ffe23a',hat:'cap',hatColor:'#ffd400',item:'flag',mustache:'#b5b5b5'},
   talk:questTalk('traffic',
-    ['早安！我是導護志工林阿姨。','上下學時路上車子好多，「闖紅燈怪」最喜歡誘惑小朋友亂穿越馬路！','你知道怎麼保護自己的交通安全嗎？來挑戰看看！'],
+    ['早安！我是導護志工方阿伯。','上下學時路上車子好多，「闖紅燈怪」最喜歡誘惑小朋友亂穿越馬路！','你知道怎麼保護自己的交通安全嗎？來挑戰看看！'],
     ['你已經是交通安全小達人了！','記得：走斑馬線、看小綠人、左右看清楚、走路不滑手機！'])});
 addNPC({id:'disaster', x:6, y:17, name:'消防員 阿勇隊長', quest:'disaster',
   look:{skin:'#e8b98f',hair:'#1f1f1f',shirt:'#c0392b',pants:'#2b2b2b',hat:'helmet',vest:'#f0c040',item:'ext'},
   talk:questTalk('disaster',
     ['你好！我是消防隊的阿勇隊長！','地震、火災、颱風來的時候，「慌張怪」會讓人手忙腳亂、做錯決定。','只要保持冷靜、記住正確的方法，就能保護自己！準備好了嗎？'],
     ['很好！記住：地震「趴下、掩護、穩住」，火災「小火快逃、濃煙關門」！','回家也可以和家人一起準備緊急避難包喔。'])});
-addNPC({id:'bully', x:23, y:13, name:'學務主任 張主任', quest:'bully',
-  look:{skin:'#f6d2b0',hair:'#3a3a3a',shirt:'#2e9d5b',pants:'#2c3e60',item:'mega'},
+addNPC({id:'bully', x:23, y:13, name:'學務主任 陳主任', quest:'bully',
+  look:{skin:'#f6d2b0',hair:'#3a2a22',shirt:'#2e9d5b',pants:'#2c3e60',long:true,item:'mega'},
   talk:questTalk('bully',
-    ['我是學務處的張主任。','最近操場出現了「欺負怪」，讓同學們互相取笑、排擠……你看，那邊的小宇好像很難過。','霸凌不是開玩笑！學會辨識和面對霸凌，一起守護友善校園！'],
+    ['我是學務處的陳主任。','最近操場出現了「欺負怪」，讓同學們互相取笑、排擠……你看，那邊的小宇好像很難過。','霸凌不是開玩笑！學會辨識和面對霸凌，一起守護友善校園！'],
     ['謝謝你！我已經找阿虎和小宇好好談過了。','看到霸凌：不起鬨、告訴大人、主動關心！友善校園需要每個人一起守護。'])});
-addNPC({id:'gender', x:31, y:5, name:'輔導老師 陳老師', quest:'gender',
+addNPC({id:'gender', x:31, y:5, name:'輔導主任 蘇主任', quest:'gender',
   look:{skin:'#f6d2b0',hair:'#7a4a2a',shirt:'#f08080',pants:'#555',long:true,item:'heart'},
   talk:questTalk('gender',
-    ['歡迎來到輔導室，我是陳老師。','「偏見怪」會讓人覺得「男生一定要怎樣、女生一定要怎樣」，還會讓人不懂得尊重別人的身體界線。','我們一起來打敗它吧！'],
+    ['歡迎來到輔導室，我是蘇主任。','「偏見怪」會讓人覺得「男生一定要怎樣、女生一定要怎樣」，還會讓人不懂得尊重別人的身體界線。','我們一起來打敗它吧！'],
     ['每個人都很特別，都值得被尊重。','我的身體我作主，不舒服就說「不」，並告訴信任的大人！'])});
-addNPC({id:'principal', x:19, y:4, name:'校長',
-  look:{skin:'#f3c9a2',hair:'#888',shirt:'#2c3e60',pants:'#2c3e60',tie:'#c0392b',glasses:true,bald:true},
+addNPC({id:'principal', x:19, y:4, name:'呂校長',
+  look:{skin:'#f3c9a2',hair:'#4a3a3a',shirt:'#2c3e60',pants:'#2c3e60',glasses:true,hstyle:'bun'},
   talk(npc){
     if(S.done){
       say(['{name}，你是我們學校的驕傲！','記得把學到的安全知識，分享給家人和朋友喔！'], {name:npc.name, choices:[
@@ -1298,17 +1328,17 @@ addNPC({id:'s6', x:27, y:10, name:'小安', wander:[24,10,37,11],
 addNPC({id:'tiger', x:33, y:16, name:'阿虎', dir:'right',
   look:{skin:'#e8b98f',hair:'#111',shirt:'#4a4a52',pants:'#222'},
   talk(n){
-    if(S.badges.bully){ say(['張主任跟我聊過了，我才知道我說的話讓小宇很難過。','我已經跟他道歉了，現在我們是好朋友！'],{name:n.name}); return; }
+    if(S.badges.bully){ say(['陳主任跟我聊過了，我才知道我說的話讓小宇很難過。','我已經跟他道歉了，現在我們是好朋友！'],{name:n.name}); return; }
     say(['哈哈，小宇你好矮喔，像一年級的！','你看什麼看？你也要一起笑他嗎？'],{name:n.name, choices:[
-      {t:'不可以這樣說別人！', f:()=>say([{n:'阿虎',t:'哼，開開玩笑而已嘛……'},{n:'旁白',t:'（對方覺得受傷，就不是玩笑。去找操場旁邊的張主任幫忙吧！）'}])},
-      {t:'跟著一起笑', f:()=>say([{n:'旁白',t:'（等等！跟著起鬨會讓被欺負的人更難過，這也是在助長霸凌喔。）'},{n:'旁白',t:'（去找操場旁邊的張主任，學習正確的做法吧！）'}])}
+      {t:'不可以這樣說別人！', f:()=>say([{n:'阿虎',t:'哼，開開玩笑而已嘛……'},{n:'旁白',t:'（對方覺得受傷，就不是玩笑。去找操場旁邊的陳主任幫忙吧！）'}])},
+      {t:'跟著一起笑', f:()=>say([{n:'旁白',t:'（等等！跟著起鬨會讓被欺負的人更難過，這也是在助長霸凌喔。）'},{n:'旁白',t:'（去找操場旁邊的陳主任，學習正確的做法吧！）'}])}
     ]});
   }});
 addNPC({id:'yu', x:34, y:16, name:'小宇', dir:'down',
   look:{skin:'#f6d2b0',hair:'#6b3e1e',shirt:'#8fd0f5',pants:'#2c3e60'},
   talk(n){
     if(S.badges.bully){
-      if(S.hq.friend===0){ S.hq.friend=1; hqDiscover('friend'); save(); say(['謝謝你幫忙告訴張主任，阿虎已經跟我道歉了。','可是……我還是不太敢主動跟大家說話……','你可以幫我問問小美，願不願意跟我一起玩嗎？'],{name:n.name}); return; }
+      if(S.hq.friend===0){ S.hq.friend=1; hqDiscover('friend'); save(); say(['謝謝你幫忙告訴陳主任，阿虎已經跟我道歉了。','可是……我還是不太敢主動跟大家說話……','你可以幫我問問小美，願不願意跟我一起玩嗎？'],{name:n.name}); return; }
       if(S.hq.friend===1){ say(['小美會願意跟我玩嗎……好緊張喔。'],{name:n.name}); return; }
       if(S.hq.friend===2){ S.hq.friend=3; n.wander=[24,14,35,19]; say(['真的嗎？小美說好？','太好了！我現在就去找她們玩！謝謝你，你是我的好朋友！'],{name:n.name, onEnd:()=>hqComplete('friend')}); return; }
       say(['現在下課，大家都會找我一起玩了 😊','謝謝你，好朋友！'],{name:n.name}); return;
@@ -1316,27 +1346,25 @@ addNPC({id:'yu', x:34, y:16, name:'小宇', dir:'down',
     say(['（小宇低著頭，眼眶紅紅的……）','……謝謝你過來陪我。'],{name:n.name});
   }});
 // 新地點的角色
-addNPC({id:'librarian', x:43, y:4, name:'圖書館 黃老師',
+addNPC({id:'librarian', x:43, y:4, name:'圖書館 劉阿姨',
   look:{skin:'#f6d2b0',hair:'#5a3a2a',shirt:'#6b8e4e',pants:'#444',glasses:true,long:true},
   talk(n){
     if(!S.gift.lib){ say(['歡迎來到圖書館！在這裡要輕聲細語喔。','書架上有很多安全知識的書，面向書架按空白鍵就可以翻翻看。','看完的書記得放回原位，愛惜書本，下一位同學才能看到乾淨的書。','這兩張「提示卡」送給你，答題卡住的時候可以用喔！'],{name:n.name, onEnd:()=>giveItem('hint',2,'lib')}); return; }
     say(['歡迎來到圖書館！在這裡要輕聲細語喔。','書架上有很多安全知識的書，面向書架按空白鍵就可以翻翻看。','看完的書記得放回原位，愛惜書本，下一位同學才能看到乾淨的書。'],{name:n.name}); }});
-addNPC({id:'nurse', x:44, y:16, name:'護理師 吳阿姨',
+addNPC({id:'nurse', x:44, y:16, name:'護理師 陳阿姨',
   look:{skin:'#f6d2b0',hair:'#2a2a2a',shirt:'#ffffff',pants:'#7fb8d8',long:true},
-  talk(n){ say(['我是健康中心的吳阿姨。身體不舒服或受傷，都可以來找我。','小擦傷要先用清水沖洗傷口，再擦藥、貼紗布。','流鼻血時頭要微微往前傾，捏住鼻翼，不要仰頭喔！', ...(S.gift.nurse?[]:['來，這個「愛心飯糰」給你，挑戰累了記得補充體力！'])],{name:n.name, onEnd:()=>giveItem('heal',1,'nurse')}); }});
-addNPC({id:'clerk', x:45, y:21, name:'福利社 蔡阿姨',
-  look:{skin:'#e8b98f',hair:'#4a2f1d',shirt:'#e86a3c',pants:'#555',long:true},
-  talk(n){
-    if(!S.flags.shop){
-      say(['歡迎光臨！下課口渴了嗎？想喝點什麼？'],{name:n.name, choices:[
-        {t:'💧 白開水', f:()=>{ S.flags.shop=true; gainExp(10); sfx('ok'); say(['好選擇！白開水最健康，下課多喝水，身體才有精神。（經驗 +10）','你這麼懂得照顧自己，阿姨送你一個「守護盾」！'],{name:n.name, onEnd:()=>giveItem('shield',1,'shop')}); }},
-        {t:'🥤 含糖飲料', f:()=>{ say(['含糖飲料偶爾喝一點就好，喝太多容易蛀牙、變胖。','阿姨推薦你喝白開水喔！想好了再來找阿姨吧～'],{name:n.name}); }},
-        {t:'🧃 果汁牛奶各一大瓶', f:()=>{ say(['哇，一次喝太多會肚子痛喔！適量就好，白開水最健康。想好了再來找阿姨吧～'],{name:n.name}); }}
-      ]});
-      return;
-    }
-    say(['福利社有賣文具和健康點心喔。','買東西要排隊，找的零錢要當面點清楚。'],{name:n.name});
-  }});
+  talk(n){ say(['我是健康中心的陳阿姨。身體不舒服或受傷，都可以來找我。','小擦傷要先用清水沖洗傷口，再擦藥、貼紗布。','流鼻血時頭要微微往前傾，捏住鼻翼，不要仰頭喔！', ...(S.gift.nurse?[]:['來，這個「愛心飯糰」給你，挑戰累了記得補充體力！'])],{name:n.name, onEnd:()=>giveItem('heal',1,'nurse')}); }});
+// 性別友善廁所的說明牌：看說明＋小問答，答對送守護盾（只送一次）
+function toiletSign(){
+  const nm = '🚻 說明牌';
+  const intro = ['【性別友善廁所】這裡每一間都是獨立隔間，門可以上鎖。','不管是男生、女生，或是需要家人陪同的小朋友、坐輪椅的人，都可以安心使用。'];
+  if(S.gift.toilet){ say([...intro, '使用時要排隊、輕聲說話、保持乾淨，尊重每一位使用的人。'], {name:nm}); return; }
+  say([...intro, '小問題：在性別友善廁所，下列哪一個做法是對的？'], {name:nm, choices: shuffle([
+    {t:'排隊輪流使用，不偷看、不敲門催促別人', f:()=>{ gainExp(10); sfx('ok'); say(['答對了！尊重別人的隱私，是友善校園的第一步。（經驗 +10）','送你一個「守護盾」！'], {name:nm, onEnd:()=>giveItem('shield',1,'toilet')}); }},
+    {t:'看到別人進去，就在外面取笑他', f:()=>say(['這樣會讓人很難過喔！每個人都有安心使用廁所的權利。想一想，再來看一次說明牌吧。'], {name:nm})},
+    {t:'只有某一種性別的人可以用', f:()=>say(['不對喔！性別友善廁所是給「每一個人」使用的。想一想，再來看一次說明牌吧。'], {name:nm})},
+  ])});
+}
 addNPC({id:'patrol', x:30, y:10, name:'生教組長 李組長', wander:[2,10,49,11],
   look:{skin:'#e8b98f',hair:'#222',shirt:'#2c3e60',pants:'#2c3e60',hat:'cap',hatColor:'#34495e',vest:'#4a6da7'},
   talk(n){ careChat(n, 'chat', null, ()=>{ if(!S.gift.patrol) say(['對了，這兩個「指南針」給你。不知道下一步要去哪裡時，拿出來用就會指引方向！'],{name:n.name, onEnd:()=>giveItem('compass',2,'patrol')}); }); }});
@@ -1533,7 +1561,7 @@ const ZONES = [
   {n:'🏃 操場',x1:22,y1:12,x2:37,y2:21},
   {n:'📖 圖書館',x1:41,y1:2,x2:49,y2:9},
   {n:'🏥 健康中心',x1:42,y1:13,x2:49,y2:18},
-  {n:'🏪 福利社',x1:42,y1:20,x2:49,y2:23},
+  {n:'🚻 性別友善廁所',x1:42,y1:20,x2:49,y2:23},
 ];
 let curZone = '';
 function checkZone(){
@@ -1613,6 +1641,7 @@ function facingTarget(){
   if(SIGNS[key]) return {text:SIGNS[key], x:ax, y:ay};
   const c = tileAt(ax,ay);
   if(c==='B') return {book:true, x:ax, y:ay};
+  if(c==='G') return {toilet:true, x:ax, y:ay};
   if(c==='Q' && badgeCount()<5) return {text:`🔒 校長室：集滿 5 枚守護徽章才能進入（目前 ${badgeCount()}/5）。還沒拿到的徽章可以按「📋 任務」查看。`, x:ax, y:ay};
   if(EXTRA_TALK[c]) return {text:EXTRA_TALK[c], x:ax, y:ay};
   return null;
@@ -1630,6 +1659,7 @@ function interact(){
     n.talk(n);
     if(DLG) DLG.npc = n;
   } else if(t.exit) hqExit(t.exit);
+  else if(t.toilet) toiletSign();
   else if(t.book){ S.bookI = ((S.bookI||0) + 1) % BOOK_TIPS.length; say(['你從書架上拿了一本書……', BOOK_TIPS[S.bookI]], {name:'📚 書架'}); }
   else say([t.text], {name:'📋 告示'});
 }
@@ -2485,7 +2515,7 @@ const EVENTS = {
 function hidePhone(){ $('#phone').classList.add('hidden'); }
 function goHealth(){
   P.x=43; P.y=15; P.px=P.x*TS; P.py=P.y*TS; P.moving=false; P.dir='right'; checkZone();
-  say([{n:'護理師 吳阿姨',t:'謝謝你陪同學過來！我先用清水幫他沖洗傷口，再擦藥、貼上紗布。'},{n:'護理師 吳阿姨',t:'以後看到同學受傷，也要像這樣陪他來，並告訴老師喔！'}]);
+  say([{n:'護理師 陳阿姨',t:'謝謝你陪同學過來！我先用清水幫他沖洗傷口，再擦藥、貼上紗布。'},{n:'護理師 陳阿姨',t:'以後看到同學受傷，也要像這樣陪他來，並告訴老師喔！'}]);
 }
 function triggerEvent(){
   const keys = shuffle(Object.keys(EVENTS).filter(k=>k!==lastEv));
@@ -2594,14 +2624,14 @@ function careChat(t, kind, q, onEnd){
     ()=>say(['{name}，最近在學校還開心嗎？'], {name:nm, choices:[
       {t:'很開心！', f:()=>say(['太好了！有開心的事，也可以回家跟家人分享喔。'],{name:nm,onEnd:done})},
       {t:'普通普通', f:()=>say(['普通的日子也很好。如果有什麼想聊的，老師們隨時都在。'],{name:nm,onEnd:done})},
-      {t:'有點煩惱……', f:()=>say(['謝謝你願意說出來。','煩惱可以找導師、輔導室的陳老師，或信任的家人聊聊。說出來，心裡會舒服很多。','輔導室在校園右上方，門隨時為你打開。'],{name:nm,onEnd:done})}]}),
+      {t:'有點煩惱……', f:()=>say(['謝謝你願意說出來。','煩惱可以找導師、輔導室的蘇主任，或信任的家人聊聊。說出來，心裡會舒服很多。','輔導室在校園右上方，門隨時為你打開。'],{name:nm,onEnd:done})}]}),
     ()=>say(['下課的時候，都跟誰一起玩呢？'], {name:nm, choices:[
       {t:'跟好朋友一起', f:()=>say(['真好！也可以邀請還沒有朋友的同學一起玩喔。'],{name:nm,onEnd:done})},
       {t:'自己一個人', f:()=>say(['一個人也沒關係。如果想交朋友，主動打個招呼試試看！','聽說操場上的小宇，也很想交朋友呢。'],{name:nm,onEnd:done})},
       {t:'還在找朋友', f:()=>say(['交朋友需要一點勇氣，先從微笑和打招呼開始吧！老師幫你加油！'],{name:nm,onEnd:done})}]}),
     ()=>say(['今天有好好吃早餐、多喝水嗎？'], {name:nm, choices:[
       {t:'有！', f:()=>say(['很棒！吃早餐、多喝水，上課才有精神。'],{name:nm,onEnd:done})},
-      {t:'還沒有……', f:()=>say(['早餐是一天的能量來源喔！下課記得去喝水，福利社也有健康的點心。'],{name:nm,onEnd:done})}]}),
+      {t:'還沒有……', f:()=>say(['早餐是一天的能量來源喔！下課記得去喝水，也可以吃一點健康的點心。'],{name:nm,onEnd:done})}]}),
     ()=>say(['最近有沒有遇到讓你不舒服的事？像是被取笑、被欺負？'], {name:nm, choices:[
       {t:'沒有', f:()=>say(['那就好！如果看到別人被欺負，也要記得告訴老師喔。'],{name:nm,onEnd:done})},
       {t:'好像有……', f:()=>say(['謝謝你告訴老師，這一定很不容易。','被欺負不是你的錯！你可以隨時找導師、學務處或輔導室，我們一定會保護你。'],{name:nm,onEnd:done})}]}),
