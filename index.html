@@ -1378,7 +1378,7 @@ function toiletSign(){
     {t:'只有某一種性別的人可以用', f:()=>say(['不對喔！性別友善廁所是給「每一個人」使用的。想一想，再來看一次說明牌吧。'], {name:nm})},
   ])});
 }
-addNPC({id:'patrol', x:30, y:10, name:'生教組長 李組長', wander:[2,10,49,11],
+addNPC({id:'patrol', x:30, y:10, name:'生教組長 余組長', wander:[2,10,49,11],
   look:{skin:'#e8b98f',hair:'#222',shirt:'#2c3e60',pants:'#2c3e60',hat:'cap',hatColor:'#34495e',vest:'#4a6da7'},
   talk(n){ careChat(n, 'chat', null, ()=>{ if(!S.gift.patrol) say(['對了，這兩個「指南針」給你。不知道下一步要去哪裡時，拿出來用就會指引方向！'],{name:n.name, onEnd:()=>giveItem('compass',2,'patrol')}); }); }});
 
