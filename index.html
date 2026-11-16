@@ -1069,6 +1069,18 @@ function drawItem(g, it, hx, hy, cx, by, side){
     g.strokeStyle=OL; g.lineWidth=1.2;
     g.beginPath(); for(let i=0;i<8;i++){ const a=Math.PI/8+i*Math.PI/4; g.lineTo(fx+Math.cos(a)*5.5, fy+Math.sin(a)*5.5); } g.closePath(); g.fillStyle='#e23b3b'; g.fill(); g.stroke();
     g.fillStyle='#fff'; g.fillRect(fx-3, fy-.8, 6, 1.6);
+  } else if(it==='baton'){ // 交通指揮棒（發光，會輕輕揮動）
+    const a = -Math.PI/2 + (side?1.2:0.5) + Math.sin(T*3)*0.22, len = 17;
+    const ex = hx + Math.cos(a)*len, ey = hy + Math.sin(a)*len;
+    const mx = hx + Math.cos(a)*5, my = hy + Math.sin(a)*5;
+    g.save(); g.globalAlpha = .35 + .2*Math.sin(T*8); g.strokeStyle='#ff6a3d'; g.lineWidth=7; g.lineCap='round';
+    g.beginPath(); g.moveTo(mx,my); g.lineTo(ex,ey); g.stroke(); g.restore();
+    g.lineCap='round'; g.strokeStyle=OL; g.lineWidth=4.6; g.beginPath(); g.moveTo(hx,hy); g.lineTo(ex,ey); g.stroke();
+    g.strokeStyle='#333'; g.lineWidth=3; g.beginPath(); g.moveTo(hx,hy); g.lineTo(mx,my); g.stroke();
+    g.strokeStyle='#ff3b2f'; g.beginPath(); g.moveTo(mx,my); g.lineTo(ex,ey); g.stroke();
+    g.strokeStyle='#fff'; g.lineWidth=2.4; const w1=.45, w2=.62;
+    g.beginPath(); g.moveTo(hx+Math.cos(a)*len*w1, hy+Math.sin(a)*len*w1); g.lineTo(hx+Math.cos(a)*len*w2, hy+Math.sin(a)*len*w2); g.stroke();
+    g.strokeStyle='rgba(255,255,255,.7)'; g.lineWidth=1; g.beginPath(); g.moveTo(mx-.8,my); g.lineTo(ex-.8,ey); g.stroke();
   } else if(it==='book'){ // 點名簿
     rr(g, hx-4, hy-5, 8, 7, 1, '#3c7fd0'); g.fillStyle='#fff'; g.fillRect(hx-3, hy-4, 1.2, 5); g.fillStyle='#ffe066'; g.fillRect(hx+.5, hy-3.5, 2.5, 1.5);
   } else if(it==='mega'){ // 大聲公
@@ -1131,7 +1143,8 @@ function drawPerson(g, x, y, dir, L, step, still){
   if(L.cape && dir==='up'){ g.beginPath(); g.moveTo(cx-6.6,by+14); g.lineTo(cx+6.6,by+14); g.lineTo(cx+9,by+26); g.quadraticCurveTo(cx,by+28,cx-9,by+26); g.closePath(); g.fillStyle=L.cape; g.fill(); g.stroke(); g.fillStyle='rgba(255,255,255,.2)'; g.fillRect(cx-5,by+16,3,8); }
   if(side){ rr(g, cx-2+sw*.8, by+15, 3.8, 6.5, 1.8, L.shirt); circ(g, cx+sw*.8, by+21.7, 2.1, L.skin); }
   const itemArgs = [L.item, side ? cx+sw*.8 : cx+8.1, by+21.7 - (side?0:sw), cx, by, side];
-  if(L.item && dir!=='up' && L.item!=='flag') drawItem(g, ...itemArgs);
+  const itemAfterHead = L.item==='flag' || L.item==='baton';
+  if(L.item && dir!=='up' && !itemAfterHead) drawItem(g, ...itemArgs);
   // 頭（以下都在放大座標裡畫）
   headOn();
   circ(g, cx, by+4.5, 8.5, L.skin);
@@ -1211,7 +1224,7 @@ function drawPerson(g, x, y, dir, L, step, still){
     g.fillStyle='#ffe066'; g.fill(); g.lineWidth=1; g.stroke();
   }
   g.restore(); // 結束頭部放大
-  if(L.item==='flag' && dir!=='up') drawItem(g, ...itemArgs);
+  if(itemAfterHead && dir!=='up') drawItem(g, ...itemArgs);
   g.restore();
 }
 function drawFace(canvas, L, scale){
@@ -1269,7 +1282,7 @@ addNPC({id:'rules', x:8, y:3, name:'班導師 黃老師', quest:'rules',
     ['{name}同學早安，我是黃老師。','最近「散漫怪」跑進校園，讓大家上課遲到、走廊奔跑、亂丟垃圾……','讓老師看看你是不是守規矩的好學生吧！'],
     ['你是全班的好榜樣！','守規矩不是為了怕被罵，而是讓大家都能安全、快樂地學習。'])});
 addNPC({id:'traffic', x:22, y:25, name:'導護志工 方阿伯', quest:'traffic',
-  look:{skin:'#e8b98f',hair:'#9a9a9a',shirt:'#3c7fd0',pants:'#334',vest:'#ffe23a',hat:'cap',hatColor:'#ffd400',item:'flag',mustache:'#b5b5b5'},
+  look:{skin:'#e8b98f',hair:'#9a9a9a',shirt:'#3c7fd0',pants:'#334',vest:'#ffe23a',hat:'cap',hatColor:'#ffd400',item:'baton',mustache:'#b5b5b5'},
   talk:questTalk('traffic',
     ['早安！我是導護志工方阿伯。','上下學時路上車子好多，「闖紅燈怪」最喜歡誘惑小朋友亂穿越馬路！','你知道怎麼保護自己的交通安全嗎？來挑戰看看！'],
     ['你已經是交通安全小達人了！','記得：走斑馬線、看小綠人、左右看清楚、走路不滑手機！'])});
