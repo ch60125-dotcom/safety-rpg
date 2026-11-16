@@ -174,6 +174,21 @@
   @keyframes shake{20%{transform:translateX(-10px)}40%{transform:translateX(10px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
   .redflash{animation:redf .4s}
   @keyframes redf{50%{box-shadow:inset 0 0 0 9999px rgba(255,0,0,.25)}}
+  .bagbtn{position:absolute;right:76px;bottom:10px;font:inherit;font-size:14px;font-weight:bold;background:#fff8dc;border:2px solid var(--ink);border-radius:6px;color:var(--ink);cursor:pointer;padding:2px 10px}
+  .bagbtn:hover{background:#ffe9a8}
+  .bbag{position:absolute;right:10px;bottom:42px;width:420px;max-height:250px;overflow:auto;padding:8px 12px;z-index:6;background:#fffdf6}
+  .bbhead{display:flex;justify-content:space-between;align-items:center;font-weight:bold;font-size:17px;margin-bottom:4px}
+  .bbhead .cbtn{padding:0 8px;font-size:14px}
+  .bagrow{display:flex;align-items:center;gap:10px;padding:6px 4px;border-bottom:2px dashed #ecdcb4}
+  .bagrow.empty{opacity:.45}
+  .bico{font-size:28px;width:40px;height:40px;line-height:40px;text-align:center;background:radial-gradient(circle at 35% 30%,#fff,#fde9b0);border:2px solid var(--ink);border-radius:10px;flex:none}
+  .binfo{flex:1;line-height:1.35}.binfo small{display:block;color:#6a5a48;font-size:13px}
+  .bn{color:#c0392b}
+  .buse{flex:none;padding:4px 12px}
+  .bagtip{font-size:13px;color:#6a5a48;margin-top:10px;line-height:1.5}
+  .obtn.gone{opacity:.25;text-decoration:line-through}
+  .me.healfx{animation:healfx .6s}
+  @keyframes healfx{40%{box-shadow:0 0 0 6px rgba(120,230,140,.8);transform:scale(1.05)}}
   .bshake{animation:bshake .3s}
   @keyframes bshake{25%{transform:translate(-4px,3px)}50%{transform:translate(4px,-2px)}75%{transform:translate(-2px,2px)}}
   .mon.lunge{animation:lunge .45s ease-in-out}
@@ -231,6 +246,7 @@
     <div id="hRight">
       <div class="frame" id="badges"></div>
       <button class="hbtn frame" id="btnMap" title="小地圖 (M)">🗺️</button>
+      <button class="hbtn frame" id="btnBag" title="道具 (B)">🎒</button>
       <button class="hbtn frame" id="btnQuest" title="任務清單 (Q)">📋 任務</button>
       <button class="hbtn frame" id="btnBoard" title="排行榜 (R)">🏆</button>
       <button class="hbtn frame" id="btnMute" title="音效開關">🔊</button>
@@ -278,6 +294,8 @@
       <div class="bq" id="bQ"></div>
       <div id="bBody"></div>
       <button class="flee" id="bFlee">撤退</button>
+      <button class="bagbtn" id="bBagBtn">🎒 道具 (B)</button>
+      <div class="bbag frame hidden" id="bBag"></div>
       <div class="bfb hidden" id="bFb"></div>
     </div>
     <canvas id="fxcv" width="800" height="576"></canvas>
@@ -300,7 +318,7 @@
         <button class="big alt hidden" id="btnLoad">📂 繼續遊戲</button>
         <button class="big alt" id="btnBoardT">🏆 排行榜</button>
       </div>
-      <div class="help">⌨️ 方向鍵 / WASD：移動　空白鍵 / Enter：對話、確定　Q：任務　M：小地圖　R：排行榜<br>
+      <div class="help">⌨️ 方向鍵 / WASD：移動　空白鍵 / Enter：對話、確定　Q：任務　B：道具　M：小地圖　R：排行榜<br>
         📱 平板可使用畫面上的方向鍵。題目可按數字鍵 1～4 作答。</div>
     </div>
   </div>
@@ -1015,34 +1033,40 @@ function drawPerson(g, x, y, dir, L, step, still){
   const side = dir==='right';
   const by = y + (step ? -1 : 0);
   const shoe = '#3b3044';
+  // Q 版比例：頭放大 1.22 倍（以原本的頭部座標繪製，再整體放大）
+  const HS = 1.22;
+  const headOn = ()=>{ g.save(); g.translate(cx, by+5.2); g.scale(HS,HS); g.translate(-cx, -(by+4.5)); g.lineWidth=1.4/HS*1.1; };
   // 背後長髮
-  if(L.long && dir!=='up') rr(g, cx-8.5, by+1, 17, 15, 5, L.hair);
-  // 腿與鞋
-  const l1 = step===1?5:7, l2 = step===2?5:7;
+  if(L.long && dir!=='up'){ headOn(); if(side) rr(g, cx-9.6, by+1.5, 11, 14.5, 5, L.hair); else rr(g, cx-8.8, by+1, 17.6, 15, 6, L.hair); g.restore(); }
+  // 腿與鞋（短短的腿）
+  const l1 = step===1?3.5:5, l2 = step===2?3.5:5;
   const lx1 = side ? cx-4 : cx-5, lx2 = side ? cx : cx+1;
-  rr(g, lx1, by+21, 4, l1, 1, L.pants); rr(g, lx2, by+21, 4, l2, 1, L.pants);
-  rr(g, lx1-(side?0:.5), by+20+l1, side?6:5, 3, 1.2, shoe); rr(g, lx2-(side?0:.5), by+20+l2, side?6:5, 3, 1.2, shoe);
+  rr(g, lx1, by+22.5, 4, l1, 1, L.pants); rr(g, lx2, by+22.5, 4, l2, 1, L.pants);
+  rr(g, lx1-(side?0:.8), by+21.8+l1, side?6.5:5.6, 3.6, 1.8, shoe); rr(g, lx2-(side?0:.8), by+21.8+l2, side?6.5:5.6, 3.6, 1.8, shoe);
+  g.fillStyle='rgba(255,255,255,.25)'; g.fillRect(lx1, by+22.4+l1, 2, 1); g.fillRect(lx2, by+22.4+l2, 2, 1);
   // 手臂（正面/背面）
-  const sw = step ? (step===1?2:-2) : 0;
+  const sw = step ? (step===1?1.6:-1.6) : 0;
   if(!side){
-    rr(g, cx-10.5, by+13+sw, 4, 8, 1.5, L.shirt); circ(g, cx-8.5, by+21.5+sw, 1.9, L.skin);
-    rr(g, cx+6.5, by+13-sw, 4, 8, 1.5, L.shirt); circ(g, cx+8.5, by+21.5-sw, 1.9, L.skin);
+    rr(g, cx-10, by+15+sw, 3.8, 6.5, 1.8, L.shirt); circ(g, cx-8.1, by+21.7+sw, 2.1, L.skin);
+    rr(g, cx+6.2, by+15-sw, 3.8, 6.5, 1.8, L.shirt); circ(g, cx+8.1, by+21.7-sw, 2.1, L.skin);
   }
   // 披風（背面以外：先畫在身體後面）
-  if(L.cape && dir!=='up') rr(g, cx-9, by+11.5, 18, 14, 3, L.cape);
-  // 身體
-  rr(g, cx-7, by+12, 14, 11, 3.5, L.shirt);
-  g.fillStyle=darken(L.shirt,.2); g.fillRect(cx-6.3, by+19.5, 12.6, 2.6);
-  g.fillStyle='rgba(255,255,255,.22)'; g.fillRect(cx-5, by+13.5, 4, 2);
-  g.fillStyle='rgba(40,20,60,.14)'; g.fillRect(cx+3.4, by+14.2, 2.9, 5.3); // 背光側陰影
-  if(L.vest){ g.fillStyle=L.vest; g.fillRect(cx-6.3, by+13, 12.6, 9); g.fillStyle='#fff'; g.fillRect(cx-6.3, by+17, 12.6, 2); g.strokeRect(cx-7,by+12,14,11); }
-  if(L.tie && dir==='down'){ g.fillStyle=L.tie; g.beginPath(); g.moveTo(cx-1.5,by+12.5); g.lineTo(cx+1.5,by+12.5); g.lineTo(cx+1,by+19); g.lineTo(cx,by+20.5); g.lineTo(cx-1,by+19); g.closePath(); g.fill(); }
-  if(L.cape && dir==='up'){ g.beginPath(); g.moveTo(cx-7,by+12); g.lineTo(cx+7,by+12); g.lineTo(cx+9.5,by+26); g.quadraticCurveTo(cx,by+28,cx-9.5,by+26); g.closePath(); g.fillStyle=L.cape; g.fill(); g.stroke(); g.fillStyle='rgba(255,255,255,.2)'; g.fillRect(cx-5,by+14,3,9); }
-  if(side){ rr(g, cx-2+sw*.8, by+13, 4, 8, 1.5, L.shirt); circ(g, cx+sw*.8, by+21.5, 1.9, L.skin); }
-  const itemArgs = [L.item, side ? cx+sw*.8 : cx+8.5, by+21.5 - (side?0:sw), cx, by, side];
+  if(L.cape && dir!=='up') rr(g, cx-8.5, by+13.5, 17, 12.5, 3, L.cape);
+  // 身體（圓圓短短）
+  rr(g, cx-6.6, by+14, 13.2, 9.5, 4.5, L.shirt);
+  g.fillStyle=darken(L.shirt,.2); g.fillRect(cx-6, by+20.6, 12, 2.2);
+  g.fillStyle='rgba(255,255,255,.25)'; g.fillRect(cx-4.6, by+15.6, 3.4, 1.8);
+  g.fillStyle='rgba(40,20,60,.14)'; g.fillRect(cx+3, by+16, 2.8, 4.4); // 背光側陰影
+  if(L.vest){ g.fillStyle=L.vest; g.fillRect(cx-6, by+15, 12, 7.6); g.fillStyle='#fff'; g.fillRect(cx-6, by+18.4, 12, 1.8); g.beginPath(); g.roundRect(cx-6.6,by+14,13.2,9.5,4.5); g.stroke(); }
+  if(L.tie && dir==='down'){ g.fillStyle=L.tie; g.beginPath(); g.moveTo(cx-1.5,by+14.6); g.lineTo(cx+1.5,by+14.6); g.lineTo(cx+1,by+20); g.lineTo(cx,by+21.4); g.lineTo(cx-1,by+20); g.closePath(); g.fill(); }
+  if(L.cape && dir==='up'){ g.beginPath(); g.moveTo(cx-6.6,by+14); g.lineTo(cx+6.6,by+14); g.lineTo(cx+9,by+26); g.quadraticCurveTo(cx,by+28,cx-9,by+26); g.closePath(); g.fillStyle=L.cape; g.fill(); g.stroke(); g.fillStyle='rgba(255,255,255,.2)'; g.fillRect(cx-5,by+16,3,8); }
+  if(side){ rr(g, cx-2+sw*.8, by+15, 3.8, 6.5, 1.8, L.shirt); circ(g, cx+sw*.8, by+21.7, 2.1, L.skin); }
+  const itemArgs = [L.item, side ? cx+sw*.8 : cx+8.1, by+21.7 - (side?0:sw), cx, by, side];
   if(L.item && dir!=='up' && L.item!=='flag') drawItem(g, ...itemArgs);
-  // 頭
+  // 頭（以下都在放大座標裡畫）
+  headOn();
   circ(g, cx, by+4.5, 8.5, L.skin);
+  g.fillStyle='rgba(255,255,255,.18)'; g.beginPath(); g.ellipse(cx-3, by+8.5, 2.5, 1.5, -.3, 0, 7); g.fill();
   // 頭髮
   g.fillStyle=L.hair;
   if(dir==='up'){
@@ -1057,24 +1081,28 @@ function drawPerson(g, x, y, dir, L, step, still){
   }
   if(L.bald){ g.fillStyle=L.skin; g.beginPath(); g.ellipse(cx, by-0.5, 5.5, 4, 0, Math.PI, 0); g.fill(); }
   g.strokeStyle=lighten(L.hair,.4); g.lineWidth=1.5; g.beginPath(); g.arc(cx-1, by+2.5, 5.5, Math.PI*1.15, Math.PI*1.45); g.stroke();
-  g.strokeStyle=OL; g.lineWidth=1.4;
+  if(dir!=='up'){ g.fillStyle='rgba(255,255,255,.45)'; g.beginPath(); g.ellipse(cx+3.5, by-1.2, 1.6, .8, -.4, 0, 7); g.fill(); }
+  g.strokeStyle=OL; g.lineWidth=1.25;
   // 臉
+  // 大眼睛：深色眼珠＋兩個亮點
+  const eye = (ex, ey)=>{
+    if(blink){ g.strokeStyle=OL; g.lineWidth=1.1; g.beginPath(); g.moveTo(ex-1.5,ey+.6); g.quadraticCurveTo(ex,ey+1.6,ex+1.5,ey+.6); g.stroke(); return; }
+    g.fillStyle=OL; g.beginPath(); g.ellipse(ex, ey, 1.65, 2.3, 0, 0, 7); g.fill();
+    g.fillStyle='#5a4a7a'; g.beginPath(); g.ellipse(ex, ey+1, 1.1, 1, 0, 0, 7); g.fill();
+    g.fillStyle='#fff'; g.beginPath(); g.arc(ex-.55, ey-.9, .75, 0, 7); g.fill(); g.beginPath(); g.arc(ex+.6, ey+1.1, .35, 0, 7); g.fill();
+  };
   if(dir==='down'){
-    g.fillStyle=OL;
-    if(blink){ g.fillRect(cx-4.7,by+7.2,2.6,1); g.fillRect(cx+2.1,by+7.2,2.6,1); }
-    else { g.fillRect(cx-4.5,by+5.5,2.2,3.2); g.fillRect(cx+2.3,by+5.5,2.2,3.2);
-      g.fillStyle='#fff'; g.fillRect(cx-4.1,by+5.8,1,1); g.fillRect(cx+2.7,by+5.8,1,1); }
-    g.fillStyle='rgba(255,110,120,.45)'; g.beginPath(); g.ellipse(cx-5.6,by+9.3,2,1.2,0,0,7); g.ellipse(cx+5.6,by+9.3,2,1.2,0,0,7); g.fill();
-    g.strokeStyle=darken(L.skin,.45); g.lineWidth=1; g.beginPath(); g.moveTo(cx-1.2,by+10.2); g.quadraticCurveTo(cx,by+11.2,cx+1.2,by+10.2); g.stroke();
+    eye(cx-3.5, by+7); eye(cx+3.5, by+7);
+    g.fillStyle='rgba(255,110,120,.5)'; g.beginPath(); g.ellipse(cx-5.6,by+9.8,1.9,1.1,0,0,7); g.ellipse(cx+5.6,by+9.8,1.9,1.1,0,0,7); g.fill();
+    g.strokeStyle=darken(L.skin,.5); g.lineWidth=.9; g.beginPath(); g.moveTo(cx-1,by+10.4); g.quadraticCurveTo(cx,by+11.4,cx+1,by+10.4); g.stroke();
   } else if(side){
-    g.fillStyle=OL;
-    if(blink) g.fillRect(cx+3.3,by+7.2,2.6,1);
-    else { g.fillRect(cx+3.5,by+5.5,2.2,3.2); g.fillStyle='#fff'; g.fillRect(cx+3.9,by+5.8,1,1); }
-    g.fillStyle='rgba(255,110,120,.45)'; g.beginPath(); g.ellipse(cx+5,by+9.3,1.8,1.1,0,0,7); g.fill();
+    eye(cx+4.3, by+7);
+    g.fillStyle='rgba(255,110,120,.5)'; g.beginPath(); g.ellipse(cx+5.2,by+9.9,1.6,1,0,0,7); g.fill();
+    g.strokeStyle=darken(L.skin,.5); g.lineWidth=.9; g.beginPath(); g.moveTo(cx+6.3,by+10.6); g.lineTo(cx+7.4,by+10.4); g.stroke();
   }
   g.strokeStyle=OL; g.lineWidth=1.1;
   if(L.glasses && dir!=='up'){ if(dir==='down'){ g.strokeRect(cx-6,by+4.8,5,4.4); g.strokeRect(cx+1,by+4.8,5,4.4); g.beginPath(); g.moveTo(cx-1,by+6.5); g.lineTo(cx+1,by+6.5); g.stroke(); } else g.strokeRect(cx+2,by+4.8,6,4.4); }
-  g.lineWidth=1.4;
+  g.lineWidth=1.25;
   // 帽子
   if(L.hat==='cap'){
     g.beginPath(); g.arc(cx, by+3, 9, Math.PI, 0); g.closePath(); g.fillStyle=L.hatColor; g.fill(); g.stroke();
@@ -1090,19 +1118,20 @@ function drawPerson(g, x, y, dir, L, step, still){
     g.beginPath(); g.moveTo(cx-6.5,by-1); g.lineTo(cx-6.5,by-8); g.lineTo(cx-3,by-4.5); g.lineTo(cx,by-10); g.lineTo(cx+3,by-4.5); g.lineTo(cx+6.5,by-8); g.lineTo(cx+6.5,by-1); g.closePath();
     g.fillStyle='#f6c445'; g.fill(); g.stroke(); g.fillStyle='#e74c3c'; g.beginPath(); g.arc(cx,by-4,1.5,0,7); g.fill();
   }
-  if(L.item==='flag' && dir!=='up') drawItem(g, ...itemArgs);
   if(L.star && dir!=='up'){
     const sx = side ? cx-5 : cx+6, sy = by+1;
     g.beginPath(); for(let j=0;j<10;j++){ const r=j%2?1.8:4, a=-Math.PI/2+j*Math.PI/5; g.lineTo(sx+Math.cos(a)*r, sy+Math.sin(a)*r); } g.closePath();
     g.fillStyle='#ffe066'; g.fill(); g.lineWidth=1; g.stroke();
   }
+  g.restore(); // 結束頭部放大
+  if(L.item==='flag' && dir!=='up') drawItem(g, ...itemArgs);
   g.restore();
 }
 function drawFace(canvas, L, scale){
   const g = canvas.getContext('2d'); g.clearRect(0,0,canvas.width,canvas.height);
   if(!L) return;
   const s = scale || canvas.width/32;
-  g.save(); g.translate(canvas.width/2 - 16*s, canvas.height*0.18); g.scale(s,s); drawPerson(g,0,0,'down',L,0,true); g.restore();
+  g.save(); g.translate(canvas.width/2 - 16*s, canvas.height*0.26); g.scale(s,s); drawPerson(g,0,0,'down',L,0,true); g.restore();
 }
 
 /* ---------------- 遊戲狀態 ---------------- */
@@ -1232,18 +1261,20 @@ addNPC({id:'yu', x:34, y:16, name:'小宇', dir:'down',
 // 新地點的角色
 addNPC({id:'librarian', x:43, y:4, name:'圖書館 黃老師',
   look:{skin:'#f6d2b0',hair:'#5a3a2a',shirt:'#6b8e4e',pants:'#444',glasses:true,long:true},
-  talk(n){ say(['歡迎來到圖書館！在這裡要輕聲細語喔。','書架上有很多安全知識的書，面向書架按空白鍵就可以翻翻看。','看完的書記得放回原位，愛惜書本，下一位同學才能看到乾淨的書。'],{name:n.name}); }});
+  talk(n){
+    if(!S.gift.lib){ say(['歡迎來到圖書館！在這裡要輕聲細語喔。','書架上有很多安全知識的書，面向書架按空白鍵就可以翻翻看。','看完的書記得放回原位，愛惜書本，下一位同學才能看到乾淨的書。','這兩張「提示卡」送給你，答題卡住的時候可以用喔！'],{name:n.name, onEnd:()=>giveItem('hint',2,'lib')}); return; }
+    say(['歡迎來到圖書館！在這裡要輕聲細語喔。','書架上有很多安全知識的書，面向書架按空白鍵就可以翻翻看。','看完的書記得放回原位，愛惜書本，下一位同學才能看到乾淨的書。'],{name:n.name}); }});
 addNPC({id:'nurse', x:44, y:16, name:'護理師 吳阿姨',
   look:{skin:'#f6d2b0',hair:'#2a2a2a',shirt:'#ffffff',pants:'#7fb8d8',long:true},
-  talk(n){ say(['我是健康中心的吳阿姨。身體不舒服或受傷，都可以來找我。','小擦傷要先用清水沖洗傷口，再擦藥、貼紗布。','流鼻血時頭要微微往前傾，捏住鼻翼，不要仰頭喔！'],{name:n.name}); }});
+  talk(n){ say(['我是健康中心的吳阿姨。身體不舒服或受傷，都可以來找我。','小擦傷要先用清水沖洗傷口，再擦藥、貼紗布。','流鼻血時頭要微微往前傾，捏住鼻翼，不要仰頭喔！', ...(S.gift.nurse?[]:['來，這個「愛心飯糰」給你，挑戰累了記得補充體力！'])],{name:n.name, onEnd:()=>giveItem('heal',1,'nurse')}); }});
 addNPC({id:'clerk', x:45, y:21, name:'福利社 蔡阿姨',
   look:{skin:'#e8b98f',hair:'#4a2f1d',shirt:'#e86a3c',pants:'#555',long:true},
   talk(n){
     if(!S.flags.shop){
       say(['歡迎光臨！下課口渴了嗎？想喝點什麼？'],{name:n.name, choices:[
-        {t:'💧 白開水', f:()=>{ S.flags.shop=true; gainExp(10); sfx('ok'); say(['好選擇！白開水最健康，下課多喝水，身體才有精神。（經驗 +10）'],{name:n.name}); }},
-        {t:'🥤 含糖飲料', f:()=>{ S.flags.shop=true; say(['含糖飲料偶爾喝一點就好，喝太多容易蛀牙、變胖。','阿姨推薦你喝白開水喔！'],{name:n.name}); }},
-        {t:'🧃 果汁牛奶各一大瓶', f:()=>{ S.flags.shop=true; say(['哇，一次喝太多會肚子痛喔！適量就好，白開水最健康。'],{name:n.name}); }}
+        {t:'💧 白開水', f:()=>{ S.flags.shop=true; gainExp(10); sfx('ok'); say(['好選擇！白開水最健康，下課多喝水，身體才有精神。（經驗 +10）','你這麼懂得照顧自己，阿姨送你一個「守護盾」！'],{name:n.name, onEnd:()=>giveItem('shield',1,'shop')}); }},
+        {t:'🥤 含糖飲料', f:()=>{ say(['含糖飲料偶爾喝一點就好，喝太多容易蛀牙、變胖。','阿姨推薦你喝白開水喔！想好了再來找阿姨吧～'],{name:n.name}); }},
+        {t:'🧃 果汁牛奶各一大瓶', f:()=>{ say(['哇，一次喝太多會肚子痛喔！適量就好，白開水最健康。想好了再來找阿姨吧～'],{name:n.name}); }}
       ]});
       return;
     }
@@ -1251,7 +1282,7 @@ addNPC({id:'clerk', x:45, y:21, name:'福利社 蔡阿姨',
   }});
 addNPC({id:'patrol', x:30, y:10, name:'生教組長 李組長', wander:[2,10,49,11],
   look:{skin:'#e8b98f',hair:'#222',shirt:'#2c3e60',pants:'#2c3e60',hat:'cap',hatColor:'#34495e',vest:'#4a6da7'},
-  talk(n){ careChat(n, 'chat', null); }});
+  talk(n){ careChat(n, 'chat', null, ()=>{ if(!S.gift.patrol) say(['對了，這兩個「指南針」給你。不知道下一步要去哪裡時，拿出來用就會指引方向！'],{name:n.name, onEnd:()=>giveItem('compass',2,'patrol')}); }); }});
 
 const EXTRA_LOOKS = { '陌生叔叔': {skin:'#d9a77c',hair:'#333',shirt:'#5a5a5a',pants:'#2b2b2b',hat:'cap',hatColor:'#222'} };
 function lookByName(n){
@@ -1492,8 +1523,9 @@ window.addEventListener('keydown', e=>{
   if(scene!=='play') return;
   if(QTE){ if(e.key===' '||e.key==='Enter') endQTE(true); return; }
   if(DLG){ dialogKey(e.key); return; }
-  if(!$('#panel').classList.contains('hidden')){ if(['q','Q','r','R','Escape',' ','Enter'].includes(e.key)) togglePanel(); return; }
+  if(!$('#panel').classList.contains('hidden')){ if(['q','Q','r','R','b','B','i','I','Escape',' ','Enter'].includes(e.key)) togglePanel(); return; }
   if(e.key==='r'||e.key==='R'){ showBoard(); return; }
+  if(e.key==='b'||e.key==='B'||e.key==='i'||e.key==='I'){ showBag(); return; }
   if(k){ if(!held[k]){ held[k]=true; order.push(k); } return; }
   if(e.key===' '||e.key==='Enter'||e.key==='e'||e.key==='E') interact();
   if(e.key==='q'||e.key==='Q') togglePanel();
@@ -1638,6 +1670,7 @@ function togglePanel(){
 }
 function toggleMini(){ showMini=!showMini; try{ localStorage.setItem('cgMini', showMini?'1':'0'); }catch(e){} $('#mini').classList.toggle('hidden', !showMini || scene==='title'); }
 $('#btnQuest').onclick = ()=>{ if(scene==='play' && !DLG) togglePanel(); };
+$('#btnBag').onclick = ()=>{ if(scene==='play' && !DLG) showBag(); };
 $('#btnMap').onclick = ()=>{ if(scene==='play') toggleMini(); };
 function setMuteBtn(){ $('#btnMute').textContent = muted?'🔇':'🔊'; }
 $('#btnMute').onclick = ()=>{ muted=!muted; try{ localStorage.setItem('cgMuted', muted?'1':'0'); }catch(e){} setMuteBtn(); };
@@ -1819,7 +1852,7 @@ function startBattle(o){
 }
 function updateBars(){
   $('#mHp').style.width = (BT.mhp/BT.hp*100)+'%';
-  $('#bHearts').textContent = '❤️'.repeat(Math.max(0,BT.h)) + '🤍'.repeat(BT.hearts-Math.max(0,BT.h));
+  $('#bHearts').textContent = '❤️'.repeat(Math.max(0,BT.h)) + '🤍'.repeat(BT.hearts-Math.max(0,BT.h)) + (BT.shield?' 🔰':'');
 }
 /* 出題順序：先出 1～2 題以前答錯的（穿插在第 2、4 題），再出沒看過的，最後才是看過的；
    整個題庫都看過一輪後，重新計算。 */
@@ -1836,10 +1869,10 @@ function nextQ(){
   if(BT.qi>=BT.deck.length){ BT.deck=buildDeck(BT.pool); BT.qi=0; }
   const q = BT.q = BT.deck[BT.qi++];
   S.seen[q.id] = true;
-  BT.answered=false;
+  BT.answered=false; BT.hinted=false; toggleBattleBag(false);
   updateBars();
   $('#bFb').classList.add('hidden');
-  $('#bFlee').classList.remove('hidden');
+  $('#bFlee').classList.remove('hidden'); $('#bBagBtn').classList.remove('hidden');
   const body = $('#bBody'); body.innerHTML='';
   if(q.topic){ $('#bTag').textContent = TOPICS[q.topic].icon+' '+TOPICS[q.topic].name; }
   if(q.type==='order'){
@@ -1853,7 +1886,7 @@ function nextQ(){
       b.onclick=()=>pickOrder(b); box.appendChild(b);
     });
     body.appendChild(box);
-    const rs=document.createElement('button'); rs.className='cbtn'; rs.textContent='↺ 重排'; rs.style.marginTop='8px'; rs.style.fontSize='15px';
+    const rs=document.createElement('button'); rs.className='cbtn'; rs.textContent='↺ 重排'; rs.style.cssText='position:absolute;left:16px;bottom:9px;font-size:13px;padding:2px 10px;margin:0';
     rs.onclick=()=>{ if(BT.answered) return; BT.picked=[]; box.querySelectorAll('.obtn').forEach(b=>{b.disabled=false; b.classList.remove('picked');}); renderPicked(); };
     body.appendChild(rs);
     renderPicked();
@@ -1895,7 +1928,7 @@ function burst(x,y,n,colors,kind){
 }
 function resolveAnswer(ok, rightText){
   if(!BT) return;
-  $('#bFlee').classList.add('hidden');
+  $('#bFlee').classList.add('hidden'); $('#bBagBtn').classList.add('hidden'); toggleBattleBag(false);
   if(ok){
     BT.mhp--; BT.correct++; BT.hurt=0.5; sfx('ok'); gainExp(10); delete S.wrong[BT.q.id];
     BT.combo = (BT.combo||0) + 1;
@@ -1913,7 +1946,8 @@ function resolveAnswer(ok, rightText){
       sfx(crit?'crit':'hit');
     }, 280);
   } else {
-    BT.h--; BT.wrong++; BT.lastWrong = BT.q; S.wrong[BT.q.id] = true; sfx('bad'); BT.combo = 0;
+    BT.wrong++; BT.lastWrong = BT.q; S.wrong[BT.q.id] = true; sfx('bad'); BT.combo = 0;
+    if(BT.shield){ BT.shield = false; setTimeout(()=>toast('🔰 守護盾擋下了這次攻擊！', true, 1800), 250); } else BT.h--;
     const mb=$('#monBox'); mb.classList.remove('shake','enter','lunge'); void mb.offsetWidth; mb.classList.add('lunge');
     const id = BT.id;
     setTimeout(()=>{
@@ -1961,10 +1995,14 @@ function finishBattle(fled){
   b.win ? b.onWin(b) : b.onLose(b);
 }
 $('#bFlee').onclick = ()=>{ if(BT && !BT.answered) finishBattle(true); };
+$('#bBagBtn').onclick = e=>{ e.stopPropagation(); toggleBattleBag(); };
 function battleKey(k){
   if(!BT) return;
   const fbOpen = !$('#bFb').classList.contains('hidden');
   if(fbOpen){ if(k===' '||k==='Enter') contBattle(); return; }
+  if(k==='b'||k==='B'||k==='i'||k==='I'){ toggleBattleBag(); return; }
+  if(k==='Escape'){ toggleBattleBag(false); return; }
+  if(!$('#bBag').classList.contains('hidden')) return; // 道具視窗開著時，數字鍵不作答
   if(/^[1-9]$/.test(k)){
     const btns = $('#bBody').querySelectorAll('.obtn');
     const b = btns[+k-1]; if(b && !b.disabled) b.click();
@@ -2156,6 +2194,88 @@ const TRASH = [[1,1],[38,1],[12,21],[21,14],[38,21],[50,9],[1,23],[30,23]];
 const EXITS = [[3,2],[35,2],[10,13],[45,2],[44,13]];
 const BOTTLE = [50,22];
 const socialList = () => NPCS.filter(n=>n.id!=='principal').map(n=>n.id);
+/* ---------------- 道具欄 ----------------
+   取得方式都是固定的（每個人都拿得到一樣多），不會因為運氣影響排行榜。 */
+const ITEMS = {
+  hint:    {icon:'💡', name:'提示卡',   where:'battle', desc:'答題時使用：刪去兩個錯誤選項（排序題不能用）。'},
+  heal:    {icon:'🍙', name:'愛心飯糰', where:'battle', desc:'戰鬥中使用：恢復 1 顆愛心。'},
+  shield:  {icon:'🔰', name:'守護盾',   where:'battle', desc:'戰鬥中使用：下一次答錯不會扣愛心（仍算答錯）。'},
+  compass: {icon:'🧭', name:'指南針',   where:'field',  desc:'在校園中使用：40 秒內顯示下一個目標的方向。'},
+};
+const ITEM_KEYS = Object.keys(ITEMS);
+let compassT = 0;
+function invInit(){ S.inv = Object.assign({hint:1, heal:1, shield:0, compass:1}, S.inv||{}); S.gift = S.gift||{}; }
+function giveItem(k, n, giftKey){
+  if(giftKey){ if(S.gift[giftKey]) return false; S.gift[giftKey] = true; }
+  S.inv[k] = (S.inv[k]||0) + n; save();
+  setTimeout(()=>{ toast(`🎒 獲得 ${ITEMS[k].icon} ${ITEMS[k].name} ×${n}！`, true, 2600); sfx('ok'); }, 200);
+  return true;
+}
+function useItem(k){
+  if(!(S.inv[k]>0)) return false;
+  const it = ITEMS[k];
+  if(it.where==='battle'){
+    if(!BT || BT.answered || BT.done) return false;
+    if(k==='hint'){
+      if(BT.q.type==='order' || BT.hinted){ toast(BT.hinted?'這一題已經用過提示卡了':'排序題不能使用提示卡'); return false; }
+      const wrong = shuffle([...$('#bBody').querySelectorAll('.obtn')].filter(b=>!b.dataset.ok)).slice(0,2);
+      wrong.forEach(b=>{ b.disabled=true; b.classList.add('gone'); }); BT.hinted = true;
+    }
+    if(k==='heal'){ if(BT.h>=BT.hearts){ toast('愛心已經是滿的了'); return false; } BT.h++; updateBars(); const me=$('#meBox'); me.classList.remove('healfx'); void me.offsetWidth; me.classList.add('healfx'); }
+    if(k==='shield'){ if(BT.shield){ toast('守護盾已經在保護你了'); return false; } BT.shield = true; updateBars(); }
+  } else {
+    if(scene!=='play'){ toast('指南針要在校園裡使用'); return false; }
+    if(!compassTarget()){ toast('目前沒有需要前往的目標，到處逛逛找隱藏任務吧！'); return false; }
+    compassT = 40;
+  }
+  S.inv[k]--; save(); sfx('ok');
+  toast(`${it.icon} 使用了${it.name}！`, true, 1800);
+  return true;
+}
+// 指南針指向：還沒拿到的徽章關主 → 校長
+function compassTarget(){
+  for(const k of TOPIC_KEYS) if(!S.badges[k]){ const n=NPCS.find(o=>o.quest===k); if(n) return n; }
+  if(!S.done) return NPCS.find(o=>o.id==='principal');
+  return null;
+}
+function drawCompass(g){
+  if(compassT<=0 || scene!=='play') return;
+  const t = compassTarget(); if(!t){ compassT=0; return; }
+  const px=P.px+16, py=P.py+14, dx=t.px+16-px, dy=t.py+16-py, d=Math.hypot(dx,dy);
+  if(d<40) return;
+  const a=Math.atan2(dy,dx), r=34+Math.sin(T*6)*4, fade=Math.min(1, compassT/2);
+  g.save(); g.translate(px+Math.cos(a)*r, py+Math.sin(a)*r); g.rotate(a); g.globalAlpha=.9*fade;
+  g.fillStyle='#ffe066'; g.strokeStyle=OL; g.lineWidth=2;
+  g.beginPath(); g.moveTo(15,0); g.lineTo(-8,-11); g.lineTo(-3,0); g.lineTo(-8,11); g.closePath(); g.fill(); g.stroke();
+  g.restore();
+}
+function bagHTML(inBattle){
+  return ITEM_KEYS.filter(k=>!inBattle || ITEMS[k].where==='battle').map(k=>{
+    const it=ITEMS[k], n=S.inv[k]||0, ok = n>0 && (inBattle ? it.where==='battle' : it.where==='field');
+    return `<div class="bagrow${n?'':' empty'}"><span class="bico">${it.icon}</span><div class="binfo"><b>${it.name} <span class="bn">×${n}</span></b><small>${it.desc}</small></div>
+      ${ok?`<button class="cbtn buse" data-k="${k}">使用</button>`:''}</div>`;
+  }).join('');
+}
+function showBag(){
+  const p = $('#panel');
+  if(!p.classList.contains('hidden')){ const was=p.dataset.mode; p.classList.add('hidden'); p.dataset.mode=''; if(was==='bag') return; }
+  clearHeld(); p.dataset.mode='bag';
+  p.innerHTML = `<h2>🎒 我的道具</h2>${bagHTML(false)}
+    <div class="bagtip">💡 戰鬥中的道具，請在答題時按「🎒 道具」使用。道具的取得方式：跟校園裡的老師、阿姨聊聊，或完成隱藏任務。</div>
+    <div style="margin-top:12px"><button class="cbtn" id="pClose">關閉</button></div>`;
+  p.classList.remove('hidden');
+  $('#pClose').onclick = ()=>{ p.classList.add('hidden'); p.dataset.mode=''; };
+  p.querySelectorAll('.buse').forEach(b=>b.onclick=()=>{ if(useItem(b.dataset.k)){ p.classList.add('hidden'); p.dataset.mode=''; } });
+}
+function toggleBattleBag(force){
+  const box = $('#bBag');
+  const open = force!==undefined ? force : box.classList.contains('hidden');
+  if(!open || !BT || BT.answered){ box.classList.add('hidden'); return; }
+  box.innerHTML = `<div class="bbhead">🎒 道具 <button class="cbtn" id="bBagX">✕</button></div>${bagHTML(true)}`;
+  box.classList.remove('hidden');
+  $('#bBagX').onclick = ()=>toggleBattleBag(false);
+  box.querySelectorAll('.buse').forEach(b=>b.onclick=()=>{ useItem(b.dataset.k); toggleBattleBag(false); });
+}
 function hqInit(){ S.hq = Object.assign({trash:{}, exits:{}, bottle:0, friend:0, talked:{}, done:{}, seen:{}}, S.hq||{}); S.flags = S.flags||{}; }
 function hqDoneCount(){ return S && S.hq ? HQ_KEYS.filter(k=>S.hq.done[k]).length : 0; }
 function hqProgress(k){
@@ -2178,6 +2298,7 @@ function hqComplete(k){
   const a = HQ[k].reward; S.acc = a; refreshLook();
   save(); updateHUD(); sfx('win'); submitScore();
   toast(`🎉 完成隱藏任務「${HQ[k].name}」！獲得造型「${ACC[a].name}」，積分 +${HQ_POINTS}`, true, 4500);
+  setTimeout(()=>giveItem('shield', 1, 'hq_'+k), 4600);
 }
 function refreshLook(){ const base = LOOKS[S.look]||LOOKS[0]; P.look = Object.assign({}, base, (S.acc && ACC[S.acc]) ? ACC[S.acc].look : {}); }
 function hqStep(){ // 走到某格時檢查
@@ -2568,7 +2689,7 @@ let lookSel = 0;
   const box=$('#looks');
   LOOKS.forEach((L,i)=>{
     const c=document.createElement('canvas'); c.width=72; c.height=80;
-    const g=c.getContext('2d'); g.save(); g.translate(4,14); g.scale(2,2); drawPerson(g,0,0,'down',L,0,true); g.restore();
+    const g=c.getContext('2d'); g.save(); g.translate(4,15); g.scale(2,2); drawPerson(g,0,0,'down',L,0,true); g.restore();
     if(i===0) c.classList.add('sel');
     c.onclick=()=>{ lookSel=i; box.querySelectorAll('canvas').forEach((x,j)=>x.classList.toggle('sel',j===i)); sfx('talk'); };
     box.appendChild(c);
@@ -2582,7 +2703,7 @@ function startGame(data, isNew){
   if(!S.sid) S.sid = newSid();
   if(!S.cls) S.cls = '';
   S.seen = S.seen||{}; S.wrong = S.wrong||{}; S.acc = S.acc||'';
-  hqInit(); refreshLook();
+  hqInit(); invInit(); refreshLook(); compassT = 0;
   if(S.hq.friend>=3){ const yu = NPCS.find(n=>n.id==='yu'); if(yu) yu.wander=[24,14,35,19]; }
   evT = 70; careT = 150; stuckT = 0; evBusy = false;
   P.x = Number.isInteger(S.x) ? S.x : 19; P.y = Number.isInteger(S.y) ? S.y : 31;
@@ -2601,6 +2722,7 @@ function startGame(data, isNew){
       '學校裡有五位老師，要考驗你：防災、交通安全、性別平等、反霸凌、校園常規。',
       '和頭上有「！」的老師對話、打倒搗蛋怪獸，就能得到「守護徽章」。',
       '集滿 5 枚徽章後，到校長室接受最終挑戰吧！',
+      '🎒 書包裡有「提示卡、愛心飯糰、指南針」，按右上角的 🎒（或 B 鍵）就能查看。跟校園裡的大人聊聊，還能拿到更多道具喔！',
       '首先……請等小綠人亮起，走斑馬線安全地過馬路進校園！（方向鍵移動，空白鍵對話）'
     ], {name:'旁白'});
   } else {
@@ -2632,6 +2754,7 @@ function update(dt){
   updateFX(dt);
   if(scene==='celebrate'){ updateCel(dt); return; }
   if(S && (scene==='play' || scene==='battle') && !document.hidden) S.playT = (S.playT||0) + dt;
+  if(compassT>0 && scene==='play') compassT -= dt;
   if(DLG){
     const L=DLG.lines[DLG.i];
     if(DLG.shown < L.t.length){ DLG.shown = Math.min(L.t.length, DLG.shown + dt*40); renderDlg(); }
@@ -2655,7 +2778,7 @@ function update(dt){
   const t = (!DLG && !P.moving && !panelOpen) ? facingTarget() : null;
   P.target = t;
   const hint = $('#hint');
-  const txt = t ? (t.npc ? `💬 空白鍵：和「${t.npc.name}」說話` : '📋 空白鍵：查看') : '方向鍵移動｜Q 任務｜M 地圖｜R 排行榜';
+  const txt = t ? (t.npc ? `💬 空白鍵：和「${t.npc.name}」說話` : '📋 空白鍵：查看') : '方向鍵移動｜Q 任務｜B 道具｜M 地圖｜R 排行榜';
   if(hint.textContent!==txt) hint.textContent = txt;
 }
 function render(){
@@ -2738,6 +2861,7 @@ function render(){
       ctx.fillStyle=OL; ctx.font='900 15px sans-serif'; ctx.fillText(mark, n.px+16, by+1);
     }
   }
+  drawCompass(ctx);
   // 互動提示箭頭
   if(scene==='play' && P.target && !DLG){
     const t=P.target, ax = t.x*TS+16, ay = t.y*TS - (t.npc?30:14) + Math.sin(T*6)*3;
