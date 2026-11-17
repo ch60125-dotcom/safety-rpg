@@ -1546,6 +1546,17 @@ addNPC({id:'music', x:56, y:15, name:'音樂老師 李老師', dir:'left',
         [['音量開到最大，聽得最清楚','音量太大會傷害聽力，而且受傷了很難恢復喔！'],['邊走路、邊過馬路邊聽','邊走路邊戴耳機會聽不到車聲，很危險喔！']],
         '答對了！好的聽力要從小保護。', 'heal', 'music', '這個「愛心飯糰」送給你，繼續加油！')});
   }});
+// 一年甲班導師：在校園裡到處走動，每次聊天說不同的叮嚀
+const LIN_TALKS = [
+  ['你好！我是一年甲班的導師林老師。','我們班的小朋友剛上一年級，看到他們迷路的話，可以帶他們來找我喔！'],
+  ['下課時間記得先上廁所、喝水，再去玩。','上課鐘響了要馬上回教室，不要在走廊奔跑。'],
+  ['放學要排好路隊，跟著導護志工走斑馬線。','家長還沒來接的話，就在學校等，不可以跟不認識的人走喔！'],
+  ['大哥哥大姊姊是學弟妹的好榜樣！','看到一年級的小朋友需要幫忙，主動關心他們，就是最棒的校園守護者。'],
+  ['不舒服或受傷的時候，要馬上告訴老師，或是去健康中心找陳阿姨。','有心事也可以跟老師說，老師都會陪著你。'],
+];
+addNPC({id:'lin', x:14, y:11, name:'一年甲班導師 林老師', wander:[2,10,59,23],
+  look:{skin:'#f6d2b0',hair:'#4a2f1d',shirt:'#ffb347',pants:'#5a6b8a',hstyle:'bun',bow:true,item:'book'},
+  talk(n){ const i = (S.linI||0) % LIN_TALKS.length; S.linI = i+1; say(LIN_TALKS[i], {name:n.name}); }});
 // 處室組長、主任
 addNPC({id:'sport', x:38, y:16, name:'體育組長 徐組長', dir:'left',
   look:{skin:'#d9a77c',hair:'#1f1f1f',shirt:'#e25555',pants:'#2b2b2b',hstyle:'spiky',item:'whistle'},
@@ -1607,7 +1618,7 @@ for(let i=0;i<3;i++){
 }
 function updateCars(dt){
   const onRoad = P.y>=26 && P.y<=29;
-  const mustStop = !carsGo() || onRoad;
+  const mustStop = !carsGo() || onRoad || !!ESC;
   const lineR = 18*TS-10, lineL = 21*TS+10;
   for(const c of CARS){
     let nx = c.x + c.dir*c.v*dt;
@@ -1790,10 +1801,55 @@ function checkZone(){
   const n = z ? z.n : '🌳 校園中庭';
   if(n!==curZone){ curZone=n; const w=$('#where'); w.textContent=n; w.style.opacity=1; clearTimeout(w._t); w._t=setTimeout(()=>w.style.opacity=0,1800); }
 }
+/* 紅燈時還在斑馬線上：方阿伯過來帶主角走到人行道 */
+let ESC = null;
+function escStep(o, tx, ty, yFirst){
+  const mx = ()=>{ const d=Math.sign(tx-o.x); o.x+=d; o.dir=d>0?'right':'left'; };
+  const my = ()=>{ const d=Math.sign(ty-o.y); o.y+=d; o.dir=d>0?'down':'up'; };
+  if(yFirst){ if(o.y!==ty) my(); else if(o.x!==tx) mx(); else return false; }
+  else { if(o.x!==tx) mx(); else if(o.y!==ty) my(); else return false; }
+  o.moving=true; return true;
+}
+function updateEscort(){
+  const n = NPCS.find(o=>o.id==='traffic'); if(!n) return;
+  if(!ESC){
+    if(scene==='play' && !P.moving && !DLG && tileAt(P.x,P.y)==='z' && light()==='red'){
+      const goal = P.dir==='down' ? 30 : P.dir==='up' ? 25 : (P.y>=28 ? 30 : 25);
+      ESC = {ph:'come', goal, side: P.x<=19 ? P.x+1 : P.x-1, hx:n.x, hy:n.y};
+      n.fast = true; clearHeld();
+      warn('🔴 紅燈了！站在原地別亂跑，方阿伯來帶你過馬路！');
+    }
+    return;
+  }
+  if(n.moving) return;
+  if(ESC.ph==='come'){
+    if(!escStep(n, ESC.side, P.y)){
+      ESC.ph='walk'; n.dir = P.x>n.x ? 'right' : 'left';
+      say(['別怕！紅燈了不要慌張亂跑，也不要突然往回衝。','阿伯舉著指揮棒，車子都停下來了。來，跟著阿伯慢慢走到對面！'], {name:n.name});
+    }
+    return;
+  }
+  if(ESC.ph==='walk'){
+    if(DLG || P.moving) return;
+    if(P.y===ESC.goal){
+      ESC.ph='back';
+      say(['好，安全到了！','記住：小綠人開始閃爍，就不要再踏上斑馬線，等下一次綠燈再走喔！'], {name:n.name});
+      return;
+    }
+    const d = Math.sign(ESC.goal-P.y);
+    P.prev='esc'; P.y+=d; P.dir=d>0?'down':'up'; P.moving=true;
+    n.y+=d; n.dir=P.dir; n.moving=true;
+    return;
+  }
+  if(ESC.ph==='back'){
+    if(DLG) return;
+    if(!escStep(n, ESC.hx, ESC.hy, true)){ n.fast=false; n.dir='down'; ESC=null; }
+  }
+}
 function updateNPCs(dt){
   for(const n of NPCS){
     if(n.moving){
-      const tx=n.x*TS, ty=n.y*TS, sp=60*dt;
+      const tx=n.x*TS, ty=n.y*TS, sp=(n.fast?140:60)*dt;
       n.px += clamp(tx-n.px,-sp,sp); n.py += clamp(ty-n.py,-sp,sp);
       n.anim += dt; n.step = Math.floor(n.anim*6)%2 ? 1 : 2;
       if(n.px===tx && n.py===ty){ n.moving=false; n.step=0; }
@@ -3150,6 +3206,7 @@ function update(dt){
   const free = !DLG && !panelOpen && !evBusy && !QTE && !P.moving;
   updateEvents(dt, free);
   updateCare(dt, free);
+  updateEscort();
   if(P.moving){
     const tx=P.x*TS, ty=P.y*TS, sp=150*dt;
     P.px += clamp(tx-P.px,-sp,sp); P.py += clamp(ty-P.py,-sp,sp);
@@ -3157,7 +3214,7 @@ function update(dt){
     if(P.px===tx && P.py===ty){ P.moving=false; puff(P.px,P.py); onArrive(); }
   }
   if(!P.moving){
-    const d = (!DLG && !panelOpen && !evBusy && !QTE) ? currentDir() : null;
+    const d = (!DLG && !panelOpen && !evBusy && !QTE && !ESC) ? currentDir() : null;
     if(d) tryStep(d); else P.step=0;
   }
   saveT += dt; if(saveT>5){ saveT=0; save(); }
