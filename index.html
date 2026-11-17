@@ -52,6 +52,8 @@
   #toast.show{opacity:1;transform:translateX(-50%) translateY(4px)}
   #hint{position:absolute;bottom:12px;right:12px;background:rgba(43,34,51,.8);color:#fff;padding:6px 12px;border-radius:10px;font-size:14px;pointer-events:none;border:2px solid rgba(255,255,255,.35)}
   #mini.top{top:70px;bottom:auto}
+  #hLeft,#mini{transition:opacity .25s}
+  #hLeft.see,#mini.see{opacity:.25}   /* 角色走到底下時變透明，看得到後面的東西 */
   #mini{position:absolute;left:10px;bottom:12px;border:3px solid var(--ink);border-radius:8px;box-shadow:0 3px 0 rgba(0,0,0,.35);background:#000;opacity:.92}
 
   /* 對話框 */
@@ -3885,6 +3887,22 @@ function update(dt){
   const txt = t ? (t.npc ? `💬 ${key}：和「${t.npc.name}」說話` : t.stall ? `🚽 ${key}：上廁所` : t.sink ? `🚰 ${key}：洗手` : t.piano ? `🎹 ${key}：彈鋼琴` : t.pc ? `🕹️ ${key}：玩彈珠台` : t.fire ? `🧯 ${key}：滅火練習` :`📋 ${key}：查看`) : (TOUCH ? '左下角搖桿走路｜右上角 📋 任務、🎒 道具' : '方向鍵移動｜Q 任務｜B 道具｜M 地圖｜R 排行榜');
   if(hint.textContent!==txt) hint.textContent = txt;
 }
+// 角色走到角色資訊欄或小地圖底下時，讓它們變透明
+const HUD_FADE = ['#hLeft','#mini'];
+function fadeHud(){
+  const play = scene==='play';
+  const c = play && $('#cv').getBoundingClientRect(), s = play ? c.width/VW : 1;
+  for(const id of HUD_FADE){
+    const el = $(id);
+    let over = false;
+    if(play){
+      const r = el.getBoundingClientRect();
+      const x = c.left+(P.px-cam.x)*s, y = c.top+(P.py-cam.y)*s;
+      over = r.width>0 && x+TS*s>r.left && x<r.right+6*s && y+TS*s>r.top && y-14*s<r.bottom+6*s;   // 頭部會超出格子一點
+    }
+    if(el.classList.contains('see')!==over) el.classList.toggle('see', over);
+  }
+}
 function render(){
   if(scene==='title'){
     cam.x = Math.round((Math.sin(T*0.07)+1)/2*(MW*TS-VW));
@@ -3893,6 +3911,7 @@ function render(){
     cam.x = Math.round(clamp(P.px+16-VW/2, 0, MW*TS-VW));
     cam.y = Math.round(clamp(P.py+16-VH/2, 0, MH*TS-VH));
   }
+  fadeHud();
   ctx.imageSmoothingEnabled = false;
   ctx.drawImage(mapCv, cam.x, cam.y, VW, VH, 0, 0, VW, VH);
   ctx.save(); ctx.translate(-cam.x, -cam.y);
