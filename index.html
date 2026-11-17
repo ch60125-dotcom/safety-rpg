@@ -235,14 +235,17 @@
 
   /* 觸控 */
   #pad{position:absolute;left:14px;bottom:14px;width:150px;height:150px;opacity:.85}
-  #pad button,#abtn{position:absolute;width:50px;height:50px;border-radius:12px;border:3px solid var(--ink);background:rgba(255,255,255,.88);font-size:22px;font-weight:bold;touch-action:none;color:var(--ink)}
-  #pad .u{left:50px;top:0}#pad .d{left:50px;top:100px}#pad .l{left:0;top:50px}#pad .r{left:100px;top:50px}
+  #abtn{position:absolute;width:50px;height:50px;border-radius:12px;border:3px solid var(--ink);background:rgba(255,255,255,.88);font-size:22px;font-weight:bold;touch-action:none;color:var(--ink)}
+  #pad{touch-action:none;user-select:none;-webkit-user-select:none}
+  #pad .jbase{position:absolute;left:8%;top:8%;width:84%;height:84%;border-radius:50%;border:3px solid var(--ink);background:rgba(255,255,255,.45);box-shadow:inset 0 0 0 6px rgba(255,255,255,.35)}
+  #pad .ja{position:absolute;font-size:14px;color:var(--ink);opacity:.55;transform:translate(-50%,-50%);pointer-events:none}
+  #pad .ja.u{left:50%;top:12%}#pad .ja.d{left:50%;top:88%}#pad .ja.l{left:12%;top:50%}#pad .ja.r{left:88%;top:50%}
+  #pad .ja.on{opacity:1;color:#2e9d5b;font-size:18px}
+  #pad .jknob{position:absolute;left:28%;top:28%;width:44%;height:44%;border-radius:50%;border:3px solid var(--ink);background:radial-gradient(circle at 35% 30%,#fff,#e8dcc0);box-shadow:0 3px 6px rgba(0,0,0,.3);pointer-events:none}
   #abtn{right:20px;bottom:50px;width:72px;height:72px;border-radius:50%;background:linear-gradient(#ffe48f,var(--gold));font-size:19px}
   /* 觸控按鈕放在縮放畫面外面，固定大小，手機上也夠大、好按 */
   body{touch-action:manipulation}
   #pad.fixedctl{position:fixed;left:max(12px,env(safe-area-inset-left));bottom:max(12px,env(safe-area-inset-bottom));width:180px;height:180px;z-index:50}
-  #pad.fixedctl button{width:60px;height:60px;font-size:24px}
-  #pad.fixedctl .u{left:60px;top:0}#pad.fixedctl .d{left:60px;top:120px}#pad.fixedctl .l{left:0;top:60px}#pad.fixedctl .r{left:120px;top:60px}
   #abtn.fixedctl{position:fixed;right:max(16px,env(safe-area-inset-right));bottom:max(36px,env(safe-area-inset-bottom));width:84px;height:84px;font-size:20px;z-index:50}
   body:not(.inplay) .fixedctl{display:none}
   /* 直式手機：提示轉成橫向 */
@@ -317,10 +320,7 @@
     <div class="ph-msg"><b>阿明</b><span>快按讚轉傳 👍</span></div>
   </div>
 
-  <div id="pad" class="hidden">
-    <button class="u" data-k="up">▲</button><button class="l" data-k="left">◀</button>
-    <button class="r" data-k="right">▶</button><button class="d" data-k="down">▼</button>
-  </div>
+  <div id="pad" class="hidden"><div class="jbase"><span class="ja u">▲</span><span class="ja d">▼</span><span class="ja l">◀</span><span class="ja r">▶</span><div class="jknob"></div></div></div>
   <button id="abtn" class="hidden">對話</button>
 
   <div id="dlg" class="frame hidden"><canvas id="dFace" width="104" height="104"></canvas><div id="dName"></div><div id="dText"></div><div id="dChoices"></div><div id="dNext">▼</div></div>
@@ -371,7 +371,7 @@
       <div class="topt"><button id="tMute">🔊 音效：開</button><button id="tSlow">🐢 地震反應時間：3 秒</button></div>
       <div class="help" id="tHelpKey">⌨️ 方向鍵 / WASD：移動　空白鍵 / Enter：對話、確定　Q：任務　B：道具　M：小地圖　R：排行榜<br>
         題目可按數字鍵 1～4 作答。</div>
-      <div class="help hidden" id="tHelpTouch">👆 用左下角的方向鍵走路，按右下角的「對話」鍵和人說話。<br>
+      <div class="help hidden" id="tHelpTouch">👆 按住左下角的搖桿往想去的方向推就能走路，按右下角的「對話」鍵和人說話。<br>
         題目直接點選答案。右上角的 🎒 是道具、📋 是任務。</div>
     </div>
   </div>
@@ -2007,12 +2007,31 @@ window.addEventListener('blur', clearHeld);
 // 點完按鈕後移除焦點，避免之後的鍵盤操作誤觸
 document.addEventListener('click', e=>{ const b=e.target.closest('button'); if(b) setTimeout(()=>b.blur(),0); });
 function currentDir(){ for(let i=order.length-1;i>=0;i--) if(held[order[i]]) return order[i]; return null; }
-document.querySelectorAll('#pad button').forEach(b=>{
-  const k=b.dataset.k;
-  const on=e=>{ e.preventDefault(); if(scene!=='play'||DLG) return; held[k]=true; if(!order.includes(k)) order.push(k); };
-  const off=e=>{ e.preventDefault(); held[k]=false; const i=order.indexOf(k); if(i>=0) order.splice(i,1); };
-  b.addEventListener('pointerdown',on); b.addEventListener('pointerup',off); b.addEventListener('pointerleave',off); b.addEventListener('pointercancel',off);
-});
+/* 虛擬搖桿：按住圓盤往哪裡推就往哪裡走（取上下左右中最接近的方向） */
+(function(){
+  const pad=$('#pad'), base=pad.querySelector('.jbase'), knob=pad.querySelector('.jknob');
+  let pid=null, cur=null;
+  function setDir(k){
+    if(k===cur && (!k || held[k])) return;   // clearHeld() 清掉之後要能重新按住
+    if(cur){ held[cur]=false; const i=order.indexOf(cur); if(i>=0) order.splice(i,1); }
+    cur=k;
+    if(k){ held[k]=true; order.push(k); }
+    pad.querySelectorAll('.ja').forEach(a=>a.classList.toggle('on', !!k && a.classList.contains(k[0])));
+  }
+  function move(e){
+    const r=base.getBoundingClientRect(), R=r.width/2;
+    let dx=e.clientX-(r.left+R), dy=e.clientY-(r.top+R);
+    const d=Math.hypot(dx,dy), max=R*.6;
+    if(d>max){ dx=dx/d*max; dy=dy/d*max; }
+    knob.style.transform=`translate(${dx}px,${dy}px)`;
+    if(scene!=='play'||DLG||QTE){ setDir(null); return; }
+    setDir(d<R*.22 ? null : Math.abs(dx)>Math.abs(dy) ? (dx>0?'right':'left') : (dy>0?'down':'up'));
+  }
+  function end(e){ if(e.pointerId!==pid) return; pid=null; knob.style.transform=''; setDir(null); }
+  pad.addEventListener('pointerdown', e=>{ e.preventDefault(); if(pid!==null) return; pid=e.pointerId; try{ pad.setPointerCapture(pid); }catch(_){} move(e); });
+  pad.addEventListener('pointermove', e=>{ if(e.pointerId===pid){ e.preventDefault(); move(e); } });
+  pad.addEventListener('pointerup', end); pad.addEventListener('pointercancel', end); pad.addEventListener('lostpointercapture', end);
+})();
 $('#cv').addEventListener('pointerdown', ()=>{ if(scene==='celebrate' && CEL && CEL.t>2.5) endCelebrate(); });
 $('#abtn').addEventListener('pointerdown', e=>{ e.preventDefault(); if(scene==='celebrate'){ if(CEL && CEL.t>2.5) endCelebrate(); return; } if(scene!=='play') return; if(QTE){ endQTE(true); return; } if(DLG) dialogKey(' '); else if($('#panel').classList.contains('hidden')) interact(); });
 
@@ -3366,7 +3385,7 @@ function startGame(data, isNew){
       '和頭上有「！」的老師對話、打倒搗蛋怪獸，就能得到「守護徽章」。',
       '集滿 5 枚徽章後，到校長室接受最終挑戰吧！',
       '🎒 書包裡有「提示卡、愛心飯糰、指南針」，按右上角的 🎒（或 B 鍵）就能查看。跟校園裡的大人聊聊，還能拿到更多道具喔！',
-      TOUCH ? '首先……請等小綠人亮起，走斑馬線安全地過馬路進校園！（用左下角的方向鍵走路，按「對話」鍵說話）'
+      TOUCH ? '首先……請等小綠人亮起，走斑馬線安全地過馬路進校園！（推左下角的搖桿走路，按「對話」鍵說話）'
             : '首先……請等小綠人亮起，走斑馬線安全地過馬路進校園！（方向鍵移動，空白鍵對話）'
     ], {name:'旁白'});
   } else {
@@ -3863,7 +3882,7 @@ function update(dt){
   P.target = t;
   const hint = $('#hint');
   const key = TOUCH ? '「對話」鍵' : '空白鍵';
-  const txt = t ? (t.npc ? `💬 ${key}：和「${t.npc.name}」說話` : t.stall ? `🚽 ${key}：上廁所` : t.sink ? `🚰 ${key}：洗手` : t.piano ? `🎹 ${key}：彈鋼琴` : t.pc ? `🕹️ ${key}：玩彈珠台` : t.fire ? `🧯 ${key}：滅火練習` :`📋 ${key}：查看`) : (TOUCH ? '左下角方向鍵走路｜右上角 📋 任務、🎒 道具' : '方向鍵移動｜Q 任務｜B 道具｜M 地圖｜R 排行榜');
+  const txt = t ? (t.npc ? `💬 ${key}：和「${t.npc.name}」說話` : t.stall ? `🚽 ${key}：上廁所` : t.sink ? `🚰 ${key}：洗手` : t.piano ? `🎹 ${key}：彈鋼琴` : t.pc ? `🕹️ ${key}：玩彈珠台` : t.fire ? `🧯 ${key}：滅火練習` :`📋 ${key}：查看`) : (TOUCH ? '左下角搖桿走路｜右上角 📋 任務、🎒 道具' : '方向鍵移動｜Q 任務｜B 道具｜M 地圖｜R 排行榜');
   if(hint.textContent!==txt) hint.textContent = txt;
 }
 function render(){
@@ -4008,7 +4027,7 @@ function applyTouch(e){
   const touched = e && e.type==='touchstart';
   if(!touched && !(matchMedia('(pointer:coarse)').matches || navigator.maxTouchPoints>0 && matchMedia('(hover:none)').matches)) return;
   TOUCH = true;
-  // 方向鍵和對話鍵移到縮放畫面外，固定大小，手機上也好按
+  // 搖桿和對話鍵移到縮放畫面外，固定大小，手機上也好按
   for(const id of ['#pad','#abtn']){ const el=$(id); document.body.appendChild(el); el.classList.add('fixedctl'); }
   $('#tHelpKey').classList.add('hidden'); $('#tHelpTouch').classList.remove('hidden');
   if(scene==='play'){ $('#pad').classList.remove('hidden'); $('#abtn').classList.remove('hidden'); $('#mini').classList.add('top'); }
