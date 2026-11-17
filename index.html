@@ -1541,6 +1541,39 @@ addNPC({id:'librarian', x:43, y:4, name:'圖書館 劉阿姨',
 addNPC({id:'nurse', x:44, y:16, name:'護理師 陳阿姨',
   look:{skin:'#f6d2b0',hair:'#2a2a2a',shirt:'#ffffff',pants:'#7fb8d8',long:true},
   talk(n){ say(['我是健康中心的陳阿姨。身體不舒服或受傷，都可以來找我。','小擦傷要先用清水沖洗傷口，再擦藥、貼紗布。','流鼻血時頭要微微往前傾，捏住鼻翼，不要仰頭喔！', ...(S.gift.nurse?[]:['來，這個「愛心飯糰」給你，挑戰累了記得補充體力！'])],{name:n.name, onEnd:()=>giveItem('heal',1,'nurse')}); }});
+// 上廁所：選小便或大便，提醒要對準、沖水、保持乾淨，最後去洗手
+function useToilet(){
+  const nm = '🚽 廁所';
+  const after = ['（離開前回頭看一下：馬桶座和地板都乾淨嗎？乾淨的廁所，下一個人用起來才舒服。）','最後別忘了，到旁邊的洗手台用肥皂洗手！'];
+  const done = lines => { S.needWash = true; sfx('ok');
+    say(lines.concat(after), {name:nm, onEnd: S.gift.wc ? null : toiletQuiz}); };
+  say(['（你走進廁所隔間，把門鎖好。）','要上什麼呢？'], {name:nm, choices:[
+    {t:'💧 小便', f:()=>done([
+      '小便的時候，身體靠近馬桶，對準中間，不要尿到外面或地上。',
+      '如果不小心滴到馬桶座或地上，用衛生紙擦乾淨。',
+      '（嘩啦～按下沖水鈕，沖乾淨！）'])},
+    {t:'💩 大便', f:()=>done([
+      '大便的時候，坐好、坐正，對準馬桶中間。',
+      '用過的衛生紙丟進馬桶裡一起沖掉，不要丟在地上。',
+      '（嘩啦～按下沖水鈕。如果沒沖乾淨，等水箱滿了再沖一次。）'])},
+    {t:'先不用了', f:()=>say(['（你打開門走了出來。想上廁所的時候，記得下課先去喔！）'], {name:nm})}
+  ]});
+}
+function toiletQuiz(){
+  miniQuiz({name:'🚽 廁所'}, '小問題：上完廁所，發現自己不小心尿到馬桶座上了，應該怎麼做？',
+    '用衛生紙擦乾淨，再沖水離開',
+    [['反正沒人看到，直接離開','下一個人坐上去會很不舒服喔！自己弄髒的，要自己擦乾淨。'],
+     ['跑去叫打掃的同學來擦','打掃的同學不是幫你收拾的人喔！自己弄髒的，要自己用衛生紙擦乾淨。']],
+    '答對了！對準、沖乾淨、擦乾淨，大家一起維持乾淨的廁所！', 'heal', 'wc', '送你一個「愛心飯糰」！');
+}
+function washHands(){
+  const nm = '🚰 洗手台';
+  if(S.needWash){
+    S.needWash = false; sfx('ok');
+    const first = !S.gift.wash; if(first){ S.gift.wash = true; gainExp(5); }
+    say(['（你打開水龍頭，用肥皂把手洗乾淨：濕、搓、沖、捧、擦！）', '洗好手了！上完廁所記得洗手，就能把細菌趕走。' + (first?'（經驗 +5）':'')], {name:nm});
+  } else say([EXTRA_TALK.V], {name:nm});
+}
 // 性別友善廁所的說明牌：看說明＋小問答，答對送守護盾（只送一次）
 function toiletSign(){
   const nm = '🚻 說明牌';
@@ -1984,6 +2017,8 @@ function facingTarget(){
   const c = tileAt(ax,ay);
   if(c==='B') return {book:true, x:ax, y:ay};
   if(c==='G') return {toilet:true, x:ax, y:ay};
+  if(c==='U') return {stall:true, x:ax, y:ay};
+  if(c==='V') return {sink:true, x:ax, y:ay};
   if(c==='Q' && badgeCount()<5) return {text:`🔒 校長室：集滿 5 枚守護徽章才能進入（目前 ${badgeCount()}/5）。還沒拿到的徽章可以按「📋 任務」查看。`, x:ax, y:ay};
   if(EXTRA_TALK[c]) return {text:EXTRA_TALK[c], x:ax, y:ay};
   return null;
@@ -2002,6 +2037,8 @@ function interact(){
     if(DLG) DLG.npc = n;
   } else if(t.exit) hqExit(t.exit);
   else if(t.toilet) toiletSign();
+  else if(t.stall) useToilet();
+  else if(t.sink) washHands();
   else if(t.book){ S.bookI = ((S.bookI||0) + 1) % BOOK_TIPS.length; say(['你從書架上拿了一本書……', BOOK_TIPS[S.bookI]], {name:'📚 書架'}); }
   else say([t.text], {name:'📋 告示'});
 }
@@ -3384,7 +3421,7 @@ function update(dt){
   P.target = t;
   const hint = $('#hint');
   const key = TOUCH ? '「對話」鍵' : '空白鍵';
-  const txt = t ? (t.npc ? `💬 ${key}：和「${t.npc.name}」說話` : `📋 ${key}：查看`) : (TOUCH ? '左下角方向鍵走路｜右上角 📋 任務、🎒 道具' : '方向鍵移動｜Q 任務｜B 道具｜M 地圖｜R 排行榜');
+  const txt = t ? (t.npc ? `💬 ${key}：和「${t.npc.name}」說話` : t.stall ? `🚽 ${key}：上廁所` : t.sink ? `🚰 ${key}：洗手` : `📋 ${key}：查看`) : (TOUCH ? '左下角方向鍵走路｜右上角 📋 任務、🎒 道具' : '方向鍵移動｜Q 任務｜B 道具｜M 地圖｜R 排行榜');
   if(hint.textContent!==txt) hint.textContent = txt;
 }
 function render(){
