@@ -512,7 +512,7 @@ const LV_TITLES = ['見習守護者','校園小隊員','安全小達人','守護
 
 const $ = s => document.querySelector(s);
 const cv = $('#cv'), ctx = cv.getContext('2d');
-const VW = 800, VH = 576, TS = 32, MW = 52, MH = 33;
+const VW = 800, VH = 576, TS = 32, MW = 61, MH = 33;
 const OL = '#2b2233';
 const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
 function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.random()*(i+1)|0; [a[i],a[j]]=[a[j],a[i]]; } return a; }
@@ -539,7 +539,8 @@ function building(x1,y1,x2,y2){ R('#',x1,y1,x2,y2); R(',',x1+1,y1+1,x2-1,y2-1); 
 (function buildMap(){
   for(let x=0;x<MW;x++) map[0][x]='T';
   for(let y=0;y<24;y++){ map[y][0]='T'; map[y][MW-1]='T'; }
-  R('_',2,10,49,11);
+  R('_',2,10,59,11);
+  R('_',50,12,51,17);
   R('_',18,9,20,24);
   R('_',12,16,21,17);
   R('_',39,12,40,23);
@@ -554,6 +555,11 @@ function building(x1,y1,x2,y2){ R('#',x1,y1,x2,y2); R(',',x1+1,y1+1,x2-1,y2-1); 
   building(42,13,49,18); map[15][42]='D'; map[14][46]='Y'; map[14][48]='Y'; map[14][47]='C'; map[17][48]='h';
   // 性別友善廁所：4 間獨立隔間、2 個洗手台、1 面說明牌
   building(42,20,49,23); map[21][42]='D'; for(const x of [45,46,47,48]) map[21][x]='U'; map[22][47]='V'; map[22][48]='V'; map[22][43]='G';
+  // 英語教室：白板、課桌、地球儀
+  building(52,2,59,9); map[9][55]='D'; R('b',54,2,57,2);
+  for(const x of [53,54,57,58]) for(const y of [5,7]) map[y][x]='k'; map[3][53]='O';
+  // 音樂教室：鋼琴、鼓、木琴（門在左側）
+  building(52,13,59,20); map[16][52]='D'; map[14][56]='N'; map[14][57]='N'; map[19][58]='J'; map[19][53]='X'; map[14][53]='p';
   R('t',22,12,37,21); R('.',24,14,35,19);
   R('W',13,19,16,22); R('F',13,18,16,18);
   map[13][16]='P';
@@ -570,7 +576,7 @@ function building(x1,y1,x2,y2){ R('#',x1,y1,x2,y2); R(',',x1+1,y1+1,x2-1,y2-1); 
 /* 告示牌內容（座標 'x,y'：文字） */
 const SIGNS = {
   '21,23':'【校園公告】上下學請走斑馬線，並遵守導護志工的指揮。',
-  '17,12':'【校園地圖】左上：教室｜中上：校長室｜右上：輔導室｜左：防災教育中心｜右：操場｜最右邊：圖書館、健康中心、性別友善廁所｜下：校門口',
+  '17,12':'【校園地圖】左上：教室｜中上：校長室｜右上：輔導室｜左：防災教育中心｜右：操場｜右邊：圖書館、健康中心、性別友善廁所｜最右邊：英語教室、音樂教室｜下：校門口',
   '12,13':'【防災小叮嚀】地震：趴下、掩護、穩住。火災：小火快逃、濃煙關門。報案請撥 119。',
   '14,12':'【生活常規】走廊不奔跑，上下樓梯靠右走，見到師長要問好。',
   '24,22':'【友善校園】反霸凌三步驟：不旁觀、要求助、多關心。',
@@ -590,12 +596,16 @@ const EXTRA_TALK = {
   C:'（病床之間的隔簾，讓休息的同學有隱私。）',
   U:'（獨立的廁所隔間，門可以上鎖，每個人都能安心使用。使用完記得沖水、洗手喔！）',
   V:'（洗手台。上完廁所要用肥皂洗手：濕、搓、沖、捧、擦！）',
-  f:'（白色的校園圍牆。要從校門進出喔！）'
+  f:'（白色的校園圍牆。要從校門進出喔！）',
+  O:'（地球儀：台灣在這裡！世界上有好多國家，大家都說不同的語言。）',
+  N:'（鋼琴：彈琴前要先洗手，琴蓋要輕輕打開、輕輕放下，才不會夾到手指喔。）',
+  J:'（鼓：敲鼓要用鼓棒，不可以用手用力拍或站上去玩。）',
+  X:'（木琴：叮叮咚咚～每一片琴鍵的聲音都不一樣。用完要把琴槌放回盒子裡。）'
 };
 
-const SOLID = new Set(['#','T','W','f','k','b','c','e','h','p','S','P','L','B','Y','C','U','V','G']);
+const SOLID = new Set(['#','T','W','f','k','b','c','e','h','p','S','P','L','B','Y','C','U','V','G','O','N','J','X']);
 const NPC_WALK = new Set(['.','_','t',',','F']);
-const BG = {T:'.',F:'.',f:'.',S:'.',P:'.',L:'_',k:',',c:',',e:',',h:',',p:',',b:'#',Q:'#',D:',',g:'_',B:',',Y:',',C:',',U:',',V:',',G:','};
+const BG = {T:'.',F:'.',f:'.',S:'.',P:'.',L:'_',k:',',c:',',e:',',h:',',p:',',b:'#',Q:'#',D:',',g:'_',B:',',Y:',',C:',',U:',',V:',',G:',',O:',',N:',',J:',',X:','};
 const BOOK_TIPS = [
   '📕《小心！陌生人》：不跟陌生人走、不吃陌生人給的東西、不告訴陌生人個人資料。',
   '📗《地震來了怎麼辦》：趴下、掩護、穩住！搖晃停止後再聽指示疏散。',
@@ -618,6 +628,8 @@ const BLD = [
   {k:'library',   x1:41,y1:2, x2:49,y2:9,  roof:'#6b4a8a', wall:'#f7efe0', trim:'#4a2f63', glow:'255,205,130'},
   {k:'health',    x1:42,y1:13,x2:49,y2:18, roof:'#3f95bf', wall:'#ffffff', trim:'#2a6f8f', glow:'205,238,255'},
   {k:'shop',      x1:42,y1:20,x2:49,y2:23, roof:'#7b6cc4', wall:'#f4f1ff', trim:'#4e4294', glow:'225,220,255'},
+  {k:'eng',       x1:52,y1:2, x2:59,y2:9,  roof:'#2f7fb8', wall:'#f2f8ff', trim:'#1f5a85', glow:'255,240,200'},
+  {k:'music',     x1:52,y1:13,x2:59,y2:20, roof:'#d4892a', wall:'#fff6e8', trim:'#8a5214', glow:'255,215,160'},
 ];
 const bldAt = (x,y) => BLD.find(b=>x>=b.x1&&x<=b.x2&&y>=b.y1&&y<=b.y2);
 const isWall = c => c==='#'||c==='b'||c==='Q';
@@ -645,6 +657,8 @@ const miniCv = document.createElement('canvas'); miniCv.width = MW*MS; miniCv.he
   plaque(g,'圖書館', 43*TS, 9*TS+20);
   plaque(g,'健康中心', 46*TS, 13*TS+20);
   plaque(g,'性別友善廁所', 46*TS, 20*TS+20);
+  plaque(g,'英語教室', 57.5*TS, 9*TS+20);
+  plaque(g,'音樂教室', 56*TS, 13*TS+20);
   // 健康中心紅十字
   g.lineWidth=1.5; g.strokeStyle=OL; rr(g, 48*TS+6, 13*TS+12, 18, 18, 3, '#fff'); g.fillStyle='#d62d2d'; g.fillRect(48*TS+13, 13*TS+15, 4, 12); g.fillRect(48*TS+9, 13*TS+19, 12, 4);
   plaque(g, SCHOOL_NAME, 14.5*TS, 24*TS+16, true);
@@ -744,6 +758,13 @@ function drawFloor(g,X,Y,tx,ty,B){
   } else if(k==='health'){
     g.fillStyle=((tx+ty)%2)?'#f4fbfd':'#e6f4f8'; g.fillRect(X,Y,TS,TS);
     g.fillStyle='rgba(63,149,191,.25)'; g.fillRect(X,Y,TS,1); g.fillRect(X,Y,1,TS);
+  } else if(k==='eng'){ // 英語教室：淺藍格子地毯
+    g.fillStyle=((tx+ty)%2)?'#dcebf7':'#cfe2f2'; g.fillRect(X,Y,TS,TS);
+    g.fillStyle='rgba(47,127,184,.18)'; g.fillRect(X+15,Y,2,TS); g.fillRect(X,Y+15,TS,2);
+  } else if(k==='music'){ // 音樂教室：深色木地板
+    g.fillStyle='#c98f55'; g.fillRect(X,Y,TS,TS);
+    g.fillStyle='#b37a43'; for(let i=0;i<4;i++){ g.fillRect(X, Y+i*8+7, TS, 1); g.fillRect(X+((i+tx)%2?10:24), Y+i*8, 1, 7); }
+    g.fillStyle='rgba(255,255,255,.12)'; g.fillRect(X, Y+((tx+ty)%4)*8, TS, 2);
   } else if(k==='shop'){ // 廁所：小方磁磚
     g.fillStyle='#e3f1f6'; g.fillRect(X,Y,TS,TS);
     g.fillStyle='#c9dfe8'; for(let i=1;i<4;i++){ g.fillRect(X, Y+i*8, TS, 1); g.fillRect(X+i*8, Y, 1, TS); }
@@ -764,6 +785,11 @@ function drawInteriors(g){
   g.strokeStyle='#f2c230'; g.lineWidth=4; g.setLineDash([10,6]); g.strokeRect(3*TS+6, 14*TS+6, 8*TS-12, 6*TS-12); g.setLineDash([]);
   // 教室講台
   g.fillStyle='#b98448'; g.strokeStyle=OL; g.lineWidth=2; rr(g, 6*TS+4, 3*TS+18, 5*TS-8, 12, 3, '#b98448');
+  rr(g, 54*TS+8, 3*TS+18, 4*TS-16, 12, 3, '#8fb8d8'); // 英語教室講台
+  // 音樂教室：五線譜地毯
+  g.fillStyle='#f6e2c0'; g.strokeStyle='#c98a3a'; g.lineWidth=3; rr(g, 54*TS, 16*TS+4, 4*TS, 2*TS-8, 10, '#f6e2c0');
+  g.strokeStyle='rgba(138,82,20,.45)'; g.lineWidth=1; for(let i=0;i<5;i++){ g.beginPath(); g.moveTo(54*TS+12, 16*TS+14+i*8); g.lineTo(58*TS-12, 16*TS+14+i*8); g.stroke(); }
+  g.fillStyle='#8a5214'; for(const [nx,ny] of [[54.8,17.2],[55.6,16.9],[56.5,17.45],[57.3,17.05]]){ g.beginPath(); g.ellipse(nx*TS, ny*TS, 4.5, 3.2, -.4, 0, 7); g.fill(); g.fillRect(nx*TS+3.3, ny*TS-16, 1.6, 16); }
 }
 function drawPlayground(g){
   const x1=22*TS, y1=12*TS, w=16*TS, h=10*TS;
@@ -846,6 +872,37 @@ function drawStatic(g,c,tx,ty){
       g.fillRect(X+9.5, Y+8, 3, 5); g.beginPath(); g.moveTo(X+21, Y+7.5); g.lineTo(X+24, Y+13); g.lineTo(X+18, Y+13); g.closePath(); g.fill();
       g.fillRect(X+15.5, Y+3, 1, 10);
       break; }
+    case 'O': // 地球儀
+      g.fillStyle='rgba(0,0,0,.18)'; g.fillRect(X+8,Y+26,18,4);
+      rr(g, X+9, Y+24, 14, 4, 2, '#7a4a24'); g.fillStyle='#7a4a24'; g.fillRect(X+15, Y+18, 2, 7);
+      circ(g, X+16, Y+11, 9, '#4aa3df');
+      g.fillStyle='#4fb35a'; g.beginPath(); g.ellipse(X+13,Y+8,3.5,2.5,.5,0,7); g.ellipse(X+19,Y+13,3,4,-.3,0,7); g.ellipse(X+11,Y+15,2,1.5,0,0,7); g.fill();
+      g.strokeStyle='#c9a24a'; g.lineWidth=1.5; g.beginPath(); g.arc(X+16,Y+11,11,-1.9,1.6); g.stroke();
+      break;
+    case 'N': { // 鋼琴（兩格合成一台）
+      const left = tileAt(tx-1,ty)!=='N', right = tileAt(tx+1,ty)!=='N';
+      const x0 = X + (left?2:0), x1 = X + TS - (right?2:0);
+      g.fillStyle='rgba(0,0,0,.18)'; g.fillRect(x0+2,Y+26,x1-x0,4);
+      g.fillStyle='#2b2233'; g.fillRect(x0, Y-6, x1-x0, 31);
+      g.fillStyle='#3d3346'; g.fillRect(x0+2, Y-4, x1-x0-4, 12);
+      g.fillStyle='#fff'; g.fillRect(x0+1, Y+10, x1-x0-2, 9);
+      g.fillStyle='#2b2233'; for(let i=0;i<8;i++){ g.fillRect(x0+2+i*3.8, Y+10, .8, 9); if(i%7!==2 && i%7!==6) g.fillRect(x0+3.6+i*3.8, Y+10, 2, 5.5); }
+      if(left){ g.fillStyle='#f4c542'; g.fillRect(x0+4, Y-1, 3, 3); }
+      if(right){ rr(g, x1-12, Y-2, 9, 7, 1, '#fff'); g.fillStyle='#2b2233'; g.fillRect(x1-10, Y, 5, .8); g.fillRect(x1-10, Y+2.5, 5, .8); }
+      break; }
+    case 'J': // 鼓
+      g.fillStyle='rgba(0,0,0,.18)'; g.fillRect(X+5,Y+26,24,4);
+      rr(g, X+6, Y+10, 20, 15, 3, '#d62d2d');
+      g.strokeStyle='#f4c542'; g.lineWidth=1.5; g.beginPath(); for(let i=0;i<4;i++){ g.moveTo(X+8+i*5, Y+11); g.lineTo(X+10.5+i*5, Y+24); } g.stroke();
+      g.strokeStyle=OL; ell(g, X+16, Y+10, 10, 4, '#f4f0e6');
+      g.lineWidth=2; g.strokeStyle='#8a5214'; g.beginPath(); g.moveTo(X+20,Y+8); g.lineTo(X+28,Y+1); g.moveTo(X+12,Y+8); g.lineTo(X+5,Y+2); g.stroke();
+      break;
+    case 'X': { // 木琴
+      g.fillStyle='rgba(0,0,0,.18)'; g.fillRect(X+3,Y+26,28,4);
+      rr(g, X+3, Y+12, 26, 14, 2, '#7a4a24');
+      const cs=['#e25555','#f0a030','#ffd447','#3cb371','#3c8de0','#9b6bd6'];
+      cs.forEach((c,i)=>{ g.fillStyle=c; g.fillRect(X+5+i*4, Y+10+i*.8, 3.2, 14-i*1.6); });
+      break; }
     case 'Y':
       g.fillStyle='rgba(0,0,0,.15)'; g.fillRect(X+4,Y+27,26,4);
       rr(g, X+3, Y+2, 26, 26, 3, '#dfe6ea'); rr(g, X+5, Y+4, 22, 8, 3, '#ffffff'); rr(g, X+5, Y+13, 22, 13, 2, '#8fd0f5');
@@ -884,9 +941,9 @@ function drawStatic(g,c,tx,ty){
 }
 function drawDesk(g,X,Y,tx,ty){
   const B = bldAt(tx,ty);
-  if(B && B.k==='class'){
+  if(B && (B.k==='class'||B.k==='eng')){
     g.fillStyle='rgba(0,0,0,.15)'; g.fillRect(X+5,Y+22,24,4);
-    rr(g, X+8, Y+19, 16, 8, 2, '#3c7fd0'); // 椅子
+    rr(g, X+8, Y+19, 16, 8, 2, B.k==='eng'?'#e8913c':'#3c7fd0'); // 椅子
     rr(g, X+3, Y+4, 26, 15, 2, '#c58d50'); g.fillStyle='#d9a467'; g.fillRect(X+5,Y+6,22,3);
     g.fillStyle='#fff'; g.fillRect(X+8,Y+9,7,6); g.fillStyle='#ff6b8a'; g.fillRect(X+18,Y+10,6,2);
     return;
@@ -948,6 +1005,8 @@ function drawWall(g,c,tx,ty){
     if(B.k==='disaster' && tx===4){ g.strokeStyle=OL; g.lineWidth=1; rr(g,X+6,FY+1,20,12,1,'#2e9d5b'); g.fillStyle='#fff'; g.fillRect(X+9,FY+6,8,2); g.beginPath(); g.moveTo(X+17,FY+3); g.lineTo(X+22,FY+7); g.lineTo(X+17,FY+11); g.fill(); }
     if(B.k==='counsel' && (tx===30||tx===32)){ g.strokeStyle=OL; g.lineWidth=1; rr(g,X+7,FY+1,18,12,1,tx===30?'#ffd6e0':'#d6ecff'); g.fillStyle=tx===30?'#ff6b8a':'#3c7fd0'; g.beginPath(); g.arc(X+14,FY+6,2,0,7); g.arc(X+18,FY+6,2,0,7); g.moveTo(X+12,FY+7); g.lineTo(X+16,FY+11); g.lineTo(X+20,FY+7); g.fill(); }
     if(B.k==='principal' && (tx===18||tx===19||tx===20)){ g.strokeStyle=OL; g.lineWidth=1; rr(g,X+2,FY,28,FH-9,1,'#7a4a24'); for(let i=0;i<5;i++){ g.fillStyle=['#d62d2d','#3c7fd0','#f4c542','#2e9d5b','#9b6bd6'][(i+tx)%5]; g.fillRect(X+4+i*5,FY+2,4,FH-13); } }
+    if(B.k==='eng' && (tx===53||tx===58)){ g.strokeStyle=OL; g.lineWidth=1; rr(g,X+4,FY+1,24,12,1,'#fff'); g.font='bold 8px sans-serif'; g.textAlign='center'; g.textBaseline='middle'; g.fillStyle=tx===53?'#d62d2d':'#2f7fb8'; g.fillText(tx===53?'ABC':'Hi!',X+16,FY+7.5); }
+    if(B.k==='music' && (tx>=54 && tx<=58) && ty===13 && tx!==56){ g.fillStyle=['#d62d2d','#2f7fb8','','#2e9d5b','#9b6bd6'][tx-54]; g.font='bold 12px sans-serif'; g.textAlign='center'; g.textBaseline='middle'; g.fillText(tx%2?'♪':'♫',X+16,FY+6); }
     if(B.k==='class' && tx===12){ g.strokeStyle=OL; g.lineWidth=1; circ(g,X+16,FY+5,5,'#fff'); g.beginPath(); g.moveTo(X+16,FY+5); g.lineTo(X+16,FY+2); g.moveTo(X+16,FY+5); g.lineTo(X+18,FY+6); g.stroke(); }
   }
 }
@@ -1098,6 +1157,16 @@ function drawItem(g, it, hx, hy, cx, by, side){
     g.strokeStyle='#fff'; g.lineWidth=2.4; const w1=.45, w2=.62;
     g.beginPath(); g.moveTo(hx+Math.cos(a)*len*w1, hy+Math.sin(a)*len*w1); g.lineTo(hx+Math.cos(a)*len*w2, hy+Math.sin(a)*len*w2); g.stroke();
     g.strokeStyle='rgba(255,255,255,.7)'; g.lineWidth=1; g.beginPath(); g.moveTo(mx-.8,my); g.lineTo(ex-.8,ey); g.stroke();
+  } else if(it==='abc'){ // 英文字卡
+    rr(g, hx-4.5, hy-7, 9, 8, 1.2, '#fff');
+    g.fillStyle='#d62d2d'; g.font='bold 5.5px sans-serif'; g.textAlign='center'; g.textBaseline='middle'; g.fillText('A', hx-1.8, hy-3); g.fillStyle='#2f7fb8'; g.fillText('B', hx+1.8, hy-3);
+  } else if(it==='recorder'){ // 直笛
+    const a = -Math.PI/2 + (side?0.9:0.35);
+    const ex = hx + Math.cos(a)*13, ey = hy + Math.sin(a)*13;
+    g.lineCap='round'; g.strokeStyle=OL; g.lineWidth=3.6; g.beginPath(); g.moveTo(hx,hy+2); g.lineTo(ex,ey); g.stroke();
+    g.strokeStyle='#f3e2b8'; g.lineWidth=2.2; g.beginPath(); g.moveTo(hx,hy+2); g.lineTo(ex,ey); g.stroke();
+    g.fillStyle='#7a4a24'; for(const f of [.35,.55,.75]){ g.beginPath(); g.arc(hx+(ex-hx)*f, hy+2+(ey-hy-2)*f, .7, 0, 7); g.fill(); }
+    if(!side){ g.fillStyle='rgba(212,137,42,.85)'; g.font='bold 7px sans-serif'; g.textAlign='center'; g.fillText('♪', ex+4, ey-3-Math.abs(Math.sin(T*2))*3); }
   } else if(it==='book'){ // 點名簿
     rr(g, hx-4, hy-5, 8, 7, 1, '#3c7fd0'); g.fillStyle='#fff'; g.fillRect(hx-3, hy-4, 1.2, 5); g.fillStyle='#ffe066'; g.fillRect(hx+.5, hy-3.5, 2.5, 1.5);
   } else if(it==='mega'){ // 大聲公
@@ -1395,7 +1464,34 @@ function toiletSign(){
     {t:'只有某一種性別的人可以用', f:()=>say(['不對喔！性別友善廁所是給「每一個人」使用的。想一想，再來看一次說明牌吧。'], {name:nm})},
   ])});
 }
-addNPC({id:'patrol', x:30, y:10, name:'生教組長 余組長', wander:[2,10,49,11],
+// 英語教室、音樂教室：聊天＋小問答，答對送道具（只送一次）
+function miniQuiz(n, q, right, wrongs, okMsg, item, giftKey, gift){
+  say([q], {name:n.name, choices: shuffle([
+    {t:right, f:()=>{ gainExp(10); sfx('ok');
+      if(S.gift[giftKey]) say([okMsg+'（經驗 +10）'], {name:n.name});
+      else say([okMsg+'（經驗 +10）', gift], {name:n.name, onEnd:()=>giveItem(item,1,giftKey)}); }},
+    ...wrongs.map(w=>({t:w[0], f:()=>say([w[1]], {name:n.name})}))
+  ])});
+}
+addNPC({id:'eng', x:55, y:4, name:'英語老師 彭老師',
+  look:{skin:'#f6d2b0',hair:'#6b3e1e',shirt:'#2f9ec4',pants:'#3a3f55',hstyle:'pony',item:'abc'},
+  talk(n){
+    say(['Hello！我是英語老師彭老師。','學英語也能保護自己喔！遇到危險時，要大聲喊「Help!（救命）」；別人做讓你不舒服的事，要堅定說「Stop!（停）」。','緊急時打 119 叫救護車和消防車，打 110 找警察。'],
+      {name:n.name, onEnd:()=>miniQuiz(n, 'Quiz time！遇到危險、需要別人幫忙的時候，要大聲喊哪一句英文？',
+        'Help!（救命！）',
+        [['Hello!（你好！）','Hello 是打招呼用的喔！需要幫忙時要喊「Help!」。'],['Goodbye!（再見！）','Goodbye 是說再見喔！需要幫忙時要喊「Help!」。']],
+        'Great job！答對了！', 'hint', 'eng', '送你一張「提示卡」，Good luck！')});
+  }});
+addNPC({id:'music', x:56, y:17, name:'音樂老師 李老師', dir:'left',
+  look:{skin:'#f3c9a2',hair:'#2a2a2a',shirt:'#e86a8a',pants:'#444',long:true,bow:'#ffd447',item:'recorder'},
+  talk(n){
+    say(['歡迎來到音樂教室，我是李老師！','心情不好的時候，可以聽聽喜歡的音樂、唱唱歌，讓心情慢慢平靜下來。','樂器要輕拿輕放，用完放回原位，大家才能一直使用喔。'],
+      {name:n.name, onEnd:()=>miniQuiz(n, '小問題：戴耳機聽音樂時，怎麼做才能保護耳朵？',
+        '音量不要太大，聽一陣子就讓耳朵休息',
+        [['音量開到最大，聽得最清楚','音量太大會傷害聽力，而且受傷了很難恢復喔！'],['邊走路、邊過馬路邊聽','邊走路邊戴耳機會聽不到車聲，很危險喔！']],
+        '答對了！好的聽力要從小保護。', 'heal', 'music', '這個「愛心飯糰」送給你，繼續加油！')});
+  }});
+addNPC({id:'patrol', x:30, y:10, name:'生教組長 余組長', wander:[2,10,59,11],
   look:{skin:'#e8b98f',hair:'#222',shirt:'#2c3e60',pants:'#2c3e60',hat:'cap',hatColor:'#34495e',vest:'#4a6da7'},
   talk(n){ careChat(n, 'chat', null, ()=>{ if(!S.gift.patrol) say(['對了，這兩個「指南針」給你。不知道下一步要去哪裡時，拿出來用就會指引方向！'],{name:n.name, onEnd:()=>giveItem('compass',2,'patrol')}); }); }});
 
@@ -1592,6 +1688,8 @@ const ZONES = [
   {n:'📖 圖書館',x1:41,y1:2,x2:49,y2:9},
   {n:'🏥 健康中心',x1:42,y1:13,x2:49,y2:18},
   {n:'🚻 性別友善廁所',x1:42,y1:20,x2:49,y2:23},
+  {n:'🔤 英語教室',x1:52,y1:2,x2:59,y2:9},
+  {n:'🎵 音樂教室',x1:52,y1:13,x2:59,y2:20},
 ];
 let curZone = '';
 function checkZone(){
@@ -2311,7 +2409,7 @@ const ACC = {
 };
 const TRASH = [[1,1],[38,1],[12,21],[21,14],[38,21],[50,9],[1,23],[30,23]];
 const EXITS = [[3,2],[35,2],[10,13],[45,2],[44,13]];
-const BOTTLE = [50,22];
+const BOTTLE = [59,22];
 const socialList = () => NPCS.filter(n=>n.id!=='principal').map(n=>n.id);
 /* ---------------- 道具欄 ----------------
    取得方式都是固定的（每個人都拿得到一樣多），不會因為運氣影響排行榜。 */
