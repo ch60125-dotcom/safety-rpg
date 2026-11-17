@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-<title>校園守護者</title>
+<title>校園的日常</title>
 <style>
   :root{
     --ink:#2b2233; --paper:#fffaf0; --paper2:#fbeccb; --gold:#f6c445; --gold2:#d99a1e;
@@ -324,7 +324,7 @@
   </div>
 
   <div id="title">
-    <h1>校園守護者</h1>
+    <h1>校園的日常</h1>
     <div class="sub"><span>🧯 防災</span><span>🚦 交通安全</span><span>🤝 性別平等</span><span>🛡️ 反霸凌</span><span>📚 校園常規</span></div>
     <div class="tcard frame">
       <div class="trow">
@@ -1531,12 +1531,32 @@ function miniQuiz(n, q, right, wrongs, okMsg, item, giftKey, gift){
 addNPC({id:'eng', x:55, y:4, name:'英語老師 彭老師',
   look:{skin:'#f6d2b0',hair:'#6b3e1e',shirt:'#2f9ec4',pants:'#3a3f55',hstyle:'pony',item:'abc'},
   talk(n){
-    say(['Hello！我是英語老師彭老師。','每天都用得到的英文：早上見到老師說「Good morning!（早安）」，別人幫忙你說「Thank you!（謝謝）」。','要借過時說「Excuse me.（不好意思）」，不小心做錯事要說「I\'m sorry.（對不起）」。','上課想去廁所，可以舉手說「May I go to the restroom?（我可以去廁所嗎？）」'],
-      {name:n.name, onEnd:()=>miniQuiz(n, 'Quiz time！下課時不小心撞到同學，應該跟他說哪一句英文？',
-        'I\'m sorry.（對不起）',
-        [['Thank you!（謝謝）','Thank you 是感謝別人幫忙時說的喔！撞到人要說「I\'m sorry.」。'],['Good morning!（早安）','Good morning 是早上打招呼用的喔！撞到人要說「I\'m sorry.」。']],
-        'Great job！答對了！有禮貌的人大家都喜歡。', 'hint', 'eng', '送你一張「提示卡」，Good luck！')});
+    const days = ['Sunday（星期日）','Monday（星期一）','Tuesday（星期二）','Wednesday（星期三）','Thursday（星期四）','Friday（星期五）','Saturday（星期六）'];
+    const today = days[new Date().getDay()];
+    const quiz = ENG_QUIZ[(S.engQ||0) % ENG_QUIZ.length]; S.engQ = (S.engQ||0) + 1;
+    say(['Hello！我是英語老師彭老師。我們來學生活中常用的英文吧！',
+      '上課遲到了，走到教室門口要說：「Sorry, I\'m late. May I come in?（對不起，我遲到了。我可以進來嗎？）」',
+      '見面打招呼：「How are you?（你好嗎？）」可以回答：「I am good, thank you!（我很好，謝謝你！）」',
+      '聊聊天氣：「How\'s the weather?（天氣怎麼樣？）」「It\'s sunny and hot.（出太陽，很熱。）」',
+      `問星期：「What day is today?（今天星期幾？）」今天是 ${today}，可以說「Today is ${today.split('（')[0]}.」`,
+      '需要幫忙時說：「Can you give me a hand?（你可以幫我一下嗎？）」願意幫忙就回答：「Sure!（當然好！）」',
+      '上課想去廁所，舉手說：「May I go to the restroom?（我可以去廁所嗎？）」',
+      '老師說「Line up, please.（請排隊。）」的時候，就要安靜排好隊喔！',
+      '放學說再見：「Have a nice day! Goodbye!（祝你有美好的一天！再見！）」'],
+      {name:n.name, onEnd:()=>miniQuiz(n, quiz.q, quiz.a, quiz.w,
+        'Great job！答對了！會說英文又有禮貌，大家都喜歡你。', 'hint', 'eng', '送你一張「提示卡」，Good luck！')});
   }});
+// 彭老師的小問答（每次聊天輪流出一題）
+const ENG_QUIZ = [
+  {q:'Quiz time！上課遲到了，走到教室門口要說哪一句英文？', a:'Sorry, I\'m late. May I come in?',
+   w:[['Have a nice day! Goodbye!','這是道別時說的喔！遲到要說「Sorry, I\'m late. May I come in?」。'],['Line up, please.','這是請大家排隊的意思喔！遲到要說「Sorry, I\'m late. May I come in?」。']]},
+  {q:'Quiz time！同學問你「How are you?」，可以怎麼回答？', a:'I am good, thank you!',
+   w:[['It\'s sunny and hot.','這是在回答天氣喔！別人問你好嗎，可以說「I am good, thank you!」。'],['May I go to the restroom?','這是問可不可以去廁所喔！可以說「I am good, thank you!」。']]},
+  {q:'Quiz time！搬不動東西想請同學幫忙，要說哪一句英文？', a:'Can you give me a hand?',
+   w:[['What day is today?','這是在問今天星期幾喔！請人幫忙要說「Can you give me a hand?」。'],['How\'s the weather?','這是在問天氣喔！請人幫忙要說「Can you give me a hand?」。']]},
+  {q:'Quiz time！老師說「Line up, please.」，你應該做什麼？', a:'安靜排好隊',
+   w:[['趕快回家','Line up 是「排隊」的意思喔！聽到要安靜排好隊。'],['舉手去廁所','Line up 是「排隊」的意思喔！聽到要安靜排好隊。']]},
+];
 addNPC({id:'music', x:56, y:15, name:'音樂老師 李老師', dir:'left',
   look:{skin:'#f3c9a2',hair:'#2a2a2a',shirt:'#e86a8a',pants:'#444',long:true,bow:'#ffd447',item:'recorder'},
   talk(n){
@@ -3012,7 +3032,7 @@ function showCert(){
     <div class="bd">🧯🚦🤝🛡️📚</div>
     <div class="who"><input class="certname" value="${escapeHTML(S.name)}" maxlength="10" aria-label="獎狀姓名"> 同學</div>
     <div class="noprint">✏️ 可以點上面的名字，改成真實姓名再列印（不會上傳）</div>
-    <p>在「校園守護者」挑戰中，完成防災、交通安全、性別平等、反霸凌、校園常規五大任務，並打倒糊塗大魔王，展現守護自己與他人的知識與勇氣，表現優異，特頒此狀，以資鼓勵。</p>
+    <p>在「校園的日常」挑戰中，完成防災、交通安全、性別平等、反霸凌、校園常規五大任務，並打倒糊塗大魔王，展現守護自己與他人的知識與勇氣，表現優異，特頒此狀，以資鼓勵。</p>
     <div style="font-size:24px;margin-top:6px">榮獲「校園守護者」稱號・Lv.${level()}</div>
     <div style="font-size:20px;margin-top:4px">守護積分 ${calcScore()} 分・隱藏任務 ${hqDoneCount()}/5・遊戲時間 ${fmtTime(S.playT)}</div>
     <div class="date">${escapeHTML(SCHOOL_NAME)}　　中華民國 ${roc} 年 ${d.getMonth()+1} 月 ${d.getDate()} 日</div>
@@ -3159,7 +3179,7 @@ function startGame(data, isNew){
   if(isNew){
     say([
       '（叮咚～早上 7 點 30 分，新的一天開始了！）',
-      '今天是「校園守護者」培訓日！',
+      '校園的一天，有許多值得發掘的問題，正等著你去發現。',
       '學校裡有五位老師，要考驗你：防災、交通安全、性別平等、反霸凌、校園常規。',
       '和頭上有「！」的老師對話、打倒搗蛋怪獸，就能得到「守護徽章」。',
       '集滿 5 枚徽章後，到校長室接受最終挑戰吧！',
