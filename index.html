@@ -615,8 +615,10 @@ function building(x1,y1,x2,y2){ R('#',x1,y1,x2,y2); R(',',x1+1,y1+1,x2-1,y2-1); 
   for(const x of [53,54,57,58]) for(const y of [5,7]) map[y][x]='k'; map[3][53]='O';
   // 音樂教室：鋼琴、鼓、木琴（門在左側）
   building(52,12,59,17); map[15][52]='D'; map[13][56]='N'; map[13][57]='N'; map[16][58]='J'; map[16][53]='X'; map[13][53]='p';
+  // 音樂教室和電腦教室中間的小路（接到右邊總務處前的空地）
+  R('_',52,18,60,18);
   // 電腦教室：白板、兩排電腦（門在左側）
-  building(52,18,59,23); map[20][52]='D'; R('b',55,18,57,18);
+  building(52,19,59,23); map[20][52]='D'; R('b',55,19,57,19);
   for(const x of [54,55,57,58]) for(const y of [20,22]) map[y][x]='M';
   // 美術教室：3 個畫架、2 張大桌（門在下方）
   building(61,2,68,9); map[9][64]='D'; for(const x of [62,64,66]) map[3][x]='A';
@@ -700,7 +702,7 @@ const BLD = [
   {k:'health',    x1:42,y1:13,x2:49,y2:18, roof:'#3f95bf', wall:'#ffffff', trim:'#2a6f8f', glow:'205,238,255'},
   {k:'shop',      x1:42,y1:20,x2:49,y2:23, roof:'#7b6cc4', wall:'#f4f1ff', trim:'#4e4294', glow:'225,220,255'},
   {k:'eng',       x1:52,y1:2, x2:59,y2:9,  roof:'#2f7fb8', wall:'#f2f8ff', trim:'#1f5a85', glow:'255,240,200'},
-  {k:'comp',      x1:52,y1:18,x2:59,y2:23, roof:'#4a5a78', wall:'#eef3f8', trim:'#2f3b52', glow:'210,230,255'},
+  {k:'comp',      x1:52,y1:19,x2:59,y2:23, roof:'#4a5a78', wall:'#eef3f8', trim:'#2f3b52', glow:'210,230,255'},
   {k:'music',     x1:52,y1:12,x2:59,y2:17, roof:'#d4892a', wall:'#fff6e8', trim:'#8a5214', glow:'255,215,160'},
   {k:'art',       x1:61,y1:2, x2:68,y2:9,  roof:'#c2559a', wall:'#fff3fa', trim:'#7d2f63', glow:'255,220,240'},
   {k:'office',    x1:61,y1:12,x2:68,y2:17, roof:'#5f8a55', wall:'#f3f6ee', trim:'#3f5a32', glow:'240,245,215'},
@@ -1751,7 +1753,7 @@ addNPC({id:'build', x:50, y:21, name:'總務主任 林主任', dir:'down',
         [['自己拿工具敲一敲修好','自己修可能會受傷喔！交給大人和總務處處理。'],['不管它，繼續坐','壞掉的椅子可能會讓人跌倒受傷，要告訴大人喔！']],
         '答對了！一起愛護校園，大家用得更安全！', 'compass', 'build', '這個「指南針」送你，校園變大了，不怕迷路！')});
   }});
-addNPC({id:'info', x:56, y:19, name:'資訊組長 蕭組長', dir:'down',
+addNPC({id:'info', x:56, y:21, name:'資訊組長 蕭組長', dir:'down',
   look:{skin:'#f6d2b0',hair:'#2a2a2a',shirt:'#3c4a6b',pants:'#2c3e60',glasses:true,item:'laptop'},
   talk(n){
     // 每次聊一個重點（短短兩三句），讀起來比較輕鬆
@@ -2191,7 +2193,7 @@ function interact(){
   else if(t.sink) washHands();
   // 小遊戲入口：一句話＋選項，不要讓孩子先讀好幾頁
   else if(t.piano) say(['鋼琴（彈琴前要先洗手）。要彈彈看嗎？可以跟著發亮的琴鍵彈〈小星星〉喔！'], {name:'🎹 鋼琴', choices:[{t:'🎹 來彈鋼琴', f:()=>startMini('piano')},{t:'先不用了'}]});
-  else if(t.pc) say(['電腦裡有「病毒打地鼠」：把病毒和詐騙擋下來，保護電腦！要玩嗎？（玩完記得讓眼睛休息）'], {name:'💻 電腦', choices:[{t:'🛡️ 玩病毒打地鼠', f:()=>startMini('whack')},{t:'先不用了'}]});
+  else if(t.pc) say(['電腦裡有「檔案打地鼠」：正常的檔案才點，病毒和詐騙不能點！要玩嗎？（玩完記得讓眼睛休息）'], {name:'💻 電腦', choices:[{t:'📂 玩檔案打地鼠', f:()=>startMini('whack')},{t:'先不用了'}]});
   else if(t.sofa) say(['舒服的沙發。要坐下來，到「心情小花園」放鬆一下嗎？'], {name:'🛋️ 沙發', choices:[{t:'🌱 去心情小花園', f:()=>startMini('calm')},{t:'先不用了'}]});
   else if(t.fire) say(['這是練習用滅火器。真的失火要先大喊「失火了」，小朋友以逃生為優先！要練習「拉、瞄、壓、掃」嗎？'], {name:'🧯 滅火器', choices:[{t:'🧯 來練習滅火', f:()=>startMini('fire')},{t:'先不用了'}]});
   else if(t.easel) say(['畫架上有白紙和畫筆。要畫一張畫嗎？'], {name:'🎨 畫架', choices:[{t:'🎨 來畫畫', f:()=>startMini('art')},{t:'先不用了'}]});
@@ -2280,7 +2282,7 @@ function togglePanel(){
     h += `<div class="qrow"><span style="font-size:22px">${done?'✅':seen?'🔎':'❓'}</span><b>${seen?q.name:'❓❓❓'}</b><small>${seen ? q.desc+'（'+hqProgress(k)+'）' : '還沒發現……到處走走、跟大家聊聊吧！'}</small></div>`;
   }
   // 小遊戲：列出在哪裡玩、玩過了沒（不計分）
-  const MG_LIST = [['mg_piano','🎹 彈鋼琴','音樂教室的鋼琴'],['mg_whack','🛡️ 病毒打地鼠','電腦教室的電腦'],['mg_fire','🧯 滅火練習','防災教育中心的滅火器'],['mg_art','🎨 畫畫','美術教室的畫架'],['mg_calm','🌱 心情小花園','輔導室的沙發']];
+  const MG_LIST = [['mg_piano','🎹 彈鋼琴','音樂教室的鋼琴'],['mg_whack','📂 檔案打地鼠','電腦教室的電腦'],['mg_fire','🧯 滅火練習','防災教育中心的滅火器'],['mg_art','🎨 畫畫','美術教室的畫架'],['mg_calm','🌱 心情小花園','輔導室的沙發']];
   h += `<h3>🎮 小遊戲（${MG_LIST.filter(g=>S.gift[g[0]]).length}/${MG_LIST.length}，不計分，第一次完成有小禮物）</h3>`;
   for(const [k,n,w] of MG_LIST) h += `<div class="qrow"><span style="font-size:22px">${S.gift[k]?'✅':'⬜'}</span><b>${n}</b><small>📍面向${w}，按${TOUCH?'「對話」鍵':'空白鍵'}</small></div>`;
   const owned = Object.keys(ACC).filter(a=>HQ_KEYS.some(k=>S.hq.done[k] && HQ[k].reward===a));
@@ -3552,7 +3554,7 @@ $('#btnLoad').onclick = ()=>{
   }
   sfx('ok'); startGame(d,false); };
 
-/* ---------------- 小遊戲：音樂教室鋼琴、電腦教室病毒打地鼠、防災中心滅火、美術教室畫畫、輔導室心情小花園 ----------------
+/* ---------------- 小遊戲：音樂教室鋼琴、電腦教室檔案打地鼠、防災中心滅火、美術教室畫畫、輔導室心情小花園 ----------------
    每個小遊戲第一次完成時給經驗 +10 和一個道具（只送一次，不計入守護積分）。 */
 let MG = null;
 const mgcv = $('#mgcv'), mgx = mgcv.getContext('2d');
@@ -3842,21 +3844,23 @@ MINI.art = {
   }
 };
 
-/* ---- 🛡️ 電腦教室：病毒打地鼠 ---- */
+/* ---- 📂 電腦教室：檔案打地鼠（正常的檔案才點，病毒和詐騙不能點） ---- */
 const WM_BAD = [
-  {ic:'🦠', t:'電腦病毒',     tip:'病毒會弄壞電腦、偷走資料。電腦怪怪的，要馬上告訴老師！'},
+  {ic:'🦠', t:'電腦病毒',     tip:'這是病毒！點開會弄壞電腦、偷走資料。電腦怪怪的，要馬上告訴老師！'},
   {ic:'🎁', t:'你中獎了！',   tip:'「你中獎了」的訊息通常是詐騙，不要點開，直接按 ✕ 關掉！'},
   {ic:'🔗', t:'奇怪的連結',   tip:'不認識的連結不要亂點，可能會帶你到危險的網站。'},
-  {ic:'📢', t:'彈出廣告',     tip:'突然跳出來的廣告不要點開，按 ✕ 關掉就好。'},
+  {ic:'📢', t:'彈出廣告',     tip:'突然跳出來的廣告不要點，按 ✕ 關掉就好。'},
   {ic:'🔑', t:'給密碼送點數', tip:'密碼不能給任何人，說要送點數的都是騙人的！'},
-  {ic:'👾', t:'免費外掛',     tip:'外掛和來路不明的程式，常常藏著病毒。'},
+  {ic:'👾', t:'免費外掛',     tip:'外掛和來路不明的程式，常常藏著病毒，不要點！'},
   {ic:'💬', t:'陌生人加好友', tip:'不認識的人加你好友，不要隨便接受。'},
 ];
 const WM_GOOD = [
-  {ic:'📄', t:'我的作業',   tip:'這是你的作業檔，擋掉就不見了！要看清楚喔。'},
-  {ic:'📷', t:'班級照片',   tip:'這是班級照片，不是病毒喔！'},
-  {ic:'📧', t:'老師的通知', tip:'這是老師寄來的通知，要好好看，不能刪掉！'},
-  {ic:'🎵', t:'音樂作業',   tip:'這是音樂課的作業，要留著喔！'},
+  {ic:'📄', t:'我的作業'},
+  {ic:'📷', t:'班級照片'},
+  {ic:'📧', t:'老師的通知'},
+  {ic:'🎵', t:'音樂作業'},
+  {ic:'📝', t:'學習單'},
+  {ic:'🎨', t:'美術作品'},
 ];
 // 結算畫面用的一句話（遊戲中來不及讀，所以最後再一起看）
 const WM_SHORT = {'🦠':'電腦怪怪的，要馬上告訴老師。','🎁':'「你中獎了」通常是詐騙，按 ✕ 關掉。','🔗':'不認識的連結，不要點開。','📢':'跳出來的廣告不要點，直接關掉。','🔑':'密碼不能給任何人，送點數是騙人的。','👾':'外掛和來路不明的程式常藏著病毒。','💬':'不認識的人加好友，不要接受。'};
@@ -3868,23 +3872,26 @@ function wmSpawn(m){
   const free = m.holes.map((h,i)=>h.it ? -1 : i).filter(i=>i>=0);
   if(!free.length) return;
   const i = free[Math.random()*free.length|0], k = 1 - m.time/WM_TIME;
-  const good = Math.random() < .28;
+  const good = Math.random() < .6;
   const list = good ? WM_GOOD : WM_BAD;
-  m.holes[i] = {it:list[Math.random()*list.length|0], good, life:1.75 - .8*k, up:0, hit:0, wrong:0};
+  const it = list[Math.random()*list.length|0];
+  if(!good) m.seen[it.ic] = it;   // 出現過的病毒和詐騙，結算時一起複習
+  m.holes[i] = {it, good, life:1.75 - .8*k, up:0, hit:0, wrong:0};
 }
 function wmWhack(m, i){
   if(m.phase!=='play') return;
   const h = m.holes[i]; if(!h || !h.it || h.hit || h.wrong) return;
   const [cx, cy] = wmCell(i);
-  if(h.good){
-    h.wrong = .55; m.combo = 0; m.score = Math.max(0, m.score-5); m.oops++;
-    m.tip = '⚠️ ' + h.it.tip; m.tipBad = true; m.shake = .3;
-    m.pops.push({x:cx+WM_CW/2, y:cy+30, t:.8, s:'-5', c:'#ff7a7a'});
+  if(!h.good){
+    // 點到病毒或詐騙：扣分，並說明為什麼不能點
+    h.wrong = .7; m.combo = 0; m.score = Math.max(0, m.score-10); m.oops++; m.clicked[h.it.ic] = true;
+    m.tip = h.it.tip; m.tipBad = true; m.shake = .3;
+    m.pops.push({x:cx+WM_CW/2, y:cy+30, t:.8, s:'-10', c:'#ff7a7a'});
     if(mgAudio()) tone(180, .2, 'sawtooth', 0, .05);
   } else {
     h.hit = .35; m.combo++; m.best = Math.max(m.best, m.combo); m.blocked++;
     const add = 10 + Math.min(m.combo-1, 10)*2; m.score += add;
-    m.tip = `${h.it.ic} 擋下了「${h.it.t}」！`; m.tipBad = false; m.seen[h.it.ic] = h.it;
+    m.tip = `${h.it.ic} 打開「${h.it.t}」，存好了！`; m.tipBad = false;
     m.pops.push({x:cx+WM_CW/2, y:cy+30, t:.7, s:'+'+add + (m.combo>=3 ? `（連擊 ${m.combo}）` : ''), c:'#ffe066'});
     if(mgAudio()){ tone(660+Math.min(m.combo,8)*40, .06, 'square', 0, .04); tone(990+Math.min(m.combo,8)*40, .05, 'triangle', .05, .04); }
   }
@@ -3897,9 +3904,9 @@ function wmOver(m){
 }
 MINI.whack = {
   init(m){
-    m.phase = 'ready'; m.time = WM_TIME; m.score = 0; m.combo = 0; m.best = 0; m.blocked = 0; m.escaped = 0; m.oops = 0;
-    m.holes = Array.from({length:9}, ()=>({it:null})); m.pops = []; m.seen = {}; m.spT = 0; m.shake = 0; m.reward = ''; m.newBest = false;
-    m.tip = '病毒和詐騙訊息會從資料夾跑出來，點一下就能用防護盾擋下來！但是作業、照片、老師的通知要留著，不能擋喔。'; m.tipBad = false;
+    m.phase = 'ready'; m.time = WM_TIME; m.score = 0; m.combo = 0; m.best = 0; m.blocked = 0; m.escaped = 0; m.oops = 0; m.avoid = 0;
+    m.holes = Array.from({length:9}, ()=>({it:null})); m.pops = []; m.seen = {}; m.clicked = {}; m.spT = 0; m.shake = 0; m.reward = ''; m.newBest = false;
+    m.tip = '作業、照片、老師的通知會從資料夾跑出來，點一下把它打開存好！病毒和詐騙訊息也會混進來，看到了千萬不要點。'; m.tipBad = false;
   },
   btn(m, id){ if(id==='start') wmStart(m); },
   key(m, k, down){
@@ -3926,13 +3933,13 @@ MINI.whack = {
       if(h.hit){ h.hit -= dt; if(h.hit<=0) h.it = null; return; }
       if(h.wrong){ h.wrong -= dt; if(h.wrong<=0) h.it = null; return; }
       h.up = Math.min(1, h.up + dt*6); h.life -= dt;
-      if(h.life<=0){ if(!h.good){ m.escaped++; m.combo = 0; } h.it = null; }
+      if(h.life<=0){ if(h.good){ m.escaped++; m.combo = 0; } else m.avoid++; h.it = null; }
     });
   },
   draw(m){
     m.btns = [];
     mgx.fillStyle = '#16233f'; mgx.fillRect(0, 0, 800, 576);
-    mgHeader('🛡️ 電腦教室・病毒打地鼠', TOUCH ? '點一下，把病毒和詐騙擋下來！作業、照片、老師的通知要留著｜✖ 離開' : '用滑鼠或按鍵 1～9（Q～C）把病毒和詐騙擋下來！好東西要留著｜Esc 離開');
+    mgHeader('📂 電腦教室・檔案打地鼠', TOUCH ? '正常的檔案才點！病毒和詐騙不要點｜✖ 離開' : '用滑鼠或按鍵 1～9（Q～C）點正常的檔案，病毒和詐騙不要點｜Esc 離開');
     // 螢幕桌面
     const ox = m.shake>0 ? Math.sin(m.t*70)*5 : 0;
     mgx.strokeStyle = MG_INK; mgx.lineWidth = 4; rr(mgx, WM_X0-12+ox, WM_Y0-10, 3*WM_CW+24+24, 3*WM_CH+20+20, 14, '#2b3a5c');
@@ -3957,7 +3964,7 @@ MINI.whack = {
       mgx.fillStyle = '#c9d6ea'; mgx.fillRect(x+17, cy+2, cw-4, 12);
       mgT(h.it.ic, x+WM_CW/2, cy+40, 32, MG_INK, 'center', false);
       mgT(h.it.t, x+WM_CW/2, cy+72, 15, MG_INK);
-      if(h.hit){ mgT('🛡️', x+WM_CW/2+40, cy+28, 30, MG_INK, 'center', false); }
+      if(h.hit){ mgT('✅', x+WM_CW/2+44, cy+26, 28, MG_INK, 'center', false); }
       mgx.restore();
       front();
       if(h.wrong){ mgT('❌', x+WM_CW/2, fy-20, 34, MG_INK, 'center', false); }
@@ -3971,30 +3978,30 @@ MINI.whack = {
     mgT(m.combo>=2 ? `🔥 連擊 ${m.combo}` : '連擊 0', 116, 210, 16, m.combo>=2 ? '#e8590c' : '#8a7a9a');
     mgT('最高紀錄　' + ((S.mgBest&&S.mgBest.whack)||0), 116, 240, 14, '#6a5a7a', 'center', false);
     mgPanel(14, 274, 204, 288, m.tipBad ? '#ffecec' : '#eaf6ff');
-    mgT(m.tipBad ? '⚠️ 小心！' : '💡 資訊安全小知識', 116, 298, 16, m.tipBad ? '#c0302a' : '#2a6aa8');
+    mgT(m.tipBad ? '⚠️ 這個不能點！' : '💡 資訊安全小知識', 116, 298, 16, m.tipBad ? '#c0302a' : '#2a6aa8');
     mgWrap(m.tip, 28, 330, 176, 16, MG_INK, 24);
     if(m.phase==='ready'){
       mgx.fillStyle = 'rgba(10,12,24,.6)'; mgx.fillRect(0, 52, 800, 524);
       mgPanel(150, 110, 500, 370);
-      mgT('🛡️ 保護電腦大作戰', 400, 146, 26, MG_INK);
-      mgT('看到這些，點一下擋下來 🛡️（會加分）', 400, 192, 17, '#c0302a');
-      mgT(WM_BAD.map(b=>b.ic).join('  '), 400, 228, 28, MG_INK, 'center', false);
-      mgT('這些要留著，不能擋 🙅（會扣分）', 400, 276, 17, '#2e9d5b');
-      mgT(WM_GOOD.map(b=>b.ic+' '+b.t).join('　'), 400, 310, 16, MG_INK, 'center', false);
+      mgT('📂 檔案打地鼠', 400, 146, 26, MG_INK);
+      mgT('正常的檔案，點一下打開存好 ✅（會加分）', 400, 192, 17, '#2e9d5b');
+      mgT(WM_GOOD.map(b=>b.ic).join('  '), 400, 228, 28, MG_INK, 'center', false);
+      mgT('病毒和詐騙不能點 🙅（點到會扣分）', 400, 276, 17, '#c0302a');
+      mgT(WM_BAD.map(b=>b.ic).join('  '), 400, 310, 28, MG_INK, 'center', false);
       mgT(`共 ${WM_TIME} 秒，越後面越快！連續點對有連擊加分。`, 400, 352, 15, '#6a5a7a', 'center', false);
       mgT(`拿到 ${WM_GOAL} 分有獎勵${S.gift.mg_whack ? '（已經領過囉）' : '（只送一次）'}`, 400, 378, 15, '#c0502a', 'center', false);
       mgButton(m, 'start', '▶ 開始' + (TOUCH ? '' : '（空白鍵）'), 300, 410, 200, 50, true);
     }
     if(m.phase==='over'){
-      // 結算：分數＋這一局擋下的種類，每種一句說明
+      // 結算：分數＋這一局出現的危險東西，每種一句說明
       mgx.fillStyle = 'rgba(10,12,24,.6)'; mgx.fillRect(0, 52, 800, 524);
       mgPanel(110, 64, 580, 500);
-      mgT('🛡️ 時間到！', 400, 96, 26, MG_INK);
-      mgT(`得到 ${m.score} 分${m.newBest?'，打破紀錄了！🎉':''}　擋下 ${m.blocked} 個，最高連擊 ${m.best}`, 400, 130, 16, '#4a3a5a');
+      mgT('📂 時間到！', 400, 96, 26, MG_INK);
+      mgT(`得到 ${m.score} 分${m.newBest?'，打破紀錄了！🎉':''}　存好 ${m.blocked} 個檔案，最高連擊 ${m.best}`, 400, 130, 16, '#4a3a5a');
       const seen = Object.values(m.seen);
-      mgT(seen.length ? '這一局你擋下了：' : '這一局還沒擋下任何東西，再試一次吧！', 136, 162, 15, '#2a6aa8', 'left');
-      seen.slice(0, 7).forEach((it, i)=>{ mgT(it.ic, 150, 192+i*30, 20, MG_INK, 'center', false); mgT(`${it.t}：${WM_SHORT[it.ic]||''}`, 170, 192+i*30, 15, MG_INK, 'left', false); });
-      mgT(m.oops ? `⚠️ 不小心擋掉 ${m.oops} 個好東西：作業、照片、老師的通知要留著！` : '👍 好東西一個都沒擋錯，太厲害了！', 400, 414, 15, m.oops ? '#c0302a' : '#2e9d5b');
+      mgT(seen.length ? '這一局出現的危險東西（❌ 是你不小心點到的）：' : '這一局沒有出現危險的東西。', 136, 162, 15, '#2a6aa8', 'left');
+      seen.slice(0, 7).forEach((it, i)=>{ const bad = m.clicked[it.ic]; mgT(bad ? '❌' : it.ic, 150, 192+i*30, 20, MG_INK, 'center', false); mgT(`${it.t}：${WM_SHORT[it.ic]||''}`, 170, 192+i*30, 15, bad ? '#c0302a' : MG_INK, 'left', false); });
+      mgT(m.oops ? `⚠️ 不小心點到 ${m.oops} 次病毒或詐騙，下次看清楚再點！` : '👍 病毒和詐騙一個都沒點到，太厲害了！', 400, 414, 15, m.oops ? '#c0302a' : '#2e9d5b');
       if(m.reward) mgT(m.reward, 400, 440, 15, '#c0502a');
       mgT('玩電腦要記得休息：看看遠方、眨眨眼睛。', 400, 466, 14, '#6a5a7a', 'center', false);
       mgButton(m, 'again', '🔁 再玩一次', 220, 494, 170, 50, true);
@@ -4358,13 +4365,13 @@ function update(dt){
   P.target = t;
   const hint = $('#hint');
   const key = TOUCH ? '「對話」鍵' : '空白鍵';
-  const txt = t ? (t.npc ? `💬 ${key}：和「${t.npc.name}」說話` : t.stall ? `🚽 ${key}：上廁所` : t.sink ? `🚰 ${key}：洗手` : t.piano ? `🎹 ${key}：彈鋼琴` : t.pc ? `🛡️ ${key}：病毒打地鼠` : t.sofa ? `🌱 ${key}：心情小花園` : t.fire ? `🧯 ${key}：滅火練習` : t.easel ? `🎨 ${key}：畫畫` :`📋 ${key}：查看`) : (TOUCH ? '左下角搖桿走路｜右上角 📋 任務、🎒 道具' : '方向鍵移動｜Q 任務｜B 道具｜M 地圖｜R 排行榜');
+  const txt = t ? (t.npc ? `💬 ${key}：和「${t.npc.name}」說話` : t.stall ? `🚽 ${key}：上廁所` : t.sink ? `🚰 ${key}：洗手` : t.piano ? `🎹 ${key}：彈鋼琴` : t.pc ? `📂 ${key}：檔案打地鼠` : t.sofa ? `🌱 ${key}：心情小花園` : t.fire ? `🧯 ${key}：滅火練習` : t.easel ? `🎨 ${key}：畫畫` :`📋 ${key}：查看`) : (TOUCH ? '左下角搖桿走路｜右上角 📋 任務、🎒 道具' : '方向鍵移動｜Q 任務｜B 道具｜M 地圖｜R 排行榜');
   if(hint.textContent!==txt) hint.textContent = txt;
   // 觸控的「對話」鍵：依面前的東西換字；有東西可以互動時輕輕跳動，沒有時變淡
   if(TOUCH){
     const ab = $('#abtn'); let lab, st = '';
     if(DLG) lab = choicesShowing() ? '👆\n點選項' : '▶\n下一句';
-    else if(t){ st = 'go'; lab = t.npc ? '💬\n說話' : t.stall ? '🚽\n上廁所' : t.sink ? '🚰\n洗手' : t.piano ? '🎹\n彈琴' : t.pc ? '🛡️\n打地鼠' : t.sofa ? '🌱\n放鬆' : t.fire ? '🧯\n滅火' : t.easel ? '🎨\n畫畫' : t.book ? '📖\n看書' : '📋\n查看'; }
+    else if(t){ st = 'go'; lab = t.npc ? '💬\n說話' : t.stall ? '🚽\n上廁所' : t.sink ? '🚰\n洗手' : t.piano ? '🎹\n彈琴' : t.pc ? '📂\n打地鼠' : t.sofa ? '🌱\n放鬆' : t.fire ? '🧯\n滅火' : t.easel ? '🎨\n畫畫' : t.book ? '📖\n看書' : '📋\n查看'; }
     else { lab = '對話'; st = 'idle'; }
     if(ab.textContent!==lab) ab.textContent = lab;
     if(ab.dataset.st!==st){ ab.dataset.st = st; ab.classList.toggle('go', st==='go'); ab.classList.toggle('idle', st==='idle'); }
