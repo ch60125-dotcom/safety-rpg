@@ -2149,6 +2149,7 @@ function facingTarget(){
   if(c==='M') return {pc:true, x:ax, y:ay};
   if(c==='e') return {fire:true, x:ax, y:ay};
   if(c==='A') return {easel:true, x:ax, y:ay};
+  if(c==='c') return {sofa:true, x:ax, y:ay};
   if(c==='Q' && badgeCount()<5) return {text:`🔒 校長室：集滿 5 枚守護徽章才能進入（目前 ${badgeCount()}/5）。還沒拿到的徽章可以按「📋 任務」查看。`, x:ax, y:ay};
   if(EXTRA_TALK[c]) return {text:EXTRA_TALK[c], x:ax, y:ay};
   return null;
@@ -2170,7 +2171,8 @@ function interact(){
   else if(t.stall) useToilet();
   else if(t.sink) washHands();
   else if(t.piano) say([EXTRA_TALK.N,'要彈彈看嗎？可以自由彈，也可以跟著發亮的琴鍵彈〈小星星〉、〈小蜜蜂〉、〈生日快樂〉。'], {name:'🎹 鋼琴', choices:[{t:'🎹 來彈鋼琴', f:()=>startMini('piano')},{t:'先不用了'}]});
-  else if(t.pc) say([EXTRA_TALK.M,'電腦裡有一個「彈珠台」小遊戲。下課時間、經過老師同意才可以玩，玩完要讓眼睛休息喔！','要玩彈珠台嗎？'], {name:'💻 電腦', choices:[{t:'🕹️ 玩彈珠台', f:()=>startMini('pinball')},{t:'先不用了'}]});
+  else if(t.pc) say([EXTRA_TALK.M,'電腦裡有一個「病毒打地鼠」小遊戲：把病毒和詐騙訊息點掉，保護電腦！','下課時間、經過老師同意才可以玩，玩完要讓眼睛休息喔。要玩嗎？'], {name:'💻 電腦', choices:[{t:'🛡️ 玩病毒打地鼠', f:()=>startMini('whack')},{t:'先不用了'}]});
+  else if(t.sofa) say([EXTRA_TALK.c,'要在沙發上坐一下，到「心情小花園」放鬆一下嗎？'], {name:'🛋️ 沙發', choices:[{t:'🌱 去心情小花園', f:()=>startMini('calm')},{t:'先不用了'}]});
   else if(t.fire) say([EXTRA_TALK.e,'真的遇到火災，要先大聲喊「失火了」、告訴大人；小朋友要以逃生為優先。','防災教育中心有「練習用滅火器」，可以安全地練習拉、瞄、壓、掃喔！'], {name:'🧯 滅火器', choices:[{t:'🧯 來練習滅火', f:()=>startMini('fire')},{t:'先不用了'}]});
   else if(t.easel) say([EXTRA_TALK.A,'要畫一張畫嗎？可以照邱老師出的題目畫，也可以自由創作。'], {name:'🎨 畫架', choices:[{t:'🎨 來畫畫', f:()=>startMini('art')},{t:'先不用了'}]});
   else if(t.book){ S.bookI = ((S.bookI||0) + 1) % BOOK_TIPS.length; say(['你從書架上拿了一本書……', BOOK_TIPS[S.bookI]], {name:'📚 書架'}); }
@@ -3526,7 +3528,7 @@ $('#btnLoad').onclick = ()=>{
   }
   sfx('ok'); startGame(d,false); };
 
-/* ---------------- 小遊戲：音樂教室鋼琴、電腦教室彈珠台、防災中心滅火 ----------------
+/* ---------------- 小遊戲：音樂教室鋼琴、電腦教室病毒打地鼠、防災中心滅火、美術教室畫畫、輔導室心情小花園 ----------------
    每個小遊戲第一次完成時給經驗 +10 和一個道具（只送一次，不計入守護積分）。 */
 let MG = null;
 const mgcv = $('#mgcv'), mgx = mgcv.getContext('2d');
@@ -3798,119 +3800,321 @@ MINI.art = {
   }
 };
 
-/* ---- 🕹️ 彈珠台 ---- */
-const PB_SEGS = [[230,140,230,430],[570,140,570,430],[230,140,272,82],[272,82,528,82],[528,82,570,140],[230,430,318,496],[570,430,482,496]];
-const PB_PIV = {l:[322,498], r:[478,498]}, PB_LEN = 72, PB_REST = .52, PB_UP = -.45;
-const PB_TIPS = ['🔒 密碼不告訴別人，連好朋友也不行！','🔗 不認識的連結、廣告不要亂點。','🙅 網路上不要給姓名、地址、電話、學校。','👀 用電腦 30 分鐘，要讓眼睛休息一下。','🚪 用完學校的電腦，記得登出帳號。','📢 網路上看到讓你不舒服的訊息，要告訴大人。','📷 別人的照片，沒問過不可以亂傳。','🎮 下載遊戲、App 前，要先問爸媽或老師。'];
-function pbTip(sd, a){ const [px,py] = PB_PIV[sd]; return [px + (sd==='l'?1:-1)*PB_LEN*Math.cos(a), py + PB_LEN*Math.sin(a)]; }
-function pbCol(b, x1, y1, x2, y2, rad, e, tvx, tvy){
-  const dx = x2-x1, dy = y2-y1, L2 = dx*dx+dy*dy;
-  let t = ((b.x-x1)*dx + (b.y-y1)*dy) / L2; t = Math.max(0, Math.min(1, t));
-  const cx = x1+dx*t, cy = y1+dy*t; let nx = b.x-cx, ny = b.y-cy; const d = Math.hypot(nx, ny), R = b.r+rad;
-  if(d>=R || d===0) return;
-  nx /= d; ny /= d; b.x = cx+nx*R; b.y = cy+ny*R;
-  const sx = tvx*t, sy = tvy*t, rvx = b.vx-sx, rvy = b.vy-sy, vn = rvx*nx + rvy*ny;
-  if(vn<0){ b.vx = rvx-(1+e)*vn*nx + sx; b.vy = rvy-(1+e)*vn*ny + sy; }
+/* ---- 🛡️ 電腦教室：病毒打地鼠 ---- */
+const WM_BAD = [
+  {ic:'🦠', t:'電腦病毒',     tip:'病毒會弄壞電腦、偷走資料。電腦怪怪的，要馬上告訴老師！'},
+  {ic:'🎁', t:'你中獎了！',   tip:'「你中獎了」的訊息通常是詐騙，不要點！'},
+  {ic:'🔗', t:'奇怪的連結',   tip:'不認識的連結不要亂點，可能會帶你到危險的網站。'},
+  {ic:'📢', t:'彈出廣告',     tip:'突然跳出來的廣告不要點，直接關掉就好。'},
+  {ic:'🔑', t:'給密碼送點數', tip:'密碼不能給任何人，說要送點數的都是騙人的！'},
+  {ic:'👾', t:'免費外掛',     tip:'外掛和來路不明的程式，常常藏著病毒。'},
+  {ic:'💬', t:'陌生人加好友', tip:'不認識的人加你好友，不要隨便接受。'},
+];
+const WM_GOOD = [
+  {ic:'📄', t:'我的作業',   tip:'這是你的作業檔，點掉就不見了！要看清楚再點。'},
+  {ic:'📷', t:'班級照片',   tip:'這是班級照片，不是病毒喔！'},
+  {ic:'📧', t:'老師的通知', tip:'這是老師寄來的通知，要好好看，不能刪掉！'},
+  {ic:'🎵', t:'音樂作業',   tip:'這是音樂課的作業，要留著喔！'},
+];
+const WM_TIME = 45, WM_GOAL = 200, WM_KEYS = ['123','456','789'], WM_KEYS2 = ['qwe','asd','zxc'];
+const WM_CW = 170, WM_CH = 150, WM_X0 = 236, WM_Y0 = 72;
+function wmCell(i){ return [WM_X0 + (i%3)*(WM_CW+12), WM_Y0 + Math.floor(i/3)*(WM_CH+10)]; }
+function wmStart(m){ m.phase = 'play'; m.time = WM_TIME; m.spT = .6; sfx('talk'); }
+function wmSpawn(m){
+  const free = m.holes.map((h,i)=>h.it ? -1 : i).filter(i=>i>=0);
+  if(!free.length) return;
+  const i = free[Math.random()*free.length|0], k = 1 - m.time/WM_TIME;
+  const good = Math.random() < .28;
+  const list = good ? WM_GOOD : WM_BAD;
+  m.holes[i] = {it:list[Math.random()*list.length|0], good, life:1.75 - .8*k, up:0, hit:0, wrong:0};
 }
-function pbLaunch(m){ if(m.ball || m.over || m.balls<=0) return; m.ball = {x:400, y:100, r:9, vx:(Math.random()-.5)*300, vy:40}; m.still = 0; if(mgAudio()) tone(520, .1, 'triangle', 0, .06); }
-function pbOver(m){
-  m.over = true; S.mgBest = S.mgBest || {};
-  if(m.score > (S.mgBest.pin||0)){ m.newBest = !!S.mgBest.pin || m.score>0; S.mgBest.pin = m.score; }
-  if(m.score>=1000 && mgReward('mg_pin', 'heal')) m.reward = '🎁 第一次拿到 1000 分：經驗 +10、🍙 愛心飯糰！';
-  sfx(m.score>=1000 ? 'win' : 'ok'); save();
+function wmWhack(m, i){
+  if(m.phase!=='play') return;
+  const h = m.holes[i]; if(!h || !h.it || h.hit || h.wrong) return;
+  const [cx, cy] = wmCell(i);
+  if(h.good){
+    h.wrong = .55; m.combo = 0; m.score = Math.max(0, m.score-5); m.oops++;
+    m.tip = '⚠️ ' + h.it.tip; m.tipBad = true; m.shake = .3;
+    m.pops.push({x:cx+WM_CW/2, y:cy+30, t:.8, s:'-5', c:'#ff7a7a'});
+    if(mgAudio()) tone(180, .2, 'sawtooth', 0, .05);
+  } else {
+    h.hit = .35; m.combo++; m.best = Math.max(m.best, m.combo); m.blocked++;
+    const add = 10 + Math.min(m.combo-1, 10)*2; m.score += add;
+    m.tip = h.it.ic + ' ' + h.it.tip; m.tipBad = false;
+    m.pops.push({x:cx+WM_CW/2, y:cy+30, t:.7, s:'+'+add + (m.combo>=3 ? `（連擊 ${m.combo}）` : ''), c:'#ffe066'});
+    if(mgAudio()){ tone(660+Math.min(m.combo,8)*40, .06, 'square', 0, .04); tone(990+Math.min(m.combo,8)*40, .05, 'triangle', .05, .04); }
+  }
 }
-MINI.pinball = {
+function wmOver(m){
+  m.phase = 'over'; S.mgBest = S.mgBest || {};
+  if(m.score > (S.mgBest.whack||0)){ m.newBest = !!S.mgBest.whack || m.score>0; S.mgBest.whack = m.score; }
+  if(m.score>=WM_GOAL && mgReward('mg_whack', 'heal')) m.reward = `🎁 第一次拿到 ${WM_GOAL} 分：經驗 +10、🍙 愛心飯糰！`;
+  sfx(m.score>=WM_GOAL ? 'win' : 'ok'); save();
+}
+MINI.whack = {
   init(m){
-    m.score = 0; m.balls = 3; m.ball = null; m.over = false; m.newBest = false; m.reward = ''; m.still = 0;
-    m.fl = {l:PB_REST, r:PB_REST}; m.pops = []; m.tipI = Math.floor(Math.random()*PB_TIPS.length);
-    m.tip = '撞到上面的彈簧球，就會看到一則「資訊安全小知識」！';
-    m.bump = [{x:330,y:200,r:26,s:100,ic:'🔒'},{x:470,y:200,r:26,s:100,ic:'🛡️'},{x:400,y:285,r:26,s:100,ic:'🔗'},{x:268,y:362,r:15,s:50,ic:''},{x:532,y:362,r:15,s:50,ic:''}];
+    m.phase = 'ready'; m.time = WM_TIME; m.score = 0; m.combo = 0; m.best = 0; m.blocked = 0; m.escaped = 0; m.oops = 0;
+    m.holes = Array.from({length:9}, ()=>({it:null})); m.pops = []; m.spT = 0; m.shake = 0; m.reward = ''; m.newBest = false;
+    m.tip = '病毒和詐騙訊息會從資料夾跑出來，趕快點掉！但是作業、照片、老師的通知不可以點喔。'; m.tipBad = false;
   },
-  btn(){},
+  btn(m, id){ if(id==='start') wmStart(m); },
   key(m, k, down){
-    const sd = (KEYMAP[k]==='left' || k==='z' || k==='Z') ? 'l' : (KEYMAP[k]==='right' || k==='/' || k==='m' || k==='M') ? 'r' : null;
-    if(sd){ m.kh[sd] = down; return; }
-    if(down && (k===' ' || k==='Enter')){ if(m.over) restartMini(); else pbLaunch(m); }
+    if(!down) return;
+    if(m.phase==='ready'){ if(k===' '||k==='Enter') wmStart(m); return; }
+    if(m.phase==='over'){ if(k===' '||k==='Enter') restartMini(); return; }
+    const kk = k.toLowerCase();
+    for(let r=0; r<3; r++){ let c = WM_KEYS[r].indexOf(kk); if(c<0) c = WM_KEYS2[r].indexOf(kk); if(c>=0){ wmWhack(m, r*3+c); return; } }
+  },
+  pointer(m, type, x, y){
+    if(type!=='down' || m.phase!=='play') return;
+    for(let i=0; i<9; i++){ const [cx, cy] = wmCell(i); if(x>=cx && x<=cx+WM_CW && y>=cy && y<=cy+WM_CH){ wmWhack(m, i); return; } }
+  },
+  update(m, dt){
+    m.t += dt; if(m.shake>0) m.shake -= dt;
+    m.pops.forEach(p=>p.t -= dt); m.pops = m.pops.filter(p=>p.t>0);
+    if(m.phase!=='play') return;
+    m.time -= dt;
+    if(m.time<=0){ m.time = 0; m.holes.forEach(h=>h.it = null); wmOver(m); return; }
+    const k = 1 - m.time/WM_TIME;
+    m.spT -= dt; if(m.spT<=0){ wmSpawn(m); if(k>.5 && Math.random()<.35) wmSpawn(m); m.spT = 1.0 - .5*k; }
+    m.holes.forEach(h=>{
+      if(!h.it) return;
+      if(h.hit){ h.hit -= dt; if(h.hit<=0) h.it = null; return; }
+      if(h.wrong){ h.wrong -= dt; if(h.wrong<=0) h.it = null; return; }
+      h.up = Math.min(1, h.up + dt*6); h.life -= dt;
+      if(h.life<=0){ if(!h.good){ m.escaped++; m.combo = 0; } h.it = null; }
+    });
+  },
+  draw(m){
+    m.btns = [];
+    mgx.fillStyle = '#16233f'; mgx.fillRect(0, 0, 800, 576);
+    mgHeader('🛡️ 電腦教室・病毒打地鼠', TOUCH ? '點掉病毒和詐騙訊息！作業、照片、老師的通知不能點｜✖ 離開' : '用滑鼠或按鍵 1～9（Q～C）點掉病毒和詐騙！好東西不能點｜Esc 離開');
+    // 螢幕桌面
+    const ox = m.shake>0 ? Math.sin(m.t*70)*5 : 0;
+    mgx.strokeStyle = MG_INK; mgx.lineWidth = 4; rr(mgx, WM_X0-12+ox, WM_Y0-10, 3*WM_CW+24+24, 3*WM_CH+20+20, 14, '#2b3a5c');
+    const bg = mgx.createLinearGradient(0, WM_Y0, 0, WM_Y0+500); bg.addColorStop(0, '#5fb4e8'); bg.addColorStop(1, '#3f7fc4');
+    mgx.fillStyle = bg; mgx.fillRect(WM_X0-4+ox, WM_Y0-2, 3*WM_CW+24+8, 3*WM_CH+20+4);
+    for(let i=0; i<9; i++){
+      const [x0, y0] = wmCell(i), x = x0+ox, h = m.holes[i];
+      // 資料夾
+      const fy = y0+WM_CH-46;
+      mgx.strokeStyle = MG_INK; mgx.lineWidth = 2;
+      rr(mgx, x+30, fy-6, 44, 14, 4, '#e8b23a');
+      rr(mgx, x+30, fy-2, WM_CW-60, 30, 6, '#d99a24');   // 資料夾後片
+      if(!TOUCH) mgT((WM_KEYS[Math.floor(i/3)][i%3]), x+WM_CW-18, y0+WM_CH-14, 13, 'rgba(255,255,255,.75)');
+      const front = ()=>{ mgx.strokeStyle = MG_INK; mgx.lineWidth = 2; rr(mgx, x+26, fy+6, WM_CW-52, 36, 6, h.wrong ? '#ff9a9a' : '#f6c445'); };
+      if(!h.it){ front(); continue; }
+      // 從資料夾跑出來的卡片
+      const ch = 88, cw = WM_CW-30, up = h.hit ? 1 : h.up;
+      const cy = fy - ch*up + 8;
+      mgx.save(); mgx.beginPath(); mgx.rect(x, y0-6, WM_CW, fy-y0+10); mgx.clip();
+      mgx.strokeStyle = MG_INK; mgx.lineWidth = 3;
+      rr(mgx, x+15, cy, cw, ch, 10, h.hit ? '#fff6a0' : '#fffdf6');
+      mgx.fillStyle = '#c9d6ea'; mgx.fillRect(x+17, cy+2, cw-4, 12);
+      mgT(h.it.ic, x+WM_CW/2, cy+40, 32, MG_INK, 'center', false);
+      mgT(h.it.t, x+WM_CW/2, cy+72, 15, MG_INK);
+      if(h.hit){ mgT('💥', x+WM_CW/2+40, cy+28, 30, MG_INK, 'center', false); }
+      mgx.restore();
+      front();
+      if(h.wrong){ mgT('❌', x+WM_CW/2, fy-20, 34, MG_INK, 'center', false); }
+    }
+    for(const p of m.pops) mgT(p.s, p.x+ox, p.y-(.8-p.t)*36, 18, p.c);
+    // 左邊：時間、分數、小知識
+    mgPanel(14, 66, 204, 196);
+    mgT('⏱ ' + Math.ceil(m.time) + ' 秒', 116, 92, 20, m.time<10 && m.phase==='play' ? '#d62d2d' : MG_INK);
+    mgx.fillStyle = '#e6e0ee'; mgx.fillRect(34, 110, 164, 8); mgx.fillStyle = '#3cb371'; mgx.fillRect(34, 110, 164*m.time/WM_TIME, 8);
+    mgT('分數', 116, 140, 15, '#6a5a7a'); mgT(String(m.score), 116, 172, 32, MG_INK);
+    mgT(m.combo>=2 ? `🔥 連擊 ${m.combo}` : '連擊 0', 116, 210, 16, m.combo>=2 ? '#e8590c' : '#8a7a9a');
+    mgT('最高紀錄　' + ((S.mgBest&&S.mgBest.whack)||0), 116, 240, 14, '#6a5a7a', 'center', false);
+    mgPanel(14, 274, 204, 288, m.tipBad ? '#ffecec' : '#eaf6ff');
+    mgT(m.tipBad ? '⚠️ 小心！' : '💡 資訊安全小知識', 116, 298, 16, m.tipBad ? '#c0302a' : '#2a6aa8');
+    mgWrap(m.tip, 28, 330, 176, 16, MG_INK, 24);
+    if(m.phase==='ready'){
+      mgx.fillStyle = 'rgba(10,12,24,.6)'; mgx.fillRect(0, 52, 800, 524);
+      mgPanel(150, 110, 500, 370);
+      mgT('🛡️ 保護電腦大作戰', 400, 146, 26, MG_INK);
+      mgT('要點掉 👆（會加分）', 400, 192, 17, '#c0302a');
+      mgT(WM_BAD.map(b=>b.ic).join('  '), 400, 228, 28, MG_INK, 'center', false);
+      mgT('不可以點 🙅（會扣分）', 400, 276, 17, '#2e9d5b');
+      mgT(WM_GOOD.map(b=>b.ic+' '+b.t).join('　'), 400, 310, 16, MG_INK, 'center', false);
+      mgT(`共 ${WM_TIME} 秒，越後面越快！連續點對有連擊加分。`, 400, 352, 15, '#6a5a7a', 'center', false);
+      mgT(`拿到 ${WM_GOAL} 分有獎勵${S.gift.mg_whack ? '（已經領過囉）' : '（只送一次）'}`, 400, 378, 15, '#c0502a', 'center', false);
+      mgButton(m, 'start', '▶ 開始' + (TOUCH ? '' : '（空白鍵）'), 300, 410, 200, 50, true);
+    }
+    if(m.phase==='over') mgResult(m, '🛡️ 時間到！', [`得到 ${m.score} 分${m.newBest?'，打破紀錄了！🎉':'。'}擋下 ${m.blocked} 個壞東西，最高連擊 ${m.best}。`, m.oops ? `不小心點掉 ${m.oops} 個好東西，下次看清楚再點喔！` : '好東西一個都沒點錯，太厲害了！'], m.reward);
+  }
+};
+
+/* ---- 🌱 輔導室：心情小花園（選心情 → 跟著泡泡呼吸 → 抽一張暖心卡 → 自由種花） ---- */
+const CALM_MOODS = [
+  {e:'😊', t:'開心', say:'真好！把這份開心記下來，難過的時候可以拿出來想一想。'},
+  {e:'😢', t:'難過', say:'難過的時候，心裡好像在下雨。沒關係，我們一起慢慢呼吸。'},
+  {e:'😠', t:'生氣', say:'生氣是很正常的感覺。先停一下，跟著泡泡呼吸，讓心情慢慢降溫。'},
+  {e:'😰', t:'緊張', say:'緊張的時候，心會跳得很快。跟著泡泡慢慢呼吸，會好一點喔。'},
+  {e:'😴', t:'好累', say:'辛苦了！休息也很重要，我們一起放鬆一下。'},
+  {e:'😐', t:'普通', say:'平平靜靜的一天也很好。一起來種花、放鬆一下吧！'},
+];
+const CALM_CARDS = [
+  '你已經很努力了，記得也要對自己溫柔一點。',
+  '難過的時候可以哭，也可以找信任的人說說話。',
+  '每個人都有不完美的地方，這樣的你也很好。',
+  '犯錯沒關係，錯了就是學習的機會。',
+  '你不是一個人，身邊有很多人願意陪你。',
+  '今天辛苦了，好好睡一覺，明天又是新的一天。',
+  '你的感覺很重要，說出來，就是勇敢。',
+  '慢慢來也沒關係，每個人都有自己的速度。',
+  '你笑起來的樣子，會讓身邊的人也很開心。',
+  '遇到困難時，請別人幫忙不丟臉，是聰明的做法。',
+];
+const CALM_IN = 3.5, CALM_HOLD = 1.2, CALM_OUT = 4.5, CALM_N = 4;
+const CALM_NOTES = [523.25, 587.33, 659.25, 783.99, 880, 1046.5];
+const CALM_FLOWER = ['#ff8fb8','#ffd447','#c78bff','#7fd0f5','#ff9a6a','#ffffff'];
+function calmChime(f){ if(mgAudio()){ tone(f, 1.4, 'sine', 0, .06); tone(f*2, .8, 'sine', .02, .015); } }
+function calmPlant(m, x, y){
+  m.flowers.push({x, y, c:CALM_FLOWER[Math.random()*CALM_FLOWER.length|0], g:0, s:.8+Math.random()*.5, k:Math.random()*3|0});
+  if(m.flowers.length>60) m.flowers.shift();
+  calmChime(CALM_NOTES[Math.random()*CALM_NOTES.length|0]);
+}
+function calmMood(m, i){
+  m.mood = CALM_MOODS[i]; m.phase = 'breath'; m.br = {n:0, t:0, held:0}; m.msg = m.mood.say;
+  calmChime(659.25);
+}
+function calmPick(m, i){
+  if(m.card>=0) return;
+  m.card = i; m.cardT = 0; m.cardText = CALM_CARDS[(Math.random()*CALM_CARDS.length)|0];
+  calmChime(783.99); setTimeout(()=>calmChime(1046.5), 180);
+  S.calmN = (S.calmN||0) + 1;
+  m.reward = mgReward('mg_calm', 'heal') ? '🎁 第一次來小花園：經驗 +10、🍙 愛心飯糰！' : '';
+  save();
+}
+MINI.calm = {
+  init(m){
+    m.phase = 'mood'; m.mood = null; m.card = -1; m.cardText = ''; m.reward = '';
+    m.flowers = []; m.msg = '';
+    m.ff = Array.from({length:14}, ()=>({x:Math.random()*800, y:120+Math.random()*300, p:Math.random()*7, v:8+Math.random()*10}));
+    m.stars = Array.from({length:40}, (_,i)=>({x:hash(i,1,9)*800, y:60+hash(i,2,9)*200, p:hash(i,3,9)*7}));
+  },
+  btn(m, id){
+    if(id.startsWith('mood')) calmMood(m, +id.slice(4));
+    else if(id.startsWith('card')) calmPick(m, +id.slice(4));
+    else if(id==='skip'){ m.phase = 'card'; }
+    else if(id==='garden'){ m.phase = 'garden'; m.msg = '點一點草地，種下屬於你的花吧！想離開的時候，按右上角「離開」。'; }
+    else if(id==='again'){ m.phase = 'breath'; m.card = -1; m.br = {n:0, t:0, held:0}; m.msg = '我們再一起呼吸一次。'; }
+  },
+  key(m, k, down){
+    if(k===' '){ m.kh.sp = down; return; }
+    if(!down) return;
+    const i = '123456'.indexOf(k);
+    if(m.phase==='mood' && i>=0) calmMood(m, i);
+    else if(m.phase==='card' && i>=0 && i<3) calmPick(m, i);
+    else if(k==='Enter'){ if(m.phase==='breath') this.btn(m, 'skip'); else if(m.phase==='card' && m.card>=0) this.btn(m, 'garden'); }
   },
   pointer(m, type, x, y, id){
-    if(m.over) return;
-    if(type==='down'){ if(!m.ball){ pbLaunch(m); return; } m.ptr[id] = x<400 ? 'l' : 'r'; }
+    if(type==='down'){ m.ptr[id] = 1; if(m.phase==='garden' && y>430) calmPlant(m, x, y); }
     else if(type==='up') delete m.ptr[id];
   },
   update(m, dt){
     m.t += dt;
-    m.pops.forEach(p=>p.t -= dt); m.pops = m.pops.filter(p=>p.t>0);
-    m.bump.forEach(q=>{ if(q.lit>0) q.lit -= dt; });
-    const hold = {l: !!m.kh.l || Object.values(m.ptr).includes('l'), r: !!m.kh.r || Object.values(m.ptr).includes('r')};
-    if(m.over){ m.fl.l = m.fl.r = PB_REST; return; }
-    const N = 6, h = dt/N;
-    for(let s=0; s<N; s++){
-      const prev = {l:pbTip('l', m.fl.l), r:pbTip('r', m.fl.r)};
-      for(const sd of ['l','r']){ const tg = hold[sd] ? PB_UP : PB_REST, sp = (hold[sd]?16:9)*h; m.fl[sd] += Math.max(-sp, Math.min(sp, tg-m.fl[sd])); }
-      const b = m.ball; if(!b) continue;
-      b.vy += 520*h; b.x += b.vx*h; b.y += b.vy*h;
-      for(const g of PB_SEGS) pbCol(b, g[0], g[1], g[2], g[3], 3, .5, 0, 0);
-      for(const sd of ['l','r']){ const [px,py] = PB_PIV[sd], tp = pbTip(sd, m.fl[sd]), pv = prev[sd]; pbCol(b, px, py, tp[0], tp[1], 7, .25, (tp[0]-pv[0])/h, (tp[1]-pv[1])/h); }
-      for(const q of m.bump){
-        let nx = b.x-q.x, ny = b.y-q.y; const d = Math.hypot(nx, ny);
-        if(d>0 && d<q.r+b.r){
-          nx /= d; ny /= d; b.x = q.x+nx*(q.r+b.r); b.y = q.y+ny*(q.r+b.r);
-          const vn = b.vx*nx + b.vy*ny; if(vn<0){ b.vx -= 2*vn*nx; b.vy -= 2*vn*ny; }
-          const vn2 = b.vx*nx + b.vy*ny; if(vn2<420){ b.vx += (420-vn2)*nx; b.vy += (420-vn2)*ny; }
-          if(!(q.lit>0)){ m.score += q.s; m.pops.push({x:q.x, y:q.y-q.r-12, t:.7, s:'+'+q.s}); if(q.ic) m.tip = PB_TIPS[m.tipI++ % PB_TIPS.length]; if(mgAudio()) tone(q.ic?880:660, .07, 'square', 0, .04); }
-          q.lit = .15;
-        }
-      }
-      const sp = Math.hypot(b.vx, b.vy); if(sp>1100){ b.vx *= 1100/sp; b.vy *= 1100/sp; }
-      if(b.y > 600){
-        m.ball = null; m.balls--; if(mgAudio()) tone(220, .25, 'sawtooth', 0, .05);
-        if(m.balls<=0) pbOver(m); else m.tip = `球掉下去了！還有 ${m.balls} 顆，${TOUCH?'點一下':'按空白鍵'}發射下一顆。`;
-        break;
-      }
+    for(const f of m.flowers) f.g = Math.min(1, f.g + dt*1.6);
+    for(const f of m.ff){ f.p += dt; f.x += Math.cos(f.p*.7)*f.v*dt; f.y += Math.sin(f.p*.9)*f.v*dt*.6; if(f.x<0) f.x += 800; if(f.x>800) f.x -= 800; }
+    if(m.card>=0) m.cardT += dt;
+    if(m.phase!=='breath') return;
+    const b = m.br, L = CALM_IN + CALM_HOLD + CALM_OUT, prev = b.t;
+    b.t += dt;
+    const holding = m.kh.sp || Object.keys(m.ptr).length>0;
+    if(b.t < CALM_IN && holding) b.held += dt;
+    if(prev < CALM_IN+CALM_HOLD && b.t >= CALM_IN+CALM_HOLD && mgAudio()) tone(392, 2.2, 'sine', 0, .035);
+    if(prev === 0 && mgAudio()) tone(523.25, 2, 'sine', 0, .035);
+    if(b.t >= L){
+      b.n++;
+      // 每完成一次呼吸，花園就開一朵花；有跟著按住的話，多一朵
+      calmPlant(m, 120 + (b.n-1)*180 + Math.random()*40, 470 + Math.random()*60);
+      if(b.held > CALM_IN*.6) calmPlant(m, 160 + (b.n-1)*180 + Math.random()*40, 480 + Math.random()*60);
+      b.t = 0; b.held = 0;
+      if(b.n >= CALM_N){ m.phase = 'card'; m.msg = '做得很好！你的心情小花園開花了。'; }
     }
-    // 球卡住不動時，輕輕推它一下
-    const b = m.ball;
-    if(b && Math.hypot(b.vx, b.vy) < 25 && !hold.l && !hold.r){ m.still += dt; if(m.still>2.5){ b.vy = -320; b.vx = (Math.random()-.5)*240; m.still = 0; } } else m.still = 0;
   },
   draw(m){
     m.btns = [];
-    mgx.fillStyle = '#161b36'; mgx.fillRect(0, 0, 800, 576);
-    mgHeader('🕹️ 電腦教室・彈珠台', '用擋板把球打上去，撞到彈簧球就能得分！｜Esc 離開');
-    // 台面
-    mgx.beginPath(); mgx.moveTo(230,140); mgx.lineTo(272,82); mgx.lineTo(528,82); mgx.lineTo(570,140); mgx.lineTo(570,430); mgx.lineTo(482,496); mgx.lineTo(482,576); mgx.lineTo(318,576); mgx.lineTo(318,496); mgx.lineTo(230,430); mgx.closePath();
-    const g = mgx.createLinearGradient(0, 80, 0, 576); g.addColorStop(0, '#3d2c86'); g.addColorStop(1, '#1f1648'); mgx.fillStyle = g; mgx.fill();
-    mgx.fillStyle = 'rgba(255,255,255,.18)'; for(let i=0; i<26; i++){ mgx.fillRect(240+(i*97)%320, 100+(i*61)%320, 2, 2); }
-    mgx.lineCap = 'round'; mgx.strokeStyle = '#9fd8ff'; mgx.lineWidth = 6;
-    for(const s of PB_SEGS){ mgx.beginPath(); mgx.moveTo(s[0], s[1]); mgx.lineTo(s[2], s[3]); mgx.stroke(); }
-    for(const q of m.bump){
-      mgx.strokeStyle = MG_INK; mgx.lineWidth = 3;
-      circ(mgx, q.x, q.y, q.r + (q.lit>0?3:0), q.lit>0 ? '#fff6a0' : (q.ic ? '#ff7aa8' : '#7ad0ff'));
-      if(q.ic) mgT(q.ic, q.x, q.y+1, 22, MG_INK, 'center', false);
+    // 傍晚的天空、星星、山丘、草地
+    const sky = mgx.createLinearGradient(0, 52, 0, 440); sky.addColorStop(0, '#3b3a78'); sky.addColorStop(.6, '#9c7fc4'); sky.addColorStop(1, '#f6c2b0');
+    mgx.fillStyle = sky; mgx.fillRect(0, 0, 800, 576);
+    for(const s of m.stars){ mgx.fillStyle = `rgba(255,255,255,${.35+.35*Math.sin(m.t*1.2+s.p)})`; mgx.fillRect(s.x, s.y, 2, 2); }
+    mgx.fillStyle = 'rgba(255,240,200,.9)'; mgx.beginPath(); mgx.arc(680, 120, 30, 0, 7); mgx.fill();
+    mgx.fillStyle = 'rgba(59,58,120,.9)'; mgx.beginPath(); mgx.arc(694, 112, 28, 0, 7); mgx.fill();
+    mgx.fillStyle = '#7fb27a'; mgx.beginPath(); mgx.ellipse(180, 460, 320, 80, 0, Math.PI, 0); mgx.fill();
+    mgx.fillStyle = '#8cc485'; mgx.beginPath(); mgx.ellipse(640, 470, 300, 70, 0, Math.PI, 0); mgx.fill();
+    mgx.fillStyle = '#9ad48f'; mgx.fillRect(0, 440, 800, 136);
+    for(let i=0; i<60; i++){ mgx.fillStyle = 'rgba(60,120,60,.35)'; mgx.fillRect(hash(i,5,9)*800, 450+hash(i,6,9)*120, 2, 6); }
+    // 花
+    for(const f of m.flowers){
+      const s = f.s*f.g, sw = Math.sin(m.t*1.5+f.x)*2*f.g;
+      mgx.strokeStyle = '#3d8a43'; mgx.lineWidth = 3; mgx.beginPath(); mgx.moveTo(f.x, f.y); mgx.lineTo(f.x+sw, f.y-28*s); mgx.stroke();
+      mgx.fillStyle = '#4fb35a'; mgx.beginPath(); mgx.ellipse(f.x+5, f.y-10*s, 6*s, 3*s, -.5, 0, 7); mgx.fill();
+      const cx = f.x+sw, cy = f.y-30*s, pn = f.k===0 ? 5 : f.k===1 ? 6 : 8;
+      mgx.fillStyle = f.c;
+      for(let p=0; p<pn; p++){ const a = p/pn*Math.PI*2 + m.t*.2; mgx.beginPath(); mgx.ellipse(cx+Math.cos(a)*8*s, cy+Math.sin(a)*8*s, 6*s, 4.5*s, a, 0, 7); mgx.fill(); }
+      mgx.fillStyle = '#ffd447'; mgx.beginPath(); mgx.arc(cx, cy, 4.5*s, 0, 7); mgx.fill();
     }
-    for(const sd of ['l','r']){
-      const [px,py] = PB_PIV[sd], [tx,ty] = pbTip(sd, m.fl[sd]);
-      mgx.strokeStyle = MG_INK; mgx.lineWidth = 18; mgx.beginPath(); mgx.moveTo(px,py); mgx.lineTo(tx,ty); mgx.stroke();
-      mgx.strokeStyle = '#ffd447'; mgx.lineWidth = 12; mgx.beginPath(); mgx.moveTo(px,py); mgx.lineTo(tx,ty); mgx.stroke();
+    // 螢火蟲
+    for(const f of m.ff){ const a = .3+.5*Math.abs(Math.sin(m.t*2+f.p)); const g = mgx.createRadialGradient(f.x, f.y, 0, f.x, f.y, 10); g.addColorStop(0, `rgba(255,250,170,${a})`); g.addColorStop(1, 'rgba(255,250,170,0)'); mgx.fillStyle = g; mgx.fillRect(f.x-10, f.y-10, 20, 20); }
+    mgHeader('🌱 輔導室・心情小花園', '慢慢來，不用急，這裡沒有對錯，也不計分。｜' + (TOUCH ? '✖ 離開' : 'Esc 離開'));
+    if(m.phase==='mood'){
+      mgPanel(130, 90, 540, 300, 'rgba(255,253,246,.93)');
+      mgT('嗨，今天過得好嗎？', 400, 128, 24, MG_INK);
+      mgT('選一個最像你現在心情的表情。', 400, 160, 16, '#6a5a7a', 'center', false);
+      CALM_MOODS.forEach((md, i)=>{
+        const x = 160 + (i%3)*164, y = 186 + Math.floor(i/3)*96;
+        mgx.strokeStyle = MG_INK; mgx.lineWidth = 2.5; rr(mgx, x, y, 150, 84, 14, '#fff');
+        mgT(md.e, x+42, y+42, 38, MG_INK, 'center', false); mgT(md.t + (TOUCH?'':` ${i+1}`), x+102, y+43, 18, MG_INK);
+        m.btns.push({id:'mood'+i, x, y, w:150, h:84});
+      });
+    } else if(m.phase==='breath'){
+      const b = m.br, t = b.t;
+      let r, label;
+      if(t < CALM_IN){ const k = t/CALM_IN; r = 60 + 90*(1-Math.cos(k*Math.PI))/2; label = '吸氣…　' + (Math.floor(t)+1); }
+      else if(t < CALM_IN+CALM_HOLD){ r = 150; label = '停一下…'; }
+      else { const k = (t-CALM_IN-CALM_HOLD)/CALM_OUT; r = 150 - 90*(1-Math.cos(k*Math.PI))/2; label = '慢慢吐氣…　' + (Math.floor(t-CALM_IN-CALM_HOLD)+1); }
+      const cx = 400, cy = 250;
+      const g = mgx.createRadialGradient(cx-r*.3, cy-r*.3, r*.1, cx, cy, r); g.addColorStop(0, 'rgba(255,255,255,.95)'); g.addColorStop(.6, 'rgba(190,225,255,.6)'); g.addColorStop(1, 'rgba(160,200,255,.25)');
+      mgx.fillStyle = g; mgx.beginPath(); mgx.arc(cx, cy, r, 0, 7); mgx.fill();
+      mgx.strokeStyle = 'rgba(255,255,255,.9)'; mgx.lineWidth = 3; mgx.beginPath(); mgx.arc(cx, cy, r, 0, 7); mgx.stroke();
+      mgT(label, cx, cy, 26, '#3b3a78');
+      mgT(`${m.mood.e} ${m.msg}`, 400, 74, 16, '#fff', 'center', false);
+      mgT(`第 ${Math.min(b.n+1, CALM_N)} 次 / 共 ${CALM_N} 次　${TOUCH ? '（可以跟著吸氣時按住畫面）' : '（可以跟著吸氣時按住空白鍵）'}`, 400, 420, 15, '#fff', 'center', false);
+      mgButton(m, 'skip', '跳過 ▶', 660, 500, 120, 40, false);
+    } else if(m.phase==='card'){
+      mgT(m.msg || '做得很好！', 400, 82, 18, '#fff');
+      mgT(m.card<0 ? '選一張卡片，看看今天送給你的一句話。' : '這句話送給你 💛', 400, 110, 16, '#fff', 'center', false);
+      for(let i=0; i<3; i++){
+        const x = 160 + i*180, y = 140, w = 140, h = 190, open = m.card===i;
+        if(m.card>=0 && !open) continue;
+        if(open){
+          const k = Math.min(1, m.cardT*3), W = 420;
+          const xx = 400 - W/2*k - w/2*(1-k), ww = w + (W-w)*k, hh = h + 30*k;
+          mgx.strokeStyle = MG_INK; mgx.lineWidth = 3; rr(mgx, xx, y, ww, hh, 16, '#fffaf0');
+          if(k>=1){ mgT('💌', 400, y+40, 32, MG_INK, 'center', false); mgWrap(m.cardText, 400, y+96, 360, 20, '#4a3a5a', 30, 'center'); }
+        } else {
+          mgx.strokeStyle = MG_INK; mgx.lineWidth = 3; rr(mgx, x, y+Math.sin(m.t*2+i)*4, w, h, 16, ['#ffc6d9','#c9e4ff','#d8f5d0'][i]);
+          mgT(['🌸','⭐','🍀'][i], x+w/2, y+h/2+Math.sin(m.t*2+i)*4, 40, MG_INK, 'center', false);
+          if(!TOUCH) mgT(String(i+1), x+w/2, y+h-20, 14, '#6a5a7a');
+          m.btns.push({id:'card'+i, x, y, w, h});
+        }
+      }
+      if(m.card>=0 && m.cardT>.4){
+        const sad = m.mood && ['難過','生氣','緊張'].includes(m.mood.t);
+        mgPanel(150, 372, 500, 56, 'rgba(255,253,246,.93)');
+        mgWrap(sad ? '如果這種感覺一直沒有變好，可以去輔導室找蘇主任、找導師或家人聊聊，也可以打 113。' : '心裡有話想說的時候，輔導室的門隨時為你打開。', 400, 390, 470, 15, '#4a3a5a', 20, 'center');
+        if(m.reward) mgT(m.reward, 400, 450, 15, '#fff');
+        mgButton(m, 'garden', '🌷 去種花', 230, 476, 160, 46, true);
+        mgButton(m, 'again', '🔁 再呼吸一次', 410, 476, 170, 46, false);
+      }
+    } else if(m.phase==='garden'){
+      mgPanel(150, 70, 500, 46, 'rgba(255,253,246,.9)');
+      mgT(m.msg, 400, 93, 15, '#4a3a5a', 'center', false);
+      mgT(`🌼 已經種了 ${m.flowers.length} 朵花`, 400, 140, 16, '#fff');
+      mgButton(m, 'again', '🔁 再呼吸一次', 620, 380, 160, 40, false);
     }
-    mgx.lineCap = 'butt';
-    if(m.ball){ const b = m.ball, bg = mgx.createRadialGradient(b.x-3, b.y-3, 1, b.x, b.y, b.r); bg.addColorStop(0, '#fff'); bg.addColorStop(1, '#8a96a8'); mgx.strokeStyle = MG_INK; mgx.lineWidth = 2; circ(mgx, b.x, b.y, b.r, bg); }
-    for(const p of m.pops) mgT(p.s, p.x, p.y-(.7-p.t)*30, 18, '#ffe066');
-    if(!m.ball && !m.over) mgT(TOUCH ? '👆 點一下發射' : '按空白鍵發射', 400, 380, 22, '#fff');
-    // 左邊：分數和小知識
-    mgPanel(16, 70, 198, 180);
-    mgT('分數', 115, 96, 16, '#6a5a7a'); mgT(String(m.score), 115, 130, 34, MG_INK);
-    mgT('剩下的球　' + '●'.repeat(Math.max(0,m.balls)) + '○'.repeat(3-Math.max(0,m.balls)), 115, 176, 16, MG_INK);
-    mgT('最高紀錄　' + ((S.mgBest&&S.mgBest.pin)||0), 115, 210, 16, '#6a5a7a');
-    mgPanel(16, 266, 198, 210, '#eaf6ff');
-    mgT('💡 資訊安全小知識', 115, 290, 16, '#2a6aa8');
-    mgWrap(m.tip, 30, 322, 170, 16, MG_INK, 24);
-    // 右邊：操作說明
-    mgPanel(586, 70, 198, 230);
-    mgT('🎮 怎麼玩', 685, 96, 17, MG_INK);
-    (TOUCH ? ['點左半邊：左擋板','點右半邊：右擋板','點一下：發射球'] : ['← 或 Z：左擋板','→ 或 /：右擋板','空白鍵：發射球']).forEach((l,i)=>mgT(l, 685, 134+i*32, 16, '#4a3a5a', 'center', false));
-    mgT('拿到 1000 分有獎勵！', 685, 248, 15, '#c0502a');
-    mgT(S.gift.mg_pin ? '（獎勵已領過）' : '（只送一次）', 685, 274, 13, '#8a7a9a', 'center', false);
-    if(m.over) mgResult(m, '🎮 遊戲結束', [`這次得到 ${m.score} 分${m.newBest?'，打破紀錄了！🎉':'。'}`, '玩電腦要記得休息：看看遠方、眨眨眼睛，讓眼睛放鬆一下。'], m.reward);
   }
 };
 
@@ -4084,7 +4288,7 @@ function update(dt){
   P.target = t;
   const hint = $('#hint');
   const key = TOUCH ? '「對話」鍵' : '空白鍵';
-  const txt = t ? (t.npc ? `💬 ${key}：和「${t.npc.name}」說話` : t.stall ? `🚽 ${key}：上廁所` : t.sink ? `🚰 ${key}：洗手` : t.piano ? `🎹 ${key}：彈鋼琴` : t.pc ? `🕹️ ${key}：玩彈珠台` : t.fire ? `🧯 ${key}：滅火練習` : t.easel ? `🎨 ${key}：畫畫` :`📋 ${key}：查看`) : (TOUCH ? '左下角搖桿走路｜右上角 📋 任務、🎒 道具' : '方向鍵移動｜Q 任務｜B 道具｜M 地圖｜R 排行榜');
+  const txt = t ? (t.npc ? `💬 ${key}：和「${t.npc.name}」說話` : t.stall ? `🚽 ${key}：上廁所` : t.sink ? `🚰 ${key}：洗手` : t.piano ? `🎹 ${key}：彈鋼琴` : t.pc ? `🛡️ ${key}：病毒打地鼠` : t.sofa ? `🌱 ${key}：心情小花園` : t.fire ? `🧯 ${key}：滅火練習` : t.easel ? `🎨 ${key}：畫畫` :`📋 ${key}：查看`) : (TOUCH ? '左下角搖桿走路｜右上角 📋 任務、🎒 道具' : '方向鍵移動｜Q 任務｜B 道具｜M 地圖｜R 排行榜');
   if(hint.textContent!==txt) hint.textContent = txt;
 }
 // 角色走到角色資訊欄或小地圖底下時，讓它們變透明
