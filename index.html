@@ -285,7 +285,7 @@
 <body>
 <div id="game">
   <canvas id="cv" width="800" height="576"></canvas>
-  <canvas id="mini" width="183" height="99" class="hidden"></canvas>
+  <canvas id="mini" width="210" height="99" class="hidden"></canvas>
 
   <div id="hud" class="hidden">
     <div class="frame" id="hLeft">
@@ -547,7 +547,7 @@ const LV_TITLES = ['見習守護者','校園小隊員','安全小達人','守護
 
 const $ = s => document.querySelector(s);
 const cv = $('#cv'), ctx = cv.getContext('2d');
-const VW = 800, VH = 576, TS = 32, MW = 61, MH = 33;
+const VW = 800, VH = 576, TS = 32, MW = 70, MH = 33;
 const OL = '#2b2233';
 const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
 function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.random()*(i+1)|0; [a[i],a[j]]=[a[j],a[i]]; } return a; }
@@ -582,7 +582,7 @@ function building(x1,y1,x2,y2){ R('#',x1,y1,x2,y2); R(',',x1+1,y1+1,x2-1,y2-1); 
 (function buildMap(){
   for(let x=0;x<MW;x++) map[0][x]='T';
   for(let y=0;y<24;y++){ map[y][0]='T'; map[y][MW-1]='T'; }
-  R('_',2,10,59,11);
+  R('_',2,10,MW-2,11);
   R('_',50,12,51,20);
   R('_',18,9,20,24);
   R('_',12,16,21,17);
@@ -610,6 +610,13 @@ function building(x1,y1,x2,y2){ R('#',x1,y1,x2,y2); R(',',x1+1,y1+1,x2-1,y2-1); 
   // 電腦教室：白板、兩排電腦（門在左側）
   building(52,18,59,23); map[20][52]='D'; R('b',55,18,57,18);
   for(const x of [54,55,57,58]) for(const y of [20,22]) map[y][x]='M';
+  // 美術教室：3 個畫架、2 張大桌（門在下方）
+  building(61,2,68,9); map[9][64]='D'; for(const x of [62,64,66]) map[3][x]='A';
+  R('k',62,6,63,6); R('k',66,6,67,6); map[8][67]='p'; map[8][62]='p';
+  // 總務處：事務組辦公桌、報修看板、設備櫃（門在左側）
+  building(61,12,68,17); map[15][61]='D'; R('k',64,14,66,14); map[13][67]='H'; map[16][67]='Z'; map[13][62]='p';
+  // 總務處下方的小花園
+  R('F',62,19,67,19); for(const x of [62,65,68]) map[22][x]='T';
   R('t',22,12,37,21); R('.',24,14,35,19);
   R('W',13,19,16,22); R('F',13,18,16,18);
   map[13][16]='P';
@@ -626,7 +633,7 @@ function building(x1,y1,x2,y2){ R('#',x1,y1,x2,y2); R(',',x1+1,y1+1,x2-1,y2-1); 
 /* 告示牌內容（座標 'x,y'：文字） */
 const SIGNS = {
   '21,23':'【校園公告】上下學請走斑馬線，並遵守導護志工的指揮。',
-  '17,12':'【校園地圖】左上：教室｜中上：校長室｜右上：輔導室｜左：防災教育中心｜右：操場｜右邊：圖書館、健康中心、性別友善廁所｜最右邊：英語教室、音樂教室、電腦教室｜下：校門口',
+  '17,12':'【校園地圖】左上：教室｜中上：校長室｜右上：輔導室｜左：防災教育中心｜右：操場｜右邊：圖書館、健康中心、性別友善廁所｜最右邊：英語教室、音樂教室、電腦教室｜再往右：美術教室、總務處｜下：校門口',
   '12,13':'【防災小叮嚀】地震：趴下、掩護、穩住。火災：小火快逃、濃煙關門。報案請撥 119。',
   '14,12':'【生活常規】走廊不奔跑，上下樓梯靠右走，見到師長要問好。',
   '24,22':'【友善校園】反霸凌三步驟：不旁觀、要求助、多關心。',
@@ -653,12 +660,15 @@ const EXTRA_TALK = {
   X:'（木琴：叮叮咚咚～每一片琴鍵的聲音都不一樣。用完要把琴槌放回盒子裡。）',
   R:'【資源回收桶】藍色：紙類｜黃色：塑膠、鐵鋁罐｜綠色：一般垃圾。鋁箔包要先喝完、壓扁再回收！',
   K:'（施工中的三角錐：總務處正在修繕校園，請不要靠近施工區域喔！）',
-  M:'（電腦教室的電腦，螢幕旁貼著：「密碼不外流，用完要登出！」）'
+  M:'（電腦教室的電腦，螢幕旁貼著：「密碼不外流，用完要登出！」）',
+  A:'（畫架上夾著一張白紙，旁邊放著水彩和蠟筆。）',
+  H:'【報修看板】三年二班：電扇不轉（已通知廠商）｜五年一班：窗戶卡住（維修中）｜性別友善廁所：水龍頭漏水（已修好 ✔）。東西壞了請告訴導師，由導師填報修單交給總務處。',
+  Z:'（設備櫃：放著備用的燈管、延長線和工具，只有大人可以拿喔！）'
 };
 
-const SOLID = new Set(['#','T','W','f','k','b','c','e','h','p','S','P','L','B','Y','C','U','V','G','O','N','J','X','R','K','M']);
+const SOLID = new Set(['#','T','W','f','k','b','c','e','h','p','S','P','L','B','Y','C','U','V','G','O','N','J','X','R','K','M','A','H','Z']);
 const NPC_WALK = new Set(['.','_','t',',','F']);
-const BG = {T:'.',F:'.',f:'.',S:'.',P:'.',L:'_',k:',',c:',',e:',',h:',',p:',',b:'#',Q:'#',D:',',g:'_',B:',',Y:',',C:',',U:',',V:',',G:'.',O:',',N:',',J:',',X:',',R:'.',K:'.',M:','};
+const BG = {T:'.',F:'.',f:'.',S:'.',P:'.',L:'_',k:',',c:',',e:',',h:',',p:',',b:'#',Q:'#',D:',',g:'_',B:',',Y:',',C:',',U:',',V:',',G:'.',O:',',N:',',J:',',X:',',R:'.',K:'.',M:',',A:',',H:',',Z:','};
 const BOOK_TIPS = [
   '📕《小心！陌生人》：不跟陌生人走、不吃陌生人給的東西、不告訴陌生人個人資料。',
   '📗《地震來了怎麼辦》：趴下、掩護、穩住！搖晃停止後再聽指示疏散。',
@@ -684,6 +694,8 @@ const BLD = [
   {k:'eng',       x1:52,y1:2, x2:59,y2:9,  roof:'#2f7fb8', wall:'#f2f8ff', trim:'#1f5a85', glow:'255,240,200'},
   {k:'comp',      x1:52,y1:18,x2:59,y2:23, roof:'#4a5a78', wall:'#eef3f8', trim:'#2f3b52', glow:'210,230,255'},
   {k:'music',     x1:52,y1:12,x2:59,y2:17, roof:'#d4892a', wall:'#fff6e8', trim:'#8a5214', glow:'255,215,160'},
+  {k:'art',       x1:61,y1:2, x2:68,y2:9,  roof:'#c2559a', wall:'#fff3fa', trim:'#7d2f63', glow:'255,220,240'},
+  {k:'office',    x1:61,y1:12,x2:68,y2:17, roof:'#5f8a55', wall:'#f3f6ee', trim:'#3f5a32', glow:'240,245,215'},
 ];
 const bldAt = (x,y) => BLD.find(b=>x>=b.x1&&x<=b.x2&&y>=b.y1&&y<=b.y2);
 const isWall = c => c==='#'||c==='b'||c==='Q';
@@ -714,6 +726,8 @@ const miniCv = document.createElement('canvas'); miniCv.width = MW*MS; miniCv.he
   plaque(g,'英語教室', 57.5*TS, 9*TS+20);
   plaque(g,'音樂教室', 56*TS, 12*TS+20);
   plaque(g,'電腦教室', 57.5*TS, 23*TS+20);
+  plaque(g,'美術教室', 66.5*TS, 9*TS+20);
+  plaque(g,'總務處', 65*TS, 12*TS+20);
   // 健康中心紅十字
   g.lineWidth=1.5; g.strokeStyle=OL; rr(g, 48*TS+6, 13*TS+12, 18, 18, 3, '#fff'); g.fillStyle='#d62d2d'; g.fillRect(48*TS+13, 13*TS+15, 4, 12); g.fillRect(48*TS+9, 13*TS+19, 12, 4);
   plaque(g, SCHOOL_NAME, 14.5*TS, 24*TS+16, true);
@@ -820,6 +834,13 @@ function drawFloor(g,X,Y,tx,ty,B){
     g.fillStyle='#c98f55'; g.fillRect(X,Y,TS,TS);
     g.fillStyle='#b37a43'; for(let i=0;i<4;i++){ g.fillRect(X, Y+i*8+7, TS, 1); g.fillRect(X+((i+tx)%2?10:24), Y+i*8, 1, 7); }
     g.fillStyle='rgba(255,255,255,.12)'; g.fillRect(X, Y+((tx+ty)%4)*8, TS, 2);
+  } else if(k==='art'){ // 美術教室：淺色地板＋顏料點點
+    g.fillStyle='#ece6dc'; g.fillRect(X,Y,TS,TS);
+    g.fillStyle='rgba(0,0,0,.06)'; g.fillRect(X,Y,TS,1); g.fillRect(X,Y,1,TS);
+    if(hash(tx,ty,9)<.35){ g.globalAlpha=.55; g.fillStyle=['#ff8fb8','#ffd447','#5fc3ff','#7be07b','#c78bff'][(hash(tx,ty,3)*5)|0]; g.beginPath(); g.arc(X+6+hash(tx,ty,4)*20, Y+6+hash(ty,tx,5)*20, 2+hash(tx,ty,6)*2.5, 0, 7); g.fill(); g.globalAlpha=1; }
+  } else if(k==='office'){ // 總務處：淺色木地板
+    g.fillStyle='#e4cfa8'; g.fillRect(X,Y,TS,TS);
+    g.fillStyle='#d2b98c'; for(let i=0;i<4;i++){ g.fillRect(X, Y+i*8+7, TS, 1); g.fillRect(X+((i+tx)%2?8:22), Y+i*8, 1, 7); }
   } else if(k==='shop'){ // 廁所：小方磁磚
     g.fillStyle='#e3f1f6'; g.fillRect(X,Y,TS,TS);
     g.fillStyle='#c9dfe8'; for(let i=1;i<4;i++){ g.fillRect(X, Y+i*8, TS, 1); g.fillRect(X+i*8, Y, 1, TS); }
@@ -950,6 +971,33 @@ function drawStatic(g,c,tx,ty){
       rr(g, X+13.5, Y+5.5, 5, 4.5, .8, '#f4c542', false); g.strokeStyle='#f4c542'; g.lineWidth=1.2; g.beginPath(); g.arc(X+16, Y+5.5, 1.7, Math.PI, 0); g.stroke(); g.strokeStyle=OL;
       rr(g, X+8, Y+18, 16, 4, 1, '#f4f4f4');
       break;
+    case 'A': { // 畫架＋畫布（每個畫架畫不同的圖）
+      g.fillStyle='rgba(0,0,0,.15)'; g.fillRect(X+6,Y+26,22,4);
+      g.strokeStyle='#8a5a2b'; g.lineWidth=2.5; g.lineCap='round';
+      g.beginPath(); g.moveTo(X+16,Y-6); g.lineTo(X+7,Y+28); g.moveTo(X+16,Y-6); g.lineTo(X+25,Y+28); g.moveTo(X+16,Y); g.lineTo(X+16,Y+27); g.stroke();
+      g.lineCap='butt'; g.strokeStyle=OL; g.lineWidth=1.5;
+      rr(g, X+5, Y-4, 22, 18, 1, '#fff');
+      const v = tx%3;
+      if(v===0){ g.fillStyle='#3cb371'; g.fillRect(X+6,Y+9,20,4); rr(g, X+9, Y+3, 7, 6, 0, '#c8553d', false); g.fillStyle='#ffd447'; g.beginPath(); g.arc(X+21,Y+1,3,0,7); g.fill(); }
+      else if(v===1){ g.fillStyle='#ff8fb8'; for(let i=0;i<5;i++){ const a=i/5*Math.PI*2; g.beginPath(); g.arc(X+16+Math.cos(a)*3.4,Y+3+Math.sin(a)*3.4,2.3,0,7); g.fill(); } g.fillStyle='#ffd447'; g.beginPath(); g.arc(X+16,Y+3,1.8,0,7); g.fill(); g.fillStyle='#3cb371'; g.fillRect(X+15.3,Y+7,1.4,6); }
+      else { g.strokeStyle='#2f9ec4'; g.lineWidth=2; g.beginPath(); g.moveTo(X+7,Y+9); g.quadraticCurveTo(X+11,Y+2,X+16,Y+8); g.quadraticCurveTo(X+20,Y+13,X+25,Y+5); g.stroke(); g.strokeStyle='#9b6bd6'; g.beginPath(); g.moveTo(X+7,Y+12); g.lineTo(X+25,Y+11); g.stroke(); g.strokeStyle=OL; g.lineWidth=1.5; }
+      rr(g, X+4, Y+14, 24, 3, 1, '#8a5a2b');
+      break; }
+    case 'H': { // 報修看板
+      g.fillStyle='rgba(0,0,0,.18)'; g.fillRect(X+4,Y+26,26,4);
+      g.fillStyle='#7a4a24'; g.fillRect(X+6,Y+16,3,12); g.fillRect(X+23,Y+16,3,12);
+      rr(g, X+2, Y-6, 28, 24, 2, '#c9a06a'); rr(g, X+4, Y-4, 24, 20, 1, '#f4ead8');
+      rr(g, X+6, Y-2, 9, 8, .5, '#fff4a8'); rr(g, X+17, Y-2, 9, 8, .5, '#cfe9ff'); rr(g, X+6, Y+7, 9, 7, .5, '#ffd6e0'); rr(g, X+17, Y+7, 9, 7, .5, '#d8f5d0');
+      g.fillStyle='#d62d2d'; for(const [px,py] of [[10.5,-2],[21.5,-2],[10.5,7],[21.5,7]]){ g.beginPath(); g.arc(X+px,Y+py,1.1,0,7); g.fill(); }
+      g.strokeStyle='#2e9d5b'; g.lineWidth=1.4; g.beginPath(); g.moveTo(X+19,Y+10.5); g.lineTo(X+21,Y+12.5); g.lineTo(X+25,Y+8); g.stroke();
+      break; }
+    case 'Z': // 設備櫃
+      g.fillStyle='rgba(0,0,0,.18)'; g.fillRect(X+3,Y+26,28,4);
+      rr(g, X+2, Y-4, 28, 31, 2, '#9aa6b2');
+      g.fillStyle='#b8c2cc'; g.fillRect(X+4,Y-2,11.5,27); g.fillRect(X+16.5,Y-2,11.5,27);
+      g.fillStyle='#5b6472'; g.fillRect(X+13,Y+9,1.6,5); g.fillRect(X+17.4,Y+9,1.6,5);
+      rr(g, X+6, Y+1, 7, 4, 1, '#fff'); rr(g, X+19, Y+1, 7, 4, 1, '#fff');
+      break;
     case 'O': // 地球儀
       g.fillStyle='rgba(0,0,0,.18)'; g.fillRect(X+8,Y+26,18,4);
       rr(g, X+9, Y+24, 14, 4, 2, '#7a4a24'); g.fillStyle='#7a4a24'; g.fillRect(X+15, Y+18, 2, 7);
@@ -1036,6 +1084,8 @@ function drawDesk(g,X,Y,tx,ty){
   g.beginPath(); g.moveTo(x0,Y+6); g.lineTo(x1,Y+6); g.moveTo(x0,Y+26); g.lineTo(x1,Y+26);
   if(!L){ g.moveTo(x0,Y+6); g.lineTo(x0,Y+26); } if(!Rr){ g.moveTo(x1,Y+6); g.lineTo(x1,Y+26); } g.stroke();
   if(B && B.k==='principal' && tx===19){ rr(g, X+6, Y+14, 20, 7, 1, '#f4c542'); }
+  if(B && B.k==='art'){ g.lineWidth=1; for(const [dx,dy,c] of [[8,13,'#e23b3b'],[13,17,'#ffd447'],[20,12,'#2f9ec4']]){ g.fillStyle=c; g.beginPath(); g.arc(X+dx+(tx%2)*3,Y+dy,2.2,0,7); g.fill(); } }
+  if(B && B.k==='office' && tx===65){ g.lineWidth=1; rr(g, X+5, Y+9, 11, 13, 1, '#fff'); g.fillStyle='#9aa0a6'; for(const yy of [12,15,18]) g.fillRect(X+7, Y+yy, 7, 1); rr(g, X+19, Y+11, 8, 9, 2, '#3a3f4a'); g.fillStyle='#7fd0f5'; g.fillRect(X+20.5, Y+12.5, 5, 3); }
   if(B && B.k==='counsel' && tx===31){ circ(g, X+16, Y+14, 4, '#fff'); g.fillStyle='#8b5a2b'; g.beginPath(); g.arc(X+16,Y+14,2.5,0,7); g.fill(); }
 }
 function drawWall(g,c,tx,ty){
@@ -1086,6 +1136,9 @@ function drawWall(g,c,tx,ty){
     if(B.k==='comp' && (tx===53||tx===58)){ g.strokeStyle=OL; g.lineWidth=1; rr(g,X+4,FY+1,24,12,1,tx===53?'#fff4c2':'#e0f2ff'); g.font='bold 8px "Microsoft JhengHei",sans-serif'; g.textAlign='center'; g.textBaseline='middle'; g.fillStyle=tx===53?'#d62d2d':'#2f7fb8'; g.fillText(tx===53?'資安':'登出',X+16,FY+7.5); }
     if(B.k==='eng' && (tx===53||tx===58)){ g.strokeStyle=OL; g.lineWidth=1; rr(g,X+4,FY+1,24,12,1,'#fff'); g.font='bold 8px sans-serif'; g.textAlign='center'; g.textBaseline='middle'; g.fillStyle=tx===53?'#d62d2d':'#2f7fb8'; g.fillText(tx===53?'ABC':'Hi!',X+16,FY+7.5); }
     if(B.k==='music' && (tx>=54 && tx<=58) && ty===12 && tx!==56){ g.fillStyle=['#d62d2d','#2f7fb8','','#2e9d5b','#9b6bd6'][tx-54]; g.font='bold 12px sans-serif'; g.textAlign='center'; g.textBaseline='middle'; g.fillText(tx%2?'♪':'♫',X+16,FY+6); }
+    if(B.k==='art' && ty===2 && (tx===63||tx===65||tx===67)){ g.strokeStyle=OL; g.lineWidth=1; rr(g,X+5,FY,22,FH-9,1,'#fff'); g.fillStyle=['#ff8fb8','#ffd447','#5fc3ff'][(tx-63)/2]; g.beginPath(); g.arc(X+16,FY+4.5,3,0,7); g.fill(); g.fillStyle='#3cb371'; g.fillRect(X+7,FY+7.5,18,2); }
+    if(B.k==='office' && ty===12 && tx===63){ g.strokeStyle=OL; g.lineWidth=1; rr(g,X+4,FY+1,24,12,1,'#fff4c2'); g.font='bold 8px "Microsoft JhengHei",sans-serif'; g.textAlign='center'; g.textBaseline='middle'; g.fillStyle='#d62d2d'; g.fillText('報修',X+16,FY+7.5); }
+    if(B.k==='office' && ty===12 && tx===66){ g.strokeStyle=OL; g.lineWidth=1; circ(g,X+16,FY+5,5,'#fff'); g.beginPath(); g.moveTo(X+16,FY+5); g.lineTo(X+16,FY+2); g.moveTo(X+16,FY+5); g.lineTo(X+18,FY+6); g.stroke(); }
     if(B.k==='class' && tx===12){ g.strokeStyle=OL; g.lineWidth=1; circ(g,X+16,FY+5,5,'#fff'); g.beginPath(); g.moveTo(X+16,FY+5); g.lineTo(X+16,FY+2); g.moveTo(X+16,FY+5); g.lineTo(X+18,FY+6); g.stroke(); }
   }
 }
@@ -1273,6 +1326,12 @@ function drawItem(g, it, hx, hy, cx, by, side){
     g.beginPath(); g.moveTo(hx-1, hy-4); g.lineTo(hx+7*d, hy-8); g.lineTo(hx+7*d, hy+2); g.lineTo(hx-1, hy-1); g.closePath(); g.fillStyle='#f4f4f4'; g.fill(); g.stroke();
     g.fillStyle='#e25555'; g.fillRect(hx+5*d, hy-7, 2, 8);
     rr(g, hx-3, hy-4, 3, 4, 1, '#555');
+  } else if(it==='palette'){ // 調色盤
+    g.beginPath(); g.ellipse(hx, hy-2, 6, 4.5, -.3, 0, 7); g.fillStyle='#e8c38c'; g.fill(); g.stroke();
+    for(const [dx,dy,c] of [[-3,-3.5,'#e23b3b'],[.5,-4.5,'#ffd447'],[3.5,-2.5,'#2f9ec4'],[1.5,.3,'#3cb371']]){ g.fillStyle=c; g.beginPath(); g.arc(hx+dx, hy+dy, 1.2, 0, 7); g.fill(); }
+  } else if(it==='clip'){ // 報修單夾板
+    rr(g, hx-4.5, hy-7, 9, 11, 1, '#b5803f'); rr(g, hx-3.5, hy-5.5, 7, 8.5, .5, '#fff'); rr(g, hx-1.8, hy-8, 3.6, 2, .6, '#8b939c');
+    g.fillStyle='#9aa0a6'; for(const yy of [-3.5,-1.5,.5]) g.fillRect(hx-2.6, hy+yy, 5, .8);
   } else if(it==='heart' && !side){ // 愛心胸章（畫在胸口）
     const x=cx-3.6, y=by+15.5;
     g.beginPath(); g.moveTo(x, y+2.6); g.bezierCurveTo(x-4,y,x-2.2,y-3,x,y-1.2); g.bezierCurveTo(x+2.2,y-3,x+4,y,x,y+2.6); g.fillStyle='#ff4f8b'; g.fill(); g.lineWidth=.9; g.stroke();
@@ -1653,7 +1712,7 @@ const LIN_TALKS = [
   ['大哥哥大姊姊是學弟妹的好榜樣！','看到一年級的小朋友需要幫忙，主動關心他們，就是最棒的校園守護者。'],
   ['不舒服或受傷的時候，要馬上告訴老師，或是去健康中心找陳阿姨。','有心事也可以跟老師說，老師都會陪著你。'],
 ];
-addNPC({id:'lin', x:14, y:11, name:'一年甲班導師 林老師', wander:[2,10,59,23],
+addNPC({id:'lin', x:14, y:11, name:'一年甲班導師 林老師', wander:[2,10,68,23],
   look:{skin:'#f6d2b0',hair:'#4a2f1d',shirt:'#ffb347',pants:'#5a6b8a',hstyle:'bun',bow:true,item:'book'},
   talk(n){ const i = (S.linI||0) % LIN_TALKS.length; S.linI = i+1; say(LIN_TALKS[i], {name:n.name}); }});
 // 處室組長、主任
@@ -1678,7 +1737,7 @@ addNPC({id:'clean', x:7, y:12, name:'衛生組長 許組長',
 addNPC({id:'build', x:50, y:21, name:'總務主任 林主任', dir:'down',
   look:{skin:'#e8b98f',hair:'#2a2a2a',shirt:'#6b7f96',pants:'#3a3f55',vest:'#ff8a2a',hat:'cap',hatColor:'#f4c542',item:'hammer'},
   talk(n){
-    say(['我是總務主任林主任，學校的教室、桌椅、水電，都是總務處負責建設和維修的。','新的英語教室、音樂教室和電腦教室，就是我們剛剛蓋好的喔！','看到桌椅搖晃、燈不亮、水龍頭漏水，要馬上告訴老師或總務處。看到三角錐圍起來的施工區域，千萬不要進去玩！'],
+    say(['我是總務主任林主任，學校的教室、桌椅、水電，都是總務處負責建設和維修的。','新的英語教室、音樂教室、電腦教室和美術教室，就是我們剛剛蓋好的喔！壞掉的東西，事務組的陳老師會請廠商來修。','看到桌椅搖晃、燈不亮、水龍頭漏水，要馬上告訴老師或總務處。看到三角錐圍起來的施工區域，千萬不要進去玩！'],
       {name:n.name, onEnd:()=>miniQuiz(n, '小問題：發現教室的椅子壞掉、搖搖晃晃的，應該怎麼做？',
         '不要坐，告訴老師或總務處來修',
         [['自己拿工具敲一敲修好','自己修可能會受傷喔！交給大人和總務處處理。'],['不管它，繼續坐','壞掉的椅子可能會讓人跌倒受傷，要告訴大人喔！']],
@@ -1700,7 +1759,40 @@ addNPC({id:'info', x:56, y:19, name:'資訊組長 蕭組長', dir:'down',
         [['給他，反正有點數可以拿','這很可能是詐騙！帳號密碼被拿走，遊戲和資料都會被偷走喔。'],['只給帳號，不給密碼就好','帳號也是個人資料，不要給陌生人喔！要告訴大人。']],
         '答對了！保護好密碼，就是保護好自己！', 'hint', 'info', '送你一張「提示卡」，祝你挑戰順利！')});
   }});
-addNPC({id:'patrol', x:30, y:10, name:'生教組長 余組長', wander:[2,10,59,11],
+// 美術教室：邱老師
+const ART_TALKS = [
+  ['歡迎來到美術教室，我是美術老師邱老師！','畫架上有白紙和畫筆，面向畫架按對話鍵，就可以畫畫喔。'],
+  ['剪刀要拿刀柄、刀尖朝下；拿給別人時，把刀柄朝向對方。','用美工刀一定要有老師在旁邊，不用的時候要把刀片推回去。'],
+  ['顏料、膠水用完要蓋好蓋子，也不可以放進嘴巴。','畫完要把水桶和畫筆洗乾淨、桌面擦乾淨，再離開教室。'],
+  ['每個人畫的都不一樣，沒有誰畫得比較「醜」。','欣賞同學的作品時，說說你喜歡哪裡，不要取笑別人喔！']];
+addNPC({id:'art', x:65, y:4, name:'美術老師 邱老師', dir:'down',
+  look:{skin:'#f6d2b0',hair:'#6b3e1e',shirt:'#c2559a',pants:'#4a4f6a',long:true,bow:'#ffd447',item:'palette'},
+  talk(n){
+    const ti = (S.artI||0) % ART_TALKS.length; S.artI = ti + 1;
+    say(ART_TALKS[ti],
+      {name:n.name, onEnd:()=>miniQuiz(n, '小問題：要把剪刀拿給同學，怎麼拿才安全？',
+        '刀尖朝下，把刀柄朝向對方',
+        [['刀尖朝向對方，直接遞過去','刀尖朝著人，很容易刺傷別人喔！要把刀柄給對方。'],['從遠遠的地方丟過去','丟剪刀非常危險！要走過去，好好拿給對方。']],
+        '答對了！小心使用工具，才能開心做美勞！', 'hint', 'art', '送你一張「提示卡」！')});
+  }});
+// 總務處：事務組長陳老師（通報維修廠商、班級設備維護）
+const AFFAIR_TALKS = [
+  ['我是事務組長陳老師，在總務處上班。','學校的電燈、電扇、冷氣、門窗、飲水機壞了，都是我聯絡維修廠商來修理的。'],
+  ['發現東西壞了，先告訴導師，導師會填「報修單」交給我。','我再請維修廠商來學校修理，修好以後還會再去檢查一次。'],
+  ['班上的設備要一起愛護：電扇開關不要一直按，窗戶輕輕關，桌椅不要拿來站或搖。','愛護設備，大家用起來才安全，學校也不用一直花錢修理。'],
+  ['放學前，值日生記得幫忙關燈、關電扇、關冷氣、關窗戶。','節省能源，設備也會比較耐用喔！'],
+  ['看到插座冒煙、電線破掉，千萬不要用手碰！','馬上離開，告訴老師，讓專業的人來處理。']];
+addNPC({id:'affair', x:65, y:13, name:'事務組長 陳老師', dir:'down',
+  look:{skin:'#f3c9a2',hair:'#3a2a22',shirt:'#5aa58a',pants:'#3a3f55',glasses:true,long:true,item:'clip'},
+  talk(n){
+    const ti = (S.affI||0) % AFFAIR_TALKS.length; S.affI = ti + 1;
+    say(AFFAIR_TALKS[ti],
+      {name:n.name, onEnd:()=>miniQuiz(n, '小問題：教室的電扇轉起來「喀啦喀啦」響，還搖得很厲害，應該怎麼做？',
+        '先關掉電扇，告訴老師報修',
+        [['爬上桌子自己修','站在桌子上很容易跌倒，電扇也可能夾傷手！交給大人和維修廠商。'],['開到最強，看看會不會好','壞掉的電扇開更強可能會掉下來，很危險喔！要先關掉，再報修。']],
+        '答對了！發現壞掉先停用、再報修，你是設備小守護者！', 'shield', 'affair', '這個「守護盾」送給你！')});
+  }});
+addNPC({id:'patrol', x:30, y:10, name:'生教組長 余組長', wander:[2,10,68,11],
   look:{skin:'#e8b98f',hair:'#222',shirt:'#2c3e60',pants:'#2c3e60',hat:'cap',hatColor:'#34495e',vest:'#4a6da7'},
   talk(n){ careChat(n, 'chat', null, ()=>{ if(!S.gift.patrol) say(['對了，這兩個「指南針」給你。不知道下一步要去哪裡時，拿出來用就會指引方向！'],{name:n.name, onEnd:()=>giveItem('compass',2,'patrol')}); }); }});
 
@@ -1900,6 +1992,8 @@ const ZONES = [
   {n:'🔤 英語教室',x1:52,y1:2,x2:59,y2:9},
   {n:'🎵 音樂教室',x1:52,y1:12,x2:59,y2:17},
   {n:'💻 電腦教室',x1:52,y1:18,x2:59,y2:23},
+  {n:'🎨 美術教室',x1:61,y1:2,x2:68,y2:9},
+  {n:'🔧 總務處',x1:61,y1:12,x2:68,y2:17},
 ];
 let curZone = '';
 function checkZone(){
@@ -2054,6 +2148,7 @@ function facingTarget(){
   if(c==='N') return {piano:true, x:ax, y:ay};
   if(c==='M') return {pc:true, x:ax, y:ay};
   if(c==='e') return {fire:true, x:ax, y:ay};
+  if(c==='A') return {easel:true, x:ax, y:ay};
   if(c==='Q' && badgeCount()<5) return {text:`🔒 校長室：集滿 5 枚守護徽章才能進入（目前 ${badgeCount()}/5）。還沒拿到的徽章可以按「📋 任務」查看。`, x:ax, y:ay};
   if(EXTRA_TALK[c]) return {text:EXTRA_TALK[c], x:ax, y:ay};
   return null;
@@ -2077,6 +2172,7 @@ function interact(){
   else if(t.piano) say([EXTRA_TALK.N,'要彈彈看嗎？可以自由彈，也可以跟著發亮的琴鍵彈〈小星星〉、〈小蜜蜂〉、〈生日快樂〉。'], {name:'🎹 鋼琴', choices:[{t:'🎹 來彈鋼琴', f:()=>startMini('piano')},{t:'先不用了'}]});
   else if(t.pc) say([EXTRA_TALK.M,'電腦裡有一個「彈珠台」小遊戲。下課時間、經過老師同意才可以玩，玩完要讓眼睛休息喔！','要玩彈珠台嗎？'], {name:'💻 電腦', choices:[{t:'🕹️ 玩彈珠台', f:()=>startMini('pinball')},{t:'先不用了'}]});
   else if(t.fire) say([EXTRA_TALK.e,'真的遇到火災，要先大聲喊「失火了」、告訴大人；小朋友要以逃生為優先。','防災教育中心有「練習用滅火器」，可以安全地練習拉、瞄、壓、掃喔！'], {name:'🧯 滅火器', choices:[{t:'🧯 來練習滅火', f:()=>startMini('fire')},{t:'先不用了'}]});
+  else if(t.easel) say([EXTRA_TALK.A,'要畫一張畫嗎？可以照邱老師出的題目畫，也可以自由創作。'], {name:'🎨 畫架', choices:[{t:'🎨 來畫畫', f:()=>startMini('art')},{t:'先不用了'}]});
   else if(t.book){ S.bookI = ((S.bookI||0) + 1) % BOOK_TIPS.length; say(['你從書架上拿了一本書……', BOOK_TIPS[S.bookI]], {name:'📚 書架'}); }
   else say([t.text], {name:'📋 告示'});
 }
@@ -3598,6 +3694,110 @@ MINI.piano = {
   }
 };
 
+/* ---- 🎨 美術教室：畫畫 ---- */
+const ART_X = 196, ART_Y = 104, ART_W = 584, ART_H = 400;
+const ART_COLS = ['#2b2233','#ffffff','#e23b3b','#f08a24','#ffd447','#3cb371','#2f9ec4','#3c5fd0','#9b6bd6','#ff8fb8','#8a5a2b','#9aa0a6'];
+const ART_SIZES = [4, 9, 18];
+const ART_THEMES = ['🏫 我心目中的安全校園','😊 畫出你今天的心情','🚸 設計一張「走路不滑手機」海報','🤝 我和好朋友一起玩','🌏 愛護地球：垃圾分類','🖍️ 自由創作：想畫什麼都可以'];
+const ART_PRAISE = ['顏色好豐富！','線條畫得好有精神！','好有想像力！','看得出來你很用心！'];
+function artSnap(m){ m.undo.push(m.pg.getImageData(0, 0, ART_W, ART_H)); if(m.undo.length>15) m.undo.shift(); }
+function artLine(m, x0, y0, x1, y1){
+  const g = m.pg; g.lineCap = 'round'; g.lineJoin = 'round';
+  g.lineWidth = m.tool==='eraser' ? Math.max(14, m.size*2) : m.size;
+  g.strokeStyle = m.tool==='eraser' ? '#ffffff' : m.col;
+  g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1+.01, y1); g.stroke();
+}
+function artDone(m){
+  if(m.strokes < 3){ m.msg = '再多畫一點點，畫好了再按「✅ 完成作品」喔！'; return; }
+  sfx('win'); S.artN = (S.artN||0) + 1;
+  m.msg = '🎉 邱老師：「' + ART_PRAISE[Math.random()*ART_PRAISE.length|0] + '」';
+  if(mgReward('mg_art', 'heal')) m.msg += '　🎁 第一次完成作品：經驗 +10、🍙 愛心飯糰！';
+  save();
+}
+function artSave(m){
+  try{
+    const a = document.createElement('a'); a.href = m.cv.toDataURL('image/png');
+    a.download = '我的畫-' + ART_THEMES[m.theme].replace(/^\S+\s/, '').replace(/[「」：:]/g, '') + '.png';
+    document.body.appendChild(a); a.click(); a.remove();
+    m.msg = '📥 存好了！可以在「下載」資料夾找到你的畫。';
+  }catch(e){ m.msg = '這台裝置沒辦法存圖片，可以請老師幫忙截圖喔。'; }
+}
+MINI.art = {
+  init(m){
+    m.cv = document.createElement('canvas'); m.cv.width = ART_W; m.cv.height = ART_H; m.pg = m.cv.getContext('2d');
+    m.pg.fillStyle = '#fff'; m.pg.fillRect(0, 0, ART_W, ART_H);
+    m.col = ART_COLS[2]; m.size = ART_SIZES[1]; m.tool = 'pen'; m.undo = []; m.strokes = 0; m.pen = null;
+    m.theme = (S.artT||0) % ART_THEMES.length;
+    m.msg = '選一個顏色，在白紙上畫畫吧！';
+  },
+  btn(m, id){
+    if(id[0]==='c'){ m.col = ART_COLS[+id.slice(1)]; m.tool = 'pen'; }
+    else if(id[0]==='s'){ m.size = ART_SIZES[+id.slice(1)]; }
+    else if(id==='eraser') m.tool = m.tool==='eraser' ? 'pen' : 'eraser';
+    else if(id==='undo'){ const d = m.undo.pop(); if(d){ m.pg.putImageData(d, 0, 0); m.strokes = Math.max(0, m.strokes-1); } }
+    else if(id==='clear'){ artSnap(m); m.pg.fillStyle = '#fff'; m.pg.fillRect(0, 0, ART_W, ART_H); m.strokes = 0; m.msg = '換了一張新的白紙！'; }
+    else if(id==='theme'){ m.theme = (m.theme+1) % ART_THEMES.length; S.artT = m.theme; }
+    else if(id==='done') artDone(m);
+    else if(id==='save') artSave(m);
+  },
+  key(m, k, down){
+    if(!down) return;
+    if(k==='z'||k==='Z') this.btn(m, 'undo');
+    else if(k==='e'||k==='E') this.btn(m, 'eraser');
+    else if(k==='Enter') this.btn(m, 'done');
+    else { const i = '1234567890-='.indexOf(k); if(i>=0) this.btn(m, 'c'+i); }
+  },
+  pointer(m, type, x, y, id){
+    const px = x-ART_X, py = y-ART_Y;
+    if(type==='down'){
+      if(m.pen || px<0 || py<0 || px>ART_W || py>ART_H) return;
+      artSnap(m); m.pen = {id, x:px, y:py}; artLine(m, px, py, px, py); m.strokes++;
+    } else if(type==='move'){
+      if(!m.pen || m.pen.id!==id) return;
+      artLine(m, m.pen.x, m.pen.y, px, py); m.pen.x = px; m.pen.y = py;
+    } else if(m.pen && m.pen.id===id) m.pen = null;
+  },
+  update(m, dt){ m.t += dt; },
+  draw(m){
+    m.btns = [];
+    mgx.fillStyle = '#efe2cf'; mgx.fillRect(0, 0, 800, 576);
+    mgx.fillStyle = 'rgba(138,90,43,.08)'; for(let y=60; y<576; y+=22) mgx.fillRect(0, y, 800, 2);
+    mgHeader('🎨 美術教室・畫畫', TOUCH ? '點顏色，用手指在白紙上畫｜畫好了按「✅ 完成作品」' : '用滑鼠在白紙上畫｜數字鍵選顏色｜Z 復原｜E 橡皮擦｜Esc 離開');
+    // 題目
+    mgPanel(ART_X, 60, ART_W, 38, '#fffdf6');
+    mgT('題目：' + ART_THEMES[m.theme], ART_X+14, 80, 17, MG_INK, 'left');
+    mgButton(m, 'theme', '🔄 換題目', ART_X+ART_W-118, 64, 112, 30, false);
+    // 畫紙
+    mgx.fillStyle = 'rgba(0,0,0,.18)'; mgx.fillRect(ART_X+5, ART_Y+5, ART_W, ART_H);
+    mgx.drawImage(m.cv, ART_X, ART_Y);
+    mgx.strokeStyle = MG_INK; mgx.lineWidth = 3; mgx.strokeRect(ART_X, ART_Y, ART_W, ART_H);
+    // 左邊工具列
+    mgPanel(12, 60, 172, 504);
+    mgT('顏色', 98, 80, 15, MG_INK);
+    ART_COLS.forEach((c, i)=>{
+      const x = 26+(i%3)*50, y = 94+Math.floor(i/3)*46, on = m.tool==='pen' && m.col===c;
+      if(on){ mgx.fillStyle = '#ffd447'; mgx.beginPath(); mgx.arc(x+20, y+20, 22, 0, 7); mgx.fill(); }
+      mgx.strokeStyle = MG_INK; mgx.lineWidth = on ? 3 : 2; circ(mgx, x+20, y+20, 16, c);
+      m.btns.push({id:'c'+i, x, y, w:40, h:40});
+    });
+    mgT('筆的粗細', 98, 290, 15, MG_INK);
+    ART_SIZES.forEach((s, i)=>{
+      const x = 24+i*52, y = 304, on = m.tool==='pen' && m.size===s;
+      mgx.strokeStyle = MG_INK; mgx.lineWidth = on ? 3 : 2; rr(mgx, x, y, 44, 44, 8, on ? '#ffd447' : '#fffdf6');
+      mgx.fillStyle = m.col===ART_COLS[1] ? '#ccc' : m.col; mgx.beginPath(); mgx.arc(x+22, y+22, s/2, 0, 7); mgx.fill();
+      m.btns.push({id:'s'+i, x, y, w:44, h:44});
+    });
+    mgButton(m, 'eraser', '🧽 橡皮擦', 24, 364, 148, 42, m.tool==='eraser');
+    mgButton(m, 'undo', '↩️ 復原', 24, 414, 148, 42, false);
+    mgButton(m, 'clear', '🗑️ 重畫', 24, 464, 148, 42, false);
+    mgT(`已經畫了 ${m.strokes} 筆`, 98, 534, 14, '#6a5a7a', 'center', false);
+    // 下方：訊息＋存圖＋完成
+    mgWrap(m.msg, ART_X+4, 526, 330, 15, '#4a3a5a', 20, 'left');
+    mgButton(m, 'save', '📥 存成圖片', 534, 514, 120, 44, false);
+    mgButton(m, 'done', '✅ 完成作品', 660, 514, 120, 44, true);
+  }
+};
+
 /* ---- 🕹️ 彈珠台 ---- */
 const PB_SEGS = [[230,140,230,430],[570,140,570,430],[230,140,272,82],[272,82,528,82],[528,82,570,140],[230,430,318,496],[570,430,482,496]];
 const PB_PIV = {l:[322,498], r:[478,498]}, PB_LEN = 72, PB_REST = .52, PB_UP = -.45;
@@ -3884,7 +4084,7 @@ function update(dt){
   P.target = t;
   const hint = $('#hint');
   const key = TOUCH ? '「對話」鍵' : '空白鍵';
-  const txt = t ? (t.npc ? `💬 ${key}：和「${t.npc.name}」說話` : t.stall ? `🚽 ${key}：上廁所` : t.sink ? `🚰 ${key}：洗手` : t.piano ? `🎹 ${key}：彈鋼琴` : t.pc ? `🕹️ ${key}：玩彈珠台` : t.fire ? `🧯 ${key}：滅火練習` :`📋 ${key}：查看`) : (TOUCH ? '左下角搖桿走路｜右上角 📋 任務、🎒 道具' : '方向鍵移動｜Q 任務｜B 道具｜M 地圖｜R 排行榜');
+  const txt = t ? (t.npc ? `💬 ${key}：和「${t.npc.name}」說話` : t.stall ? `🚽 ${key}：上廁所` : t.sink ? `🚰 ${key}：洗手` : t.piano ? `🎹 ${key}：彈鋼琴` : t.pc ? `🕹️ ${key}：玩彈珠台` : t.fire ? `🧯 ${key}：滅火練習` : t.easel ? `🎨 ${key}：畫畫` :`📋 ${key}：查看`) : (TOUCH ? '左下角搖桿走路｜右上角 📋 任務、🎒 道具' : '方向鍵移動｜Q 任務｜B 道具｜M 地圖｜R 排行榜');
   if(hint.textContent!==txt) hint.textContent = txt;
 }
 // 角色走到角色資訊欄或小地圖底下時，讓它們變透明
