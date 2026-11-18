@@ -58,8 +58,8 @@
   #abtn.go{animation:abtnGo 1.1s ease-in-out infinite;background:#fff6c8}
   @keyframes abtnGo{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}   /* 對話時藏起搖桿，才不會蓋住選項 */
   #mini.top{top:70px;bottom:auto}
-  #hLeft,#mini{transition:opacity .25s}
-  #hLeft.see,#mini.see{opacity:.25}   /* 角色走到底下時變透明，看得到後面的東西 */
+  #hLeft,#mini,#badges{transition:opacity .25s}
+  #hLeft.see,#mini.see,#badges.see{opacity:.25}   /* 角色走到底下時變透明，看得到後面的東西 */
   #mini{position:absolute;left:10px;bottom:12px;border:3px solid var(--ink);border-radius:8px;box-shadow:0 3px 0 rgba(0,0,0,.35);background:#000;opacity:.92}
 
   /* 對話框 */
@@ -528,7 +528,7 @@ const QUIZ = {
     {q:'放學的時候，應該怎麼做？', a:['依路隊或家長接送離開','自己到處逛一逛再回家','有人說是爸媽的朋友，就跟他走','在校門口玩到天黑再回家'], exp:'依照規定的方式回家，讓家人和老師都知道你平安。'},
     {q:'帶手機到學校，應該怎麼做？', a:['遵守學校的手機規定','上課時調成靜音，偷偷看','拍同學好笑的樣子留作紀念','借給同學玩遊戲'], exp:'手機要依照學校規定使用，上課專心，也不能拍別人。'},
     {q:'看到同學亂丟垃圾，你可以怎麼做？', a:['友善提醒，並把垃圾撿起來','假裝沒看到就好','他亂丟，我也可以亂丟','大聲罵他，讓全班都知道'], exp:'用友善的方式提醒，比責罵更有用。校園乾淨，大家都舒服。'},
-    {q:'看到學校的工友伯伯或志工阿姨，應該怎麼做？', a:['有禮貌地打招呼、說謝謝','不認識他們，不用理','請他們幫我做打掃工作','學他們說話的樣子'], exp:'學校裡每個人都在努力照顧大家，一句問好和謝謝，就是最好的回報。'}
+    {q:'看到學校的工友或志工，應該怎麼做？', a:['有禮貌地打招呼、說謝謝','不認識他們，不用理','請他們幫我做打掃工作','學他們說話的樣子'], exp:'學校裡每個人都在努力照顧大家，一句問好和謝謝，就是最好的回報。'}
   ]
 };
 for(const k of Object.keys(QUIZ)) QUIZ[k].forEach((q,i)=>{ q.id = k + '_' + i; });
@@ -2133,7 +2133,11 @@ function currentDir(){ for(let i=order.length-1;i>=0;i--) if(held[order[i]]) ret
     if(d>max){ dx=dx/d*max; dy=dy/d*max; }
     knob.style.transform=`translate(${dx}px,${dy}px)`;
     if(scene!=='play'||DLG||QTE){ setDir(null); return; }
-    setDir(d<R*.22 ? null : Math.abs(dx)>Math.abs(dy) ? (dx>0?'right':'left') : (dy>0?'down':'up'));
+    if(d<R*.22){ setDir(null); return; }
+    const ax=Math.abs(dx), ay=Math.abs(dy);
+    // 推在斜角附近時，保留原本的方向，除非另一個方向明顯比較大（1.3 倍），避免左右亂跳
+    const horiz = (cur==='left'||cur==='right') ? ax*1.3>=ay : (cur==='up'||cur==='down') ? ax>ay*1.3 : ax>ay;
+    setDir(horiz ? (dx>0?'right':'left') : (dy>0?'down':'up'));
   }
   function end(e){ if(e.pointerId!==pid) return; pid=null; knob.style.transform=''; setDir(null); }
   pad.addEventListener('pointerdown', e=>{ e.preventDefault(); if(pid!==null) return; pid=e.pointerId; try{ pad.setPointerCapture(pid); }catch(_){} move(e); });
@@ -3635,7 +3639,7 @@ function pianoPlay(f){ if(!mgAudio()) return; tone(f, 1.1, 'triangle', 0, .14); 
 function pianoSel(m, id){
   m.demo = null; m.i = 0; m.done = false;
   m.song = SONGS.find(s=>s.id===id) || null;
-  m.msg = m.song ? `跟著發亮的綠色琴鍵彈〈${m.song.t}〉！不會的話，先按「▶ 聽一次」。` : '自由彈奏：想彈什麼就彈什麼！';
+  m.msg = m.song ? `跟著綠色發亮的鍵彈〈${m.song.t}〉！` + (S.gift.mg_piano ? '不會的話，先按「▶ 聽一次」。' : '🎁 彈完一首有獎勵！') : '自由彈奏：想彈什麼就彈什麼！';
 }
 function pianoPress(m, idx, black){
   if(black){ pianoPlay(PIANO_BLK[idx][1]); m.down['b'+idx] = .25; return; }
@@ -3651,10 +3655,10 @@ function pianoPress(m, idx, black){
       else if(SONGS.every(s=>S.mgPiano[s.id]) && giveItem('heal', 1, 'mg_piano3')) m.msg += '　🎁 三首都會彈了：🍙 愛心飯糰！';
       save();
     } else m.msg = '很好！繼續彈下一個發亮的鍵。';
-  } else { m.shake = .3; m.msg = `再找找看！要彈的是「${PIANO_W[m.song.n[m.i]]}」，綠色發亮的那一個鍵。`; }
+  } else { m.shake = .3; m.msg = '找綠色的鍵 👇'; }
 }
 MINI.piano = {
-  init(m){ m.down = {}; m.shake = 0; pianoSel(m, 'free'); },
+  init(m){ m.down = {}; m.shake = 0; pianoSel(m, 'star'); },   // 一進來就是〈小星星〉，孩子馬上知道要做什麼
   btn(m, id){ if(id==='demo'){ if(m.song && !m.demo){ m.i = 0; m.done = false; m.demo = {i:0, t:.2}; m.msg = '🔊 仔細聽，等一下換你彈！'; } } else pianoSel(m, id); },
   key(m, k, down){
     if(!down) return;
@@ -3732,14 +3736,31 @@ function artLine(m, x0, y0, x1, y1){
 }
 function artDone(m){
   if(m.strokes < 3){ m.msg = '再多畫一點點，畫好了再按「✅ 完成作品」喔！'; return; }
+  if(m.submitted){ m.msg = '這張已經完成囉！可以再加幾筆，或按「🗑️ 重畫」畫新的一張。'; return; }
+  m.submitted = true;   // 同一張畫只算一次，畫了新的一筆才能再完成
   sfx('win'); S.artN = (S.artN||0) + 1;
   m.msg = '🎉 邱老師：「' + ART_PRAISE[Math.random()*ART_PRAISE.length|0] + '」';
   if(mgReward('mg_art', 'heal')) m.msg += '　🎁 第一次完成作品：經驗 +10、🍙 愛心飯糰！';
   save();
 }
+// LINE、FB 等 App 內建瀏覽器常常不能下載檔案：改成把畫放大顯示，請孩子長按圖片儲存
+function artShow(url){
+  let box = $('#artShow');
+  if(!box){
+    box = document.createElement('div'); box.id = 'artShow';
+    box.style.cssText = 'position:fixed;top:0;right:0;bottom:0;left:0;z-index:60;background:rgba(20,16,30,.9);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px;color:#fff;font-size:18px;text-align:center';
+    box.innerHTML = '<div>👆 長按圖片，選「儲存圖片」就能存下來</div><img style="max-width:94vw;max-height:70vh;border:4px solid #fff;border-radius:8px;background:#fff"><button class="frame" style="font:inherit;font-size:18px;font-weight:bold;padding:8px 22px;cursor:pointer;color:var(--ink)">✖ 關閉</button>';
+    box.querySelector('button').onclick = ()=>box.remove();
+    document.body.appendChild(box);
+  }
+  box.querySelector('img').src = url;
+}
 function artSave(m){
   try{
-    const a = document.createElement('a'); a.href = m.cv.toDataURL('image/png');
+    const url = m.cv.toDataURL('image/png');
+    const a = document.createElement('a');
+    if(!('download' in a) || /Line\/|FBAN|FBAV|Instagram|MicroMessenger/i.test(navigator.userAgent)){ artShow(url); m.msg = '👆 長按圖片就能存下來。'; return; }
+    a.href = url;
     a.download = '我的畫-' + ART_THEMES[m.theme].replace(/^\S+\s/, '').replace(/[「」：:]/g, '') + '.png';
     document.body.appendChild(a); a.click(); a.remove();
     m.msg = '📥 存好了！可以在「下載」資料夾找到你的畫。';
@@ -3758,7 +3779,7 @@ MINI.art = {
     else if(/^s\d+$/.test(id)){ m.size = ART_SIZES[+id.slice(1)]; }
     else if(id==='eraser') m.tool = m.tool==='eraser' ? 'pen' : 'eraser';
     else if(id==='undo'){ const d = m.undo.pop(); if(d){ m.pg.putImageData(d.img, 0, 0); m.strokes = d.n; } }
-    else if(id==='clear'){ artSnap(m); m.pg.fillStyle = '#fff'; m.pg.fillRect(0, 0, ART_W, ART_H); m.strokes = 0; m.msg = '換了一張新的白紙！'; }
+    else if(id==='clear'){ artSnap(m); m.pg.fillStyle = '#fff'; m.pg.fillRect(0, 0, ART_W, ART_H); m.strokes = 0; m.submitted = false; m.msg = '換了一張新的白紙！'; }
     else if(id==='theme'){ m.theme = (m.theme+1) % ART_THEMES.length; S.artT = m.theme; }
     else if(id==='done') artDone(m);
     else if(id==='save') artSave(m);
@@ -3774,7 +3795,7 @@ MINI.art = {
     const px = x-ART_X, py = y-ART_Y;
     if(type==='down'){
       if(m.pen || px<0 || py<0 || px>ART_W || py>ART_H) return;
-      artSnap(m); m.pen = {id, x:px, y:py}; artLine(m, px, py, px, py); m.strokes++;
+      artSnap(m); m.pen = {id, x:px, y:py}; artLine(m, px, py, px, py); m.strokes++; m.submitted = false;
     } else if(type==='move'){
       if(!m.pen || m.pen.id!==id) return;
       artLine(m, m.pen.x, m.pen.y, px, py); m.pen.x = px; m.pen.y = py;
@@ -4004,7 +4025,8 @@ const CALM_CARDS = [
   '不管你今天是開心還是難過，你都是很重要的人。',
   '遇到困難時，請別人幫忙不丟臉，是聰明的做法。',
 ];
-const CALM_IN = 3.5, CALM_HOLD = 1.2, CALM_OUT = 4.5, CALM_N = 4;
+let CALM_FF = null;   // 螢火蟲小圖（第一次用到時才畫）
+const CALM_IN = 3.5, CALM_HOLD = 1.2, CALM_OUT = 4.5, CALM_N = 3;
 const CALM_NOTES = [523.25, 587.33, 659.25, 783.99, 880, 1046.5];
 const CALM_FLOWER = ['#ff8fb8','#ffd447','#c78bff','#7fd0f5','#ff9a6a','#ffffff'];
 function calmChime(f){ if(mgAudio()){ tone(f, 1.4, 'sine', 0, .06); tone(f*2, .8, 'sine', .02, .015); } }
@@ -4020,7 +4042,7 @@ function calmMood(m, i){
 function calmPick(m, i){
   if(m.card>=0) return;
   m.card = i; m.cardT = 0; m.cardText = CALM_CARDS[(Math.random()*CALM_CARDS.length)|0];
-  calmChime(783.99); setTimeout(()=>calmChime(1046.5), 180);
+  calmChime(783.99); setTimeout(()=>{ if(MG===m) calmChime(1046.5); }, 180);   // 已經離開就不要再響
   S.calmN = (S.calmN||0) + 1;
   m.reward = mgReward('mg_calm', 'heal') ? '🎁 第一次來小花園：經驗 +10、🍙 愛心飯糰！' : '';
   save();
@@ -4095,7 +4117,10 @@ MINI.calm = {
       mgx.fillStyle = '#ffd447'; mgx.beginPath(); mgx.arc(cx, cy, 4.5*s, 0, 7); mgx.fill();
     }
     // 螢火蟲
-    for(const f of m.ff){ const a = .3+.5*Math.abs(Math.sin(m.t*2+f.p)); const g = mgx.createRadialGradient(f.x, f.y, 0, f.x, f.y, 10); g.addColorStop(0, `rgba(255,250,170,${a})`); g.addColorStop(1, 'rgba(255,250,170,0)'); mgx.fillStyle = g; mgx.fillRect(f.x-10, f.y-10, 20, 20); }
+    // 先畫好一張螢火蟲小圖，每幀只用透明度貼上去（不用每幀建 14 個漸層，平板比較順）
+    if(!CALM_FF){ CALM_FF = document.createElement('canvas'); CALM_FF.width = CALM_FF.height = 20; const fg = CALM_FF.getContext('2d'), gr = fg.createRadialGradient(10, 10, 0, 10, 10, 10); gr.addColorStop(0, 'rgba(255,250,170,1)'); gr.addColorStop(1, 'rgba(255,250,170,0)'); fg.fillStyle = gr; fg.fillRect(0, 0, 20, 20); }
+    for(const f of m.ff){ mgx.globalAlpha = .3+.5*Math.abs(Math.sin(m.t*2+f.p)); mgx.drawImage(CALM_FF, f.x-10, f.y-10); }
+    mgx.globalAlpha = 1;
     mgHeader('🌱 輔導室・心情小花園', '慢慢來，不用急，這裡沒有對錯，也不計分。｜' + (TOUCH ? '✖ 離開' : 'Esc 離開'));
     if(m.phase==='mood'){
       mgPanel(130, 90, 540, 300, 'rgba(255,253,246,.93)');
@@ -4346,15 +4371,18 @@ function update(dt){
   }
 }
 // 角色走到角色資訊欄或小地圖底下時，讓它們變透明
-const HUD_FADE = ['#hLeft','#mini'];
+const HUD_FADE = ['#hLeft','#mini','#badges'];
+// 位置每 0.5 秒才重新量一次（每幀量會讓瀏覽器一直重排版，平板會頓）
+let HUD_RC = {t:-1e9};
 function fadeHud(){
-  const play = scene==='play';
-  const c = play && $('#cv').getBoundingClientRect(), s = play ? c.width/VW : 1;
-  for(const id of HUD_FADE){
-    const el = $(id);
+  const play = scene==='play', now = performance.now();
+  if(play && now - HUD_RC.t > 500){ HUD_RC = {t:now, c:$('#cv').getBoundingClientRect(), r:HUD_FADE.map(id=>$(id).getBoundingClientRect())}; }
+  const c = HUD_RC.c, s = play ? c.width/VW : 1;
+  for(let i=0; i<HUD_FADE.length; i++){
+    const el = $(HUD_FADE[i]);
     let over = false;
     if(play){
-      const r = el.getBoundingClientRect();
+      const r = HUD_RC.r[i];
       const x = c.left+(P.px-cam.x)*s, y = c.top+(P.py-cam.y)*s;
       over = r.width>0 && x+TS*s>r.left && x<r.right+6*s && y+TS*s>r.top && y-14*s<r.bottom+6*s;   // 頭部會超出格子一點
     }
