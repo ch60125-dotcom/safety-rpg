@@ -2829,6 +2829,7 @@ function endCelebrate(){
   CEL=null; scene='play'; checkZone();
   if(perfect && !replay){ S.perfect = true; S.acc = 'gold'; refreshLook(); save(); updateHUD(); toast('🌟 獲得稱號「完美守護者」和造型「✨ 完美守護者金披風」！', true, 4500); }
   showCert();
+  if(!perfect) setTimeout(tryPerfect, 500);   // 大魔王是最後一項時：關掉獎狀後接著舉行完美典禮
 }
 function drawCelebrate(){
   if(!CEL) return;
@@ -3475,6 +3476,9 @@ function useItem(k){
 function compassTarget(){
   for(const k of TOPIC_KEYS) if(!S.badges[k]){ const n=NPCS.find(o=>o.quest===k); if(n) return n; }
   if(!S.done) return NPCS.find(o=>o.id==='principal');
+  // 破關後：指向還沒完成的校園任務
+  const ctNpc = {veg:'farmer', ball:'senior', tree:'nature'};
+  for(const k of CT_KEYS) if(!S.ct.done[k]) return NPCS.find(o=>o.id===ctNpc[k]);
   return null;
 }
 function drawCompass(g){
@@ -4048,6 +4052,7 @@ function startGame(data, isNew){
   if(!S.cls) S.cls = '';
   S.seen = S.seen||{}; S.wrong = S.wrong||{}; S.acc = S.acc||'';
   hqInit(); invInit(); refreshLook(); compassT = 0;
+  setTimeout(tryPerfect, 2500);   // 更新前就已經全部完成的存檔，讀檔後補辦完美典禮
   if(S.hq.friend>=3){ const yu = NPCS.find(n=>n.id==='yu'); if(yu) yu.wander=[42,29,63,34]; }
   evT = 70; careT = 150; stuckT = 0; evBusy = false;
   if(S.mapV!==3){ S.mapV=3; S.x=19; S.y=S.crossed?45:54; S.dir='up'; }   // 換成新校園地圖：舊存檔的位置放回校門口
