@@ -2467,6 +2467,8 @@ function facingTarget(){
   if(c==='e') return {fire:true, x:ax, y:ay};
   if(c==='A') return {easel:true, x:ax, y:ay};
   if(c==='c') return {sofa:true, x:ax, y:ay};
+  if(c==='i') return {pot:true, x:ax, y:ay};
+  if(c==='h' && bldAt(ax,ay) && bldAt(ax,ay).k==='disaster') return {drill:true, x:ax, y:ay};
   if(c==='Q' && badgeCount()<5) return {text:`🔒 校長室：集滿 5 枚守護徽章才能進入（目前 ${badgeCount()}/5）。還沒拿到的徽章可以按「📋 任務」查看。`, x:ax, y:ay};
   if(EXTRA_TALK[c]) return {text:EXTRA_TALK[c], x:ax, y:ay};
   return null;
@@ -2492,6 +2494,8 @@ function interact(){
   else if(t.pc) say(['電腦裡有「檔案打地鼠」：正常的檔案才點，病毒和詐騙不能點！要玩嗎？（玩完記得讓眼睛休息）'], {name:'💻 電腦', choices:[{t:'📂 玩檔案打地鼠', f:()=>startMini('whack')},{t:'先不用了'}]});
   else if(t.sofa) say(['舒服的沙發。要坐下來，到「心情小花園」放鬆一下嗎？'], {name:'🛋️ 沙發', choices:[{t:'🌱 去心情小花園', f:()=>startMini('calm')},{t:'先不用了'}]});
   else if(t.fire) say(['這是練習用滅火器。真的失火要先大喊「失火了」，小朋友以逃生為優先！要練習「拉、瞄、壓、掃」嗎？'], {name:'🧯 滅火器', choices:[{t:'🧯 來練習滅火', f:()=>startMini('fire')},{t:'先不用了'}]});
+  else if(t.drill) say(['防災器材櫃裡有防災頭套、手電筒和急救箱。要進行哪一種防災演練？'], {name:'🚨 防災演練', choices:[{t:'🌏 地震模擬', f:()=>startMini('quake')},{t:'🔥 火災模擬', f:()=>startMini('firesim')},{t:'先不用了'}]});
+  else if(t.pot) say(['小孔廟供奉至聖先師孔子，經過時要保持安靜、愛護古蹟。廟前放著一個「投壺」，這是古代的禮儀遊戲，要試試看嗎？'], {name:'⛩️ 小孔廟', choices:[{t:'🏺 來玩投壺', f:()=>startMini('pot')},{t:'先不用了'}]});
   else if(t.easel) say(['畫架上有白紙和畫筆。要畫一張畫嗎？'], {name:'🎨 畫架', choices:[{t:'🎨 來畫畫', f:()=>startMini('art')},{t:'先不用了'}]});
   else if(t.book){ S.bookI = ((S.bookI||0) + 1) % BOOK_TIPS.length; say(['你從書架上拿了一本書……', BOOK_TIPS[S.bookI]], {name:'📚 書架'}); }
   else say([t.text], {name:'📋 告示'});
@@ -2578,7 +2582,7 @@ function togglePanel(){
     h += `<div class="qrow"><span style="font-size:22px">${done?'✅':seen?'🔎':'❓'}</span><b>${seen?q.name:'❓❓❓'}</b><small>${seen ? q.desc+'（'+hqProgress(k)+'）' : '還沒發現……到處走走、跟大家聊聊吧！'}</small></div>`;
   }
   // 小遊戲：列出在哪裡玩、玩過了沒（不計分）
-  const MG_LIST = [['mg_piano','🎹 彈鋼琴','音樂教室的鋼琴'],['mg_whack','📂 檔案打地鼠','電腦教室的電腦'],['mg_fire','🧯 滅火練習','防災教育中心的滅火器'],['mg_art','🎨 畫畫','美術教室的畫架'],['mg_calm','🌱 心情小花園','輔導室的沙發']];
+  const MG_LIST = [['mg_piano','🎹 彈鋼琴','音樂教室的鋼琴'],['mg_whack','📂 檔案打地鼠','電腦教室的電腦'],['mg_fire','🧯 滅火練習','防災教育中心的滅火器'],['mg_quake','🌏 地震模擬','防災教育中心的器材櫃'],['mg_firesim','🔥 火災模擬','防災教育中心的器材櫃'],['mg_art','🎨 畫畫','美術教室的畫架'],['mg_calm','🌱 心情小花園','輔導室的沙發'],['mg_pot','🏺 投壺','小孔廟']];
   h += `<h3>🎮 小遊戲（${MG_LIST.filter(g=>S.gift[g[0]]).length}/${MG_LIST.length}，不計分，第一次完成有小禮物）</h3>`;
   for(const [k,n,w] of MG_LIST) h += `<div class="qrow"><span style="font-size:22px">${S.gift[k]?'✅':'⬜'}</span><b>${n}</b><small>📍面向${w}，按${TOUCH?'「對話」鍵':'空白鍵'}</small></div>`;
   const owned = Object.keys(ACC).filter(a=>HQ_KEYS.some(k=>S.hq.done[k] && HQ[k].reward===a));
@@ -3923,6 +3927,308 @@ function mgResult(m, title, lines, extra){
 }
 const MINI = {};
 
+/* ---- 🚨 防災教育中心：地震模擬、火災模擬（情境選擇題，一步一步練習） ---- */
+function quakeStages(loc){
+  const inClass = loc==='class';
+  return [
+    {scene:loc, shake:true, hold:2.2, alarm:true,
+     say: inClass ? '叮咚——地震警報響了！教室開始劇烈搖晃……' : '你正在科任教室上課，地震警報突然響了，地面開始搖晃……',
+     choices:[{t:'就地「趴下、掩護、穩住」：躲到桌子下，抓穩桌腳', ok:true, r:'答對了！搖晃時就地趴下、掩護、穩住，保護頭部和頸部最重要。'},
+              {t:'馬上往教室外面跑', ok:false, r:'搖晃時跑步很容易跌倒，也可能被掉落物砸到。要先就地趴下、掩護、穩住！'},
+              {t:'跑到窗戶旁邊看外面', ok:false, r:'窗戶玻璃可能破裂，非常危險！要遠離窗戶，就地趴下、掩護、穩住。'}]},
+    {scene:loc, duck:true, hold:2.5, shake:true,
+     say:'你躲在桌子下面抓穩桌腳……過了一會兒，搖晃慢慢停下來了，可是廣播還沒有說話。',
+     choices:[{t:'繼續待在原地，等廣播宣布主震結束', ok:true, r:'很好！要聽從廣播，等宣布主震結束後，才依序疏散。'},
+              {t:'搖晃停了，趕快衝出教室', ok:false, r:'可能還會有餘震！要等廣播宣布主震結束，再聽老師指揮依序疏散。'},
+              {t:'拿出手機打給家人', ok:false, r:'現在要先聽廣播和老師的指示，等廣播宣布主震結束，再依序疏散。'}]},
+    {scene:loc, broadcast:'📢 廣播：「主震已經結束，請各班依照防災地圖路線，依序疏散到操場。」',
+     say: inClass ? '要準備疏散了。你在原本的教室裡，要怎麼保護頭部？' : '要準備疏散了。你在科任教室，防災頭套放在原本的教室裡，要怎麼保護頭部？',
+     choices: inClass
+       ? [{t:'戴上防災頭套', ok:true, r:'答對了！在原教室疏散時，要戴上防災頭套保護頭部。'},
+          {t:'什麼都不戴，直接走', ok:false, r:'疏散時可能有掉落物，在原教室要戴上防災頭套保護頭部。'},
+          {t:'先把頭套收進抽屜', ok:false, r:'防災頭套就是要戴在頭上保護自己！在原教室疏散時要戴上它。'}]
+       : [{t:'用空書包或課本保護頭部🎒', ok:true, r:'答對了！在戶外或科任教室上課時，用空書包或課本護住頭部就可以了。'},
+          {t:'先跑回原本的教室拿防災頭套', ok:false, r:'不要走回頭路！在戶外或科任教室，用空書包或課本保護頭部，直接疏散。'},
+          {t:'不用保護頭部', ok:false, r:'疏散時可能有掉落物！在戶外或科任教室，要用空書包或課本保護頭部。'}]},
+    {scene:'corridor',
+     say:'走出教室了，要走哪一條路到操場？',
+     choices:[{t:'依照最新版「校園防災地圖」的指定路線疏散', ok:true, r:'答對了！每個班級都有指定路線，大家照著走才不會擠在一起。疏散時不推、不跑、不語、不回頭。'},
+              {t:'走自己知道的捷徑，比較快', ok:false, r:'捷徑可能有危險，也會和其他班級擠在一起。要依照校園防災地圖的指定路線疏散。'},
+              {t:'跟著人最多的地方走', ok:false, r:'人擠人容易推擠跌倒！要依照校園防災地圖的指定路線疏散。'}]},
+    {scene:'field',
+     say:'全班到操場集合了。要由誰到操場前的「指揮中心」回報人數？',
+     choices:[{t:'班導師到指揮中心回報人數', ok:true, r:'答對了！由班導師清點人數後，到操場前的指揮中心回報，學生在原地集合等待。'},
+              {t:'每個同學自己跑去指揮中心報到', ok:false, r:'大家一起跑過去會很混亂。學生在操場集合，由班導師到指揮中心回報人數。'},
+              {t:'不用回報，到了就好', ok:false, r:'一定要回報人數，才知道有沒有人還沒疏散。由班導師到指揮中心回報。'}]},
+  ];
+}
+const FIRE_STAGES = [
+  {scene:'corridor', smoke:.15, alarm:true, hold:1.2,
+   say:'鈴——火災警報響了！你聞到走廊傳來燒焦的味道……',
+   choices:[{t:'大喊「失火了！」，並馬上告訴老師', ok:true, r:'答對了！發現火災要大聲喊叫通知大家，並告訴老師或大人。'},
+            {t:'躲進廁所等火熄滅', ok:false, r:'躲起來會讓消防員找不到你！要大喊「失火了」，告訴老師，準備逃生。'},
+            {t:'拿手機去拍照', ok:false, r:'生命最重要！要大喊「失火了」，告訴老師，準備逃生。'}]},
+  {scene:'corridor', smoke:.35,
+   say:'走廊有一點煙，但還看得到逃生出口的綠色指示燈。',
+   choices:[{t:'小火快逃：壓低身體、摀住口鼻，沿著逃生方向往下逃', ok:true, r:'答對了！煙會往上飄，壓低身體、摀住口鼻，往下、往外逃到安全的地方。'},
+            {t:'往樓上跑，到頂樓等救援', ok:false, r:'煙會往上竄，往樓上跑很危險！要往下、往外逃生。'},
+            {t:'先回教室拿書包', ok:false, r:'東西再買就有，生命只有一次！不要回頭拿東西，馬上逃生。'}]},
+  {scene:'stairs', smoke:.3,
+   say:'到了樓梯口，旁邊剛好有電梯。',
+   choices:[{t:'走樓梯往下逃', ok:true, r:'答對了！火災時電梯可能停電、卡住，還會變成煙囪，一定要走樓梯。'},
+            {t:'搭電梯比較快', ok:false, r:'火災時千萬不要搭電梯！可能停電被困住，濃煙也會灌進電梯裡。要走樓梯。'}]},
+  {scene:'door', smoke:.7,
+   say:'另一個情況：你在教室裡，門縫一直冒出黑色濃煙，摸門把很燙！',
+   choices:[{t:'濃煙關門：關緊門，用濕毛巾塞住門縫，到窗邊呼救、打 119', ok:true, r:'答對了！門外濃煙密布時不要開門，關門阻擋濃煙，等待救援。'},
+            {t:'打開門衝出去', ok:false, r:'門把很燙代表外面火很大！開門會讓濃煙和火衝進來。要關門、塞門縫、到窗邊求救。'},
+            {t:'躲到桌子或櫃子裡', ok:false, r:'躲起來消防員會找不到你！要關門、塞門縫，到窗邊揮手呼救。'}]},
+  {scene:'corridor', smoke:.2, onfire:true,
+   say:'如果不小心衣服著火了，該怎麼做？',
+   choices:[{t:'停、躺、滾：停下來，躺在地上，用手遮臉來回滾動', ok:true, r:'答對了！停、躺、滾可以把火壓熄。千萬不要跑，跑步會讓火燒得更大。'},
+            {t:'趕快往前跑', ok:false, r:'跑步會讓空氣流動，火會燒得更大！要停、躺、滾。'},
+            {t:'用手拍打火焰', ok:false, r:'用手拍很容易燙傷！要停下來、躺下、用手遮臉滾動把火壓熄。'}]},
+];
+const DRILL_INFO = {
+  quake:{title:'🌏 地震模擬', key:'mg_quake', item:'shield', itemName:'🔰 守護盾',
+    rules:['聽從廣播：先就地「趴下、掩護、穩住」，等廣播宣布主震結束，再依序疏散。','防護與動線：依最新版「校園防災地圖」路線疏散。在原教室戴防災頭套；在戶外或科任教室，用空書包或課本保護頭部🎒。','人數回報：班導師到操場前的指揮中心回報人數。']},
+  firesim:{title:'🔥 火災模擬', key:'mg_firesim', item:'heal', itemName:'🍙 愛心飯糰',
+    rules:['大喊「失火了！」並告訴大人。','小火快逃：壓低身體、摀住口鼻，往下、往外逃，不回頭拿東西。','濃煙關門：門把燙、門外濃煙，就關門塞門縫、到窗邊呼救、打 119。','不搭電梯；衣服著火要「停、躺、滾」。']},
+};
+function drillStart(m){ m.phase='stage'; m.si=0; m.st=0; m.tries=0; m.firstOk=0; m.fb=null; m.order=null; sfx('talk'); }
+function drillChoose(m, i){
+  const S0 = m.stages[m.si]; if(m.phase!=='stage' || m.st < (S0.hold||0)) return;
+  const c = m.order[i]; if(!c) return;
+  m.tries++;
+  if(c.ok && m.tries===1) m.firstOk++;
+  m.fb = {ok:c.ok, r:c.r}; m.phase='fb';
+  sfx(c.ok ? 'ok' : 'bad');
+}
+function drillNext(m){
+  if(m.phase==='ready'){ drillStart(m); return; }
+  if(m.phase!=='fb') return;
+  if(!m.fb.ok){ m.phase='stage'; m.fb=null; return; }       // 答錯：同一題再選一次
+  m.si++; m.st=0; m.tries=0; m.fb=null; m.order=null;
+  if(m.si >= m.stages.length){
+    m.phase='over'; const D = DRILL_INFO[m.kind];
+    if(mgReward(D.key, D.item)) m.reward = `🎁 第一次完成演練：經驗 +10、${D.itemName}！`;
+    sfx('win'); save();
+  } else m.phase='stage';
+}
+function drillScene(m, S0){
+  const g = mgx, sh = (S0.shake && m.phase==='stage' && m.st < (S0.hold||0)+.01 && m.kind==='quake') ? 6 : 0;
+  const ox = sh ? Math.sin(m.t*40)*sh : 0, oy = sh ? Math.cos(m.t*33)*sh*.6 : 0;
+  g.save(); g.translate(ox, oy);
+  const sc = S0.scene;
+  if(sc==='field'){
+    g.fillStyle='#9fd3f0'; g.fillRect(-10,42,820,120); g.fillStyle='#7cc062'; g.fillRect(-10,160,820,240);
+    g.strokeStyle='#fff'; g.lineWidth=4; g.beginPath(); g.ellipse(400,280,330,90,0,0,7); g.stroke();
+    // 指揮中心帳篷
+    g.strokeStyle=MG_INK; g.lineWidth=2.5; rr(g, 520, 150, 170, 70, 4, '#f4f4f4');
+    g.fillStyle='#e25555'; g.beginPath(); g.moveTo(510,152); g.lineTo(605,110); g.lineTo(700,152); g.closePath(); g.fill(); g.stroke();
+    rr(g, 545, 170, 120, 26, 4, '#ffd447'); mgT('指揮中心', 605, 184, 16, MG_INK);
+    // 排好隊的同學
+    for(let r=0;r<3;r++) for(let c=0;c<6;c++){ const x=170+c*44, y=230+r*40; circ(g, x, y, 9, '#f6d2b0'); rr(g, x-9, y+8, 18, 18, 4, ['#5aa9e6','#ff9ecb','#ffd447'][(r+c)%3]); }
+    circ(g, 470, 240, 10, '#f3c9a2'); rr(g, 460, 249, 20, 24, 4, '#8e6bbf'); mgT('班導師', 470, 288, 13, MG_INK);
+  } else if(sc==='corridor' || sc==='stairs' || sc==='door'){
+    g.fillStyle='#e9e2d4'; g.fillRect(-10,42,820,360); g.fillStyle='#cdbfa6'; g.beginPath(); g.moveTo(-10,402); g.lineTo(810,402); g.lineTo(560,240); g.lineTo(240,240); g.closePath(); g.fill();
+    g.strokeStyle=MG_INK; g.lineWidth=2.5; rr(g, 240, 100, 320, 140, 2, '#f6f1e6');
+    rr(g, 350, 112, 100, 26, 3, '#2e9d5b'); mgT('🏃 安全門', 400, 125, 15, '#fff');
+    if(sc==='stairs'){ for(let i=0;i<6;i++) rr(g, 260+i*8, 170+i*12, 120-i*16, 12, 1, '#d4ccb8'); rr(g, 450, 150, 90, 90, 3, '#b8c2cc'); g.beginPath(); g.moveTo(495,150); g.lineTo(495,240); g.stroke(); mgT('電梯', 495, 140, 14, MG_INK); g.strokeStyle='#d62d2d'; g.lineWidth=5; g.beginPath(); g.moveTo(455,155); g.lineTo(535,235); g.moveTo(535,155); g.lineTo(455,235); g.stroke(); }
+    if(sc==='door'){ g.lineWidth=2.5; g.strokeStyle=MG_INK; rr(g, 330, 130, 140, 110, 3, '#a8743a'); circ(g, 450, 190, 6, '#e8590c'); g.strokeStyle='rgba(232,89,12,.8)'; g.lineWidth=2; for(let i=0;i<3;i++){ g.beginPath(); g.moveTo(444+i*6,178); g.quadraticCurveTo(440+i*6+Math.sin(m.t*6+i)*3,168,446+i*6,158); g.stroke(); } }
+    if(S0.onfire){ circ(g, 400, 300, 14, '#f6d2b0'); rr(g, 386, 314, 28, 34, 6, '#5aa9e6'); for(let i=0;i<4;i++){ g.fillStyle=i%2?'#ffb02e':'#ff5a1f'; g.beginPath(); const fx=388+i*8; g.moveTo(fx,346); g.quadraticCurveTo(fx-4+Math.sin(m.t*9+i)*2,326,fx+3,318); g.quadraticCurveTo(fx+8,330,fx+6,346); g.fill(); } }
+  } else { // 教室或科任教室
+    g.fillStyle='#f3e6c8'; g.fillRect(-10,42,820,360); g.fillStyle='#e2b77e'; g.fillRect(-10,300,820,110);
+    g.strokeStyle=MG_INK; g.lineWidth=2.5;
+    if(sc==='class'){ rr(g, 250, 80, 300, 110, 3, '#2e5d45'); mgT('今天的目標：做個校園守護者', 400, 135, 16, '#fff'); }
+    else { rr(g, 230, 90, 340, 90, 3, '#f4f4f4'); mgT('科任教室（音樂教室）', 400, 135, 18, MG_INK); rr(g, 600, 200, 120, 70, 3, '#2b2233'); g.fillStyle='#fff'; g.fillRect(606,236,108,14); }
+    rr(g, 60, 90, 120, 120, 3, '#bfe6ff'); g.beginPath(); g.moveTo(120,90); g.lineTo(120,210); g.moveTo(60,150); g.lineTo(180,150); g.stroke();
+    for(let r=0;r<2;r++) for(let c=0;c<4;c++){ const x=160+c*150, y=250+r*70; rr(g, x, y, 100, 22, 3, '#c58d50'); g.fillStyle='#8a5a2c'; g.fillRect(x+6,y+22,5,30); g.fillRect(x+89,y+22,5,30); }
+    if(S0.duck || m.si>0){ circ(g, 368, 300, 10, '#f6d2b0'); rr(g, 356, 306, 26, 16, 6, '#e86a3c'); mgT('躲好了', 370, 345, 13, MG_INK); }
+    if(sh){ for(let i=0;i<3;i++){ g.fillStyle='rgba(120,90,50,.5)'; g.fillRect(200+i*180+Math.sin(m.t*20+i)*20, 60+((m.t*200+i*60)%220), 8, 8); } }
+  }
+  // 煙
+  if(S0.smoke){ const a = S0.smoke; for(let i=0;i<10;i++){ g.fillStyle=`rgba(70,70,80,${a*.5})`; g.beginPath(); g.arc((i*97+m.t*30)%860-30, 70+(i%3)*30, 60, 0, 7); g.fill(); } g.fillStyle=`rgba(60,60,70,${a*.45})`; g.fillRect(-10,42,820,120); }
+  g.restore();
+  if(S0.alarm && m.phase==='stage' && Math.floor(m.t*4)%2===0){ mgx.fillStyle='rgba(230,50,50,.18)'; mgx.fillRect(0,52,800,350); mgT('🚨', 760, 80, 28, MG_INK); }
+  if(S0.broadcast){ mgPanel(40, 64, 720, 44, '#fff8d6'); mgT(S0.broadcast, 400, 86, 15, '#7a4a00'); }
+}
+function drillMini(kind){
+  return {
+    init(m){ m.phase='ready'; m.si=0; m.st=0; m.reward=''; m.stages = kind==='quake' ? quakeStages(Math.random()<.5?'class':'special') : FIRE_STAGES; },
+    btn(m, id){ if(id==='start'||id==='next') drillNext(m); else if(/^c\d$/.test(id)) drillChoose(m, +id.slice(1)); },
+    key(m, k, down){ if(!down) return; if(m.phase==='over'){ if(k===' '||k==='Enter') restartMini(); return; }
+      if(k===' '||k==='Enter') drillNext(m); else if(/^[1-3]$/.test(k)) drillChoose(m, +k-1); },
+    pointer(){},
+    update(m, dt){ m.t += dt; if(m.phase==='stage') m.st += dt; },
+    draw(m){
+      m.btns = [];
+      const D = DRILL_INFO[kind];
+      mgx.fillStyle='#1d2238'; mgx.fillRect(0,0,800,576);
+      if(m.phase==='ready' || m.phase==='over'){
+        drillScene(m, m.stages[m.phase==='over' ? m.stages.length-1 : 0]);
+        mgx.fillStyle='rgba(10,12,24,.6)'; mgx.fillRect(0,52,800,524);
+        mgPanel(110, 76, 580, 476);
+        mgT(m.phase==='ready' ? D.title : (m.firstOk===m.stages.length ? '🎉 演練滿分！' : '✅ 演練完成！'), 400, 110, 26, MG_INK);
+        let y = 150;
+        if(m.phase==='over'){ mgT(`${m.stages.length} 題中，一次就答對 ${m.firstOk} 題`, 400, y, 17, '#2a6aa8'); y += 34; }
+        mgT(m.phase==='ready' ? '這次演練要記住的原則：' : '再複習一次：', 140, y, 16, '#c0502a', 'left'); y += 30;
+        for(const r of D.rules){ y = mgWrap('• '+r, 140, y, 520, 16, '#4a3a5a', 24) + 34; }
+        if(m.phase==='ready') mgButton(m, 'start', '▶ 開始演練' + (TOUCH ? '' : '（空白鍵）'), 290, 484, 220, 50, true);
+        else {
+          if(m.reward) mgT(m.reward, 400, 470, 15, '#c0502a');
+          mgButton(m, 'again', '🔁 再演練一次', 220, 492, 170, 46, true); mgButton(m, 'exit', '✖ 離開', 410, 492, 170, 46, false);
+        }
+        mgHeader('🚨 防災教育中心・' + D.title.slice(3), TOUCH ? '一步一步選出正確的做法｜✖ 離開' : '按 1～3 或點選項選擇，空白鍵繼續｜Esc 離開');
+        return;
+      }
+      const S0 = m.stages[m.si];
+      drillScene(m, S0);
+      mgHeader('🚨 防災教育中心・' + D.title.slice(3) + `（第 ${m.si+1} / ${m.stages.length} 步）`, TOUCH ? '點選正確的做法｜✖ 離開' : '按 1～3 或點選項選擇，空白鍵繼續｜Esc 離開');
+      mgPanel(30, 404, 740, 160);
+      mgWrap(S0.say, 50, 428, 700, 18, MG_INK, 26);
+      if(m.phase==='stage'){
+        if(m.st < (S0.hold||0)){ mgT(S0.shake && kind==='quake' ? '（搖晃中……）' : '……', 400, 500, 18, '#8a7a9a'); return; }
+        if(!m.order){ m.order = shuffle(S0.choices.slice()); }
+        const n = m.order.length, w = n===2 ? 340 : 226, gap = 12, x0 = 400 - (n*w+(n-1)*gap)/2;
+        m.order.forEach((c,i)=>{
+          const x = x0 + i*(w+gap), y = 462;
+          mgx.strokeStyle=MG_INK; mgx.lineWidth=3; rr(mgx, x, y, w, 90, 10, '#fffdf6');
+          mgT(String(i+1), x+16, y+16, 15, '#c0502a');
+          mgWrap(c.t, x+w/2, y+22, w-34, 15, MG_INK, 21, 'center');
+          m.btns.push({id:'c'+i, x, y, w, h:90});
+        });
+      } else if(m.phase==='fb'){
+        mgx.fillStyle='rgba(10,12,24,.45)'; mgx.fillRect(0,52,800,524);
+        mgPanel(130, 170, 540, 250, m.fb.ok ? '#eaffe6' : '#fff1e6');
+        mgT(m.fb.ok ? '⭕ 做得對！' : '❌ 再想想看', 400, 206, 24, m.fb.ok ? '#2e7d32' : '#c0302a');
+        mgWrap(m.fb.r, 400, 250, 480, 17, MG_INK, 26, 'center');
+        mgButton(m, 'next', m.fb.ok ? (m.si+1>=m.stages.length ? '看結果 ▶' : '下一步 ▶') : '🔁 再選一次', 300, 352, 200, 48, true);
+      }
+    }
+  };
+}
+MINI.quake = drillMini('quake');
+MINI.firesim = drillMini('firesim');
+
+/* ---- 🏺 小孔廟：投壺（先定方向，再定力道，把箭投進壺裡） ---- */
+const POT_N = 8, POT_GOAL = 3, POT_X = 400, POT_Y = 268, POT_P = .64, POT_BAND = .08, POT_MOUTH = 20, POT_EAR = 36;
+const potDepthY = d => 520 - d*(520-POT_Y)/POT_P;          // 遠近 → 畫面上的高度
+const potScale = d => 1 - d*.5;
+const tri = (t, per) => { const u = (t/per) % 1; return u < .5 ? u*2 : 2-u*2; };   // 0→1→0 的三角波（中間速度不會變快）
+function potPress(m){
+  if(m.phase==='ready'){ m.phase='aim'; m.aimT=Math.random()*3; sfx('talk'); return; }
+  if(m.phase==='aim'){ m.phase='power'; m.powT=0; if(mgAudio()) tone(520,.06,'square',0,.04); return; }
+  if(m.phase==='power'){
+    m.fly = {t:0, a:m.aim, p:m.pow}; m.phase='fly';
+    if(mgAudio()) tone(300,.18,'triangle',0,.05);
+  }
+}
+function potResolve(m){
+  const f = m.fly, dx = f.a*160, dd = f.p-POT_P, near = Math.abs(dd) < POT_BAND;
+  let kind = 'miss', msg;
+  if(near && Math.abs(dx) <= POT_MOUTH){ kind='in'; m.inN++; msg='🎯 入壺！'; }
+  else if(near && Math.abs(Math.abs(dx)-POT_EAR) <= 7){ kind='ear'; m.inN++; m.ears++; msg='🌟 貫耳！投進壺耳，超厲害！'; }
+  else if(Math.abs(dd) >= POT_BAND) msg = dd>0 ? '太用力了，飛過頭囉！' : '力氣太小，掉在前面了。';
+  else msg = dx<0 ? '偏左了一點！' : '偏右了一點！';
+  m.marks.push({kind, x:POT_X+dx*potScale(f.p)/potScale(POT_P), d:f.p, a:f.a});
+  m.msg = msg; m.msgOk = kind!=='miss'; m.msgT = 1.6; m.n++; m.fly = null;
+  if(mgAudio()){ if(kind!=='miss'){ tone(880,.08,'triangle',0,.05); tone(1320,.12,'triangle',.08,.05); } else tone(200,.15,'sawtooth',0,.04); }
+  if(m.n >= POT_N){ m.phase='wait'; m.waitT=1.2; }
+  else { m.phase='aim'; m.aimT=Math.random()*3; }
+}
+function potOver(m){
+  m.phase='over';
+  if(m.inN>=POT_GOAL && mgReward('mg_pot','hint')) m.reward = `🎁 第一次投進 ${POT_GOAL} 支：經驗 +10、💡 提示卡！`;
+  sfx(m.inN>=POT_GOAL ? 'win' : 'ok'); save();
+}
+MINI.pot = {
+  init(m){ m.phase='ready'; m.n=0; m.inN=0; m.ears=0; m.aim=0; m.pow=0; m.aimT=0; m.powT=0; m.marks=[]; m.msg=''; m.msgT=0; m.fly=null; m.reward=''; },
+  btn(m, id){ if(id==='start') potPress(m); },
+  key(m, k, down){ if(!down) return; if(m.phase==='over'){ if(k===' '||k==='Enter') restartMini(); return; } if(k===' '||k==='Enter') potPress(m); },
+  pointer(m, type){ if(type==='down' && m.phase!=='over') potPress(m); },
+  update(m, dt){
+    m.t += dt; if(m.msgT>0) m.msgT -= dt;
+    if(m.phase==='aim'){ m.aimT += dt; m.aim = tri(m.aimT, 3.2)*2-1; }
+    if(m.phase==='power'){ m.powT += dt; m.pow = tri(m.powT, 2.6); }
+    if(m.phase==='fly'){ m.fly.t += dt/.85; if(m.fly.t>=1) potResolve(m); }
+    if(m.phase==='wait'){ m.waitT -= dt; if(m.waitT<=0) potOver(m); }
+  },
+  draw(m){
+    m.btns = [];
+    const g = mgx;
+    // 背景：天空、小孔廟紅牆、石板廣場
+    const sky = g.createLinearGradient(0,52,0,200); sky.addColorStop(0,'#9fd3f0'); sky.addColorStop(1,'#dff1fb'); g.fillStyle=sky; g.fillRect(0,52,800,150);
+    g.fillStyle='#c8362e'; g.fillRect(150,110,500,92); g.fillStyle='#2e8b57'; g.fillRect(140,96,520,16); g.fillStyle='#35b39a'; g.fillRect(150,88,500,10);
+    g.strokeStyle='rgba(255,255,255,.35)'; g.lineWidth=1; for(let y=118;y<200;y+=8){ g.beginPath(); g.moveTo(150,y); g.lineTo(650,y); g.stroke(); }
+    rr(g, 365, 130, 70, 72, 2, '#6f9fc0'); g.fillStyle='#e8262a'; g.fillRect(345,130,12,72); g.fillRect(443,130,12,72);
+    g.fillStyle='#d8d2c4'; g.beginPath(); g.moveTo(0,202); g.lineTo(800,202); g.lineTo(800,576); g.lineTo(0,576); g.fill();
+    g.strokeStyle='rgba(120,110,95,.35)'; g.lineWidth=1.2;
+    for(let i=0;i<9;i++){ const y = 202 + Math.pow(i/8,1.6)*374; g.beginPath(); g.moveTo(0,y); g.lineTo(800,y); g.stroke(); }
+    for(let i=-6;i<=6;i++){ g.beginPath(); g.moveTo(400+i*40,202); g.lineTo(400+i*140,576); g.stroke(); }
+    // 地上的箭（沒投進的）
+    for(const k of m.marks) if(k.kind==='miss'){ const y = potDepthY(k.d), s = potScale(k.d); g.strokeStyle='#8a5a2c'; g.lineWidth=3*s; g.beginPath(); g.moveTo(k.x-14*s, y+4); g.lineTo(k.x+14*s, y-2); g.stroke(); g.fillStyle='#e8262a'; g.fillRect(k.x+10*s, y-5, 6*s, 4*s); }
+    // 壺（青銅色，有兩個壺耳）
+    const ps = potScale(POT_P)*1.55, px = POT_X, py = POT_Y;
+    g.strokeStyle=MG_INK; g.lineWidth=2.5;
+    ell(g, px, py+58*ps/1.55, 46, 9, 'rgba(0,0,0,.18)', false);
+    g.fillStyle='#a8743a'; g.beginPath(); g.moveTo(px-16,py); g.quadraticCurveTo(px-18,py+18,px-38,py+34); g.quadraticCurveTo(px-46,py+52,px-24,py+60); g.lineTo(px+24,py+60); g.quadraticCurveTo(px+46,py+52,px+38,py+34); g.quadraticCurveTo(px+18,py+18,px+16,py); g.closePath(); g.fill(); g.stroke();
+    g.fillStyle='rgba(255,255,255,.25)'; g.beginPath(); g.ellipse(px-18,py+40,6,12,-.3,0,7); g.fill();
+    g.strokeStyle='#6f4a1f'; g.lineWidth=2; g.beginPath(); g.moveTo(px-36,py+40); g.lineTo(px+36,py+40); g.stroke();
+    g.strokeStyle=MG_INK; g.lineWidth=2.5;
+    for(const sx of [-1,1]){ rr(g, px+sx*POT_EAR-6, py-4, 12, 22, 4, '#b8853f'); ell(g, px+sx*POT_EAR, py-4, 6, 3, '#3a2410'); }   // 壺耳
+    ell(g, px, py, POT_MOUTH, 6, '#3a2410');   // 壺口
+    // 投進的箭插在壺裡
+    for(const k of m.marks) if(k.kind!=='miss'){ const x = k.kind==='ear' ? px+Math.sign(k.x-px)*POT_EAR : px+(k.x-px)*.6; g.strokeStyle='#8a5a2c'; g.lineWidth=3; g.beginPath(); g.moveTo(x, py); g.lineTo(x+k.a*10, py-44); g.stroke(); g.fillStyle='#e8262a'; g.fillRect(x+k.a*10-3, py-50, 6, 8); }
+    // 瞄準線
+    if(m.phase==='aim' || m.phase==='power'){
+      const tx = POT_X + m.aim*160;
+      g.setLineDash([8,8]); g.strokeStyle='rgba(43,34,51,.55)'; g.lineWidth=3; g.beginPath(); g.moveTo(400,520); g.lineTo(tx, POT_Y); g.stroke(); g.setLineDash([]);
+      circ(g, tx, POT_Y, 7, m.phase==='aim' ? '#ffd447' : '#9be38d');
+    }
+    // 飛行中的箭（拋物線）
+    if(m.fly){
+      const f = m.fly, t = f.t, d = f.p*t, s = potScale(d), x = 400 + f.a*160*t*potScale(d)/potScale(POT_P), y = potDepthY(d) - Math.sin(Math.PI*t)*150*s;
+      const ang = Math.atan2(-(Math.cos(Math.PI*t)*150*s) - 40, 40);
+      g.save(); g.translate(x,y); g.rotate(ang+Math.PI/2); g.strokeStyle='#8a5a2c'; g.lineWidth=4*s; g.beginPath(); g.moveTo(0,-26*s); g.lineTo(0,26*s); g.stroke();
+      g.fillStyle='#e8262a'; g.fillRect(-4*s, 18*s, 8*s, 10*s); g.restore();
+    }
+    // 手上的箭（還沒投）
+    if(m.phase==='aim' || m.phase==='power'){ g.strokeStyle='#8a5a2c'; g.lineWidth=5; g.beginPath(); g.moveTo(400,560); g.lineTo(400+m.aim*20,505); g.stroke(); g.fillStyle='#e8262a'; g.fillRect(396,548,8,12); }
+    // 右邊：力道條
+    mgPanel(712, 120, 64, 380);
+    const bx = 732, by = 140, bh = 340;
+    rr(g, bx, by, 24, bh, 6, '#eee6d8');
+    g.fillStyle='rgba(60,180,90,.55)'; g.fillRect(bx, by+bh*(1-POT_P-POT_BAND), 24, bh*POT_BAND*2);
+    if(m.phase==='power' || m.phase==='fly'){ const v = m.phase==='power' ? m.pow : m.fly.p; g.fillStyle='#e8590c'; g.fillRect(bx-6, by+bh*(1-v)-3, 36, 6); }
+    mgT('力道', 744, 490, 14, MG_INK);
+    // 左邊：成績
+    mgPanel(14, 120, 150, 180);
+    mgT('🏺 投壺', 89, 146, 18, MG_INK);
+    mgT(`第 ${Math.min(m.n+1,POT_N)} / ${POT_N} 支`, 89, 180, 16, '#4a3a5a');
+    mgT(`投進 ${m.inN} 支`, 89, 214, 20, '#2e9d5b');
+    mgT(`貫耳 ${m.ears} 支`, 89, 246, 15, '#c0502a');
+    mgT(`目標：${POT_GOAL} 支`, 89, 276, 13, '#6a5a7a', 'center', false);
+    // 提示文字
+    const tip = m.phase==='aim' ? '① 箭頭左右擺動，對準壺口時按下！' : m.phase==='power' ? '② 力道在綠色區時按下！' : '';
+    if(tip) mgT(tip, 400, 548, 18, MG_INK);
+    if(m.msgT>0){ mgPanel(250, 300, 300, 50, m.msgOk ? '#eaffe6' : '#fff1e6'); mgT(m.msg, 400, 325, 18, m.msgOk ? '#2e7d32' : '#c0502a'); }
+    mgHeader('🏺 小孔廟・投壺', TOUCH ? '點畫面：先定方向，再定力道｜✖ 離開' : '空白鍵或點畫面：先定方向，再定力道｜Esc 離開');
+    if(m.phase==='ready'){
+      g.fillStyle='rgba(10,12,24,.55)'; g.fillRect(0, 52, 800, 524);
+      mgPanel(150, 100, 500, 380);
+      mgT('🏺 投壺', 400, 136, 26, MG_INK);
+      let y = 176;
+      for(const l of ['投壺是古代的禮儀遊戲：站在遠處把箭投進壺裡。', '① 箭頭會左右擺動，對準壺口時按一下。', '② 力道條會上下跑，到綠色區時再按一下。', `共 ${POT_N} 支箭，投進壺口或壺耳都算。投進 ${POT_GOAL} 支有獎勵${S.gift.mg_pot ? '（已經領過囉）' : '（只送一次）'}。`, '古人比賽前後會互相作揖：贏了要謙虛，輸了要恭喜對方！'])
+        y = mgWrap(l, 400, y, 440, 16, '#4a3a5a', 24, 'center') + 34;
+      mgButton(m, 'start', '▶ 開始' + (TOUCH ? '' : '（空白鍵）'), 300, 410, 200, 50, true);
+    }
+    if(m.phase==='over'){
+      mgResult(m, m.inN>=POT_GOAL ? '🎉 投壺高手！' : '🏺 再練習一下！',
+        [`${POT_N} 支箭投進 ${m.inN} 支（貫耳 ${m.ears} 支）`, '投壺重視禮儀：比賽前互相作揖，結束後贏的人要謙虛、輸的人要恭喜對方，這就是運動家精神。'], m.reward);
+    }
+  }
+};
+
 /* ---- 🎹 鋼琴 ---- */
 const PIANO_W = ['Do','Re','Mi','Fa','Sol','La','Si','高Do','高Re','高Mi','高Fa','高Sol'];
 const PIANO_F = [261.63,293.66,329.63,349.23,392,440,493.88,523.25,587.33,659.25,698.46,783.99];
@@ -4662,13 +4968,13 @@ function update(dt){
   P.target = t;
   const hint = $('#hint');
   const key = TOUCH ? '「對話」鍵' : '空白鍵';
-  const txt = t ? (t.npc ? `💬 ${key}：和「${t.npc.name}」說話` : t.stall ? `🚽 ${key}：上廁所` : t.sink ? `🚰 ${key}：洗手` : t.piano ? `🎹 ${key}：彈鋼琴` : t.pc ? `📂 ${key}：檔案打地鼠` : t.sofa ? `🌱 ${key}：心情小花園` : t.fire ? `🧯 ${key}：滅火練習` : t.easel ? `🎨 ${key}：畫畫` :`📋 ${key}：查看`) : (TOUCH ? '左下角搖桿走路｜右上角 📋 任務、🎒 道具' : '方向鍵移動｜Q 任務｜B 道具｜M 地圖｜R 排行榜');
+  const txt = t ? (t.npc ? `💬 ${key}：和「${t.npc.name}」說話` : t.stall ? `🚽 ${key}：上廁所` : t.sink ? `🚰 ${key}：洗手` : t.piano ? `🎹 ${key}：彈鋼琴` : t.pc ? `📂 ${key}：檔案打地鼠` : t.sofa ? `🌱 ${key}：心情小花園` : t.fire ? `🧯 ${key}：滅火練習` : t.easel ? `🎨 ${key}：畫畫` : t.pot ? `🏺 ${key}：投壺` : t.drill ? `🚨 ${key}：防災演練` :`📋 ${key}：查看`) : (TOUCH ? '左下角搖桿走路｜右上角 📋 任務、🎒 道具' : '方向鍵移動｜Q 任務｜B 道具｜M 地圖｜R 排行榜');
   if(hint.textContent!==txt) hint.textContent = txt;
   // 觸控的「對話」鍵：依面前的東西換字；有東西可以互動時輕輕跳動，沒有時變淡
   if(TOUCH){
     const ab = $('#abtn'); let lab, st = '';
     if(DLG) lab = choicesShowing() ? '👆\n點選項' : '▶\n下一句';
-    else if(t){ st = 'go'; lab = t.npc ? '💬\n說話' : t.stall ? '🚽\n上廁所' : t.sink ? '🚰\n洗手' : t.piano ? '🎹\n彈琴' : t.pc ? '📂\n打地鼠' : t.sofa ? '🌱\n放鬆' : t.fire ? '🧯\n滅火' : t.easel ? '🎨\n畫畫' : t.book ? '📖\n看書' : '📋\n查看'; }
+    else if(t){ st = 'go'; lab = t.npc ? '💬\n說話' : t.stall ? '🚽\n上廁所' : t.sink ? '🚰\n洗手' : t.piano ? '🎹\n彈琴' : t.pc ? '📂\n打地鼠' : t.sofa ? '🌱\n放鬆' : t.fire ? '🧯\n滅火' : t.easel ? '🎨\n畫畫' : t.pot ? '🏺\n投壺' : t.drill ? '🚨\n演練' : t.book ? '📖\n看書' : '📋\n查看'; }
     else { lab = '對話'; st = 'idle'; }
     if(ab.textContent!==lab) ab.textContent = lab;
     if(ab.dataset.st!==st){ ab.dataset.st = st; ab.classList.toggle('go', st==='go'); ab.classList.toggle('idle', st==='idle'); }
