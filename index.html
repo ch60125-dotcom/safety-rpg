@@ -31,6 +31,7 @@
   #hLv b{font-size:17px}
   #hName{font-weight:bold;font-size:16px}
   #hTitle{font-size:12px;color:#8a6127}
+  #paper.perfect{outline:6px double #d4a017;outline-offset:-16px}
   .expbar{width:140px;height:9px;background:#e9dcc0;border:2px solid var(--ink);border-radius:6px;margin-top:3px;overflow:hidden}
   .expbar i{display:block;height:100%;background:linear-gradient(180deg,#8fe0ff,#3c9be0);width:0;transition:width .4s}
   #hRight{display:flex;gap:6px;align-items:center;pointer-events:auto}
@@ -621,7 +622,7 @@ function building(x1,y1,x2,y2){ R('#',x1,y1,x2,y2); R(',',x1+1,y1+1,x2-1,y2-1); 
   // 美術教室：3 個畫架、2 張大桌
   building(81,2,88,9); map[9][84]='D'; for(const x of [82,84,86]) map[3][x]='A';
   R('k',82,6,83,6); R('k',86,6,87,6); map[8][87]='p'; map[8][82]='p';
-  R('#',90,2,93,5);                  // 廚房（裝飾，不能進去）
+  R('y',90,2,93,5);                  // 廚房（另外畫，裝飾，不能進去）
   // ===== 南耘樓 =====
   // 幼兒園：繪本書架、小桌子、積木、搖搖馬（門在下方）
   building(1,13,7,20); map[20][4]='D'; map[14][2]='B'; map[14][3]='B'; map[14][6]='p';
@@ -648,6 +649,8 @@ function building(x1,y1,x2,y2){ R('#',x1,y1,x2,y2); R(',',x1+1,y1+1,x2-1,y2-1); 
   R('_',10,29,14,30); R('i',11,29,13,30);   // 小孔廟（和假山隔一段距離）
   R('_',9,31,15,31); R('F',9,32,15,32);
   R('v',3,32,8,33);                  // 菜圃
+  map[33][2]='w';                    // 菜圃旁的水龍頭（新座標 2,36）
+  map[12][65]='u';                   // 籃球場邊的「球場使用登記板」（新座標 65,15）
   for(let y=23;y<=41;y+=2){ map[y][17]='m'; map[y][21]='m'; }  // 椰子樹
   // 榕樹區（東南角）
   R('n',83,36,84,37);
@@ -684,6 +687,9 @@ const EXTRA_TALK = {
   m:'（椰子樹：高高的椰子樹排在校門口大道兩旁。颱風天要小心掉下來的葉子和椰子！）',
   n:'（大榕樹：好多根垂下來的氣根，樹蔭下好涼快。不可以爬上去或拉氣根盪鞦韆喔！）',
   i:'【小孔廟】供奉至聖先師孔子，是學校的小古蹟。經過時要保持安靜，愛護古蹟，不可以在牆上塗鴉喔！',
+  y:'【廚房】廚房阿姨們每天在這裡幫全校準備營養午餐，不可以進去玩喔！吃完飯要把廚餘倒進廚餘桶、餐具分類放好，謝謝阿姨的辛苦！',
+  w:'（水龍頭：用完一定要關緊，節約用水！）',
+  u:'【球場使用登記板】想用籃球場的班級和同學，請在這裡登記，依照順序輪流使用。',
   x:'【司令台】升旗典禮時，師長會在這裡跟大家說話。上下台階要慢慢走，不可以在台上追逐，也不可以從台邊跳下來喔！',
   E:'（大象溜滑梯：這是校園裡的藝術裝置，只能欣賞、拍照，不能爬上去或溜滑梯喔！）',
   q:'（積木：大家一起玩要輪流、分享，玩完要收回籃子裡喔！）',
@@ -712,9 +718,9 @@ const EXTRA_TALK = {
   Z:'（設備櫃：放著備用的燈管、延長線和工具，只有大人可以拿喔！）'
 };
 
-const SOLID = new Set(['x','#','T','W','v','m','n','r','i','q','j','E','f','k','b','c','e','h','p','S','P','L','B','Y','C','U','V','G','O','N','J','X','R','K','M','A','H','Z']);
+const SOLID = new Set(['y','w','u','x','#','T','W','v','m','n','r','i','q','j','E','f','k','b','c','e','h','p','S','P','L','B','Y','C','U','V','G','O','N','J','X','R','K','M','A','H','Z']);
 const NPC_WALK = new Set(['.','_','t',',','F','o']);
-const BG = {T:'.',F:'.',f:'.',S:'.',P:'.',L:'_',k:',',c:',',e:',',h:',',p:',',b:'#',Q:'#',D:',',g:'_',B:',',Y:',',C:',',U:',',V:',',G:'.',O:',',m:'.',n:'.',r:'.',i:'_',x:'.',q:',',j:',',E:'.',N:',',J:',',X:',',R:'.',K:'.',M:',',A:',',H:',',Z:','};
+const BG = {T:'.',F:'.',f:'.',S:'.',P:'.',L:'_',k:',',c:',',e:',',h:',',p:',',b:'#',Q:'#',D:',',g:'_',B:',',Y:',',C:',',U:',',V:',',G:'.',O:',',m:'.',n:'.',r:'.',i:'_',x:'.',y:'.',w:'.',u:'.',q:',',j:',',E:'.',N:',',J:',',X:',',R:'.',K:'.',M:',',A:',',H:',',Z:','};
 const BOOK_TIPS = [
   '📕《小心！陌生人》：不跟陌生人走、不吃陌生人給的東西、不告訴陌生人個人資料。',
   '📗《地震來了怎麼辦》：趴下、掩護、穩住！搖晃停止後再聽指示疏散。',
@@ -745,7 +751,6 @@ const BLD = [
   {k:'office',    x1:20,y1:2, x2:27,y2:7, roof:'#5f8a55', wall:'#f3f6ee', trim:'#3f5a32', glow:'240,245,215'},
   // 裝飾用的建築（不能進去）
   {k:'kinder',    x1:1, y1:16,x2:7, y2:23, roof:'#f2994a', wall:'#fff3dc', trim:'#c0603a', glow:'255,225,180'},
-  {k:'kitchen',   x1:90,y1:2, x2:93,y2:5,  roof:'#d24a3d', wall:'#f1e4d6', trim:'#7b2c24', deco:true},
 ];
 const bldAt = (x,y) => BLD.find(b=>x>=b.x1&&x<=b.x2&&y>=b.y1&&y<=b.y2);
 const isWall = c => c==='#'||c==='b'||c==='Q';
@@ -782,7 +787,8 @@ const miniCv = document.createElement('canvas'); miniCv.width = MW*MS; miniCv.he
   plaque(g,'總務處', 24*TS, 2*TS+20);
   plaque(g,'幼兒園', 6*TS, 23*TS+20);
   drawElephant(g);
-  plaque(g,'廚　房', 92*TS, 5*TS+20);
+  drawKitchen(g);
+  plaque(g,'廚　房', 92*TS, 6*TS+12);
   drawStage(g);
   plaque(g,'司令台', 59*TS, 23*TS+22);
   drawTemple(g);
@@ -794,7 +800,7 @@ const miniCv = document.createElement('canvas'); miniCv.width = MW*MS; miniCv.he
   plaque(g, SCHOOL_NAME, 14.5*TS, 47*TS+16, true);
   // 小地圖
   const m = miniCv.getContext('2d');
-  const MC = {'x':'#c8553d','r':'#8a7a68','i':'#d8362e','o':'#5f9e6e','v':'#8a5a34','m':'#3d8a43','n':'#2f7a3a','.':'#86c96e','_':'#e6d6b0','g':'#e6d6b0','=':'#4f525a','z':'#d8d8d8','t':'#c9573f','W':'#3f97d6','T':'#3d8a43','F':'#f29ab5','f':'#f4f4f4','S':'#a8733e','P':'#bbb','L':'#666'};
+  const MC = {'y':'#9aa3ad','x':'#c8553d','r':'#8a7a68','i':'#d8362e','o':'#5f9e6e','v':'#8a5a34','m':'#3d8a43','n':'#2f7a3a','.':'#86c96e','_':'#e6d6b0','g':'#e6d6b0','=':'#4f525a','z':'#d8d8d8','t':'#c9573f','W':'#3f97d6','T':'#3d8a43','F':'#f29ab5','f':'#f4f4f4','S':'#a8733e','P':'#bbb','L':'#666'};
   for(let y=0;y<MH;y++) for(let x=0;x<MW;x++){
     const c = map[y][x], b = bldAt(x,y);
     m.fillStyle = b ? (isWall(c) ? b.roof : lighten(b.roof,.72)) : (y>=48 && c==='_' ? '#c9c6bf' : (MC[c]||'#86c96e'));
@@ -958,6 +964,28 @@ function drawPlayground(g){
   g.strokeStyle='rgba(43,34,51,.35)'; g.lineWidth=1; for(let i=0;i<5;i++){ g.beginPath(); g.moveTo(fx+3,fy+fh/2-15+i*8); g.lineTo(fx+9,fy+fh/2-15+i*8); g.moveTo(fx+fw-9,fy+fh/2-15+i*8); g.lineTo(fx+fw-3,fy+fh/2-15+i*8); g.stroke(); }
   g.fillStyle='rgba(255,255,255,.95)'; g.font='bold 15px "Microsoft JhengHei",sans-serif'; g.textAlign='center'; g.textBaseline='middle';
   g.fillText('操　場', x1+w/2, y1+21);
+}
+function drawKitchen(g){ // 廚房：鐵皮屋頂＋排煙管、白牆、送餐窗口、餐車、廚餘桶、回收籃
+  const X=90*TS, Y=2*TS, W=4*TS;   // 128×128
+  g.lineJoin='round'; g.strokeStyle=OL; g.lineWidth=1.5;
+  ell(g, X+W/2, Y+124, 66, 6, 'rgba(30,20,40,.22)', false);
+  rr(g, X+4, Y+26, W-8, 74, 2, '#f6f3ee');                     // 白牆
+  rr(g, X, Y+8, W, 22, 3, '#9aa3ad');                          // 鐵皮屋頂
+  g.strokeStyle='#7d8790'; g.lineWidth=2; for(let x=X+8; x<X+W-4; x+=10){ g.beginPath(); g.moveTo(x,Y+10); g.lineTo(x,Y+28); g.stroke(); }
+  g.strokeStyle=OL; g.lineWidth=1.5;
+  rr(g, X+96, Y-6, 12, 16, 1, '#c9ced3');                      // 排煙管
+  rr(g, X+10, Y+38, 30, 22, 2, '#bfe6ff'); g.beginPath(); g.moveTo(X+25,Y+38); g.lineTo(X+25,Y+60); g.stroke();   // 窗戶
+  rr(g, X+46, Y+40, 46, 30, 2, '#d8dde2'); rr(g, X+46, Y+40, 46, 9, 2, '#e25555');                          // 送餐窗口
+  g.fillStyle='#fff'; g.font='bold 7px "Microsoft JhengHei",sans-serif'; g.textAlign='center'; g.textBaseline='middle'; g.fillText('送餐窗口', X+69, Y+44.5);
+  g.fillStyle='rgba(255,255,255,.5)'; g.fillRect(X+50, Y+52, 38, 3);
+  rr(g, X+98, Y+52, 22, 48, 2, '#8a5a2c'); circ(g, X+115, Y+77, 1.8, '#ffd447');   // 木門
+  g.fillStyle='#c9c6bf'; g.fillRect(X+4, Y+100, W-8, 4);
+  // 餐車
+  rr(g, X+8, Y+108, 40, 12, 3, '#c9ced3'); circ(g, X+14, Y+122, 3, '#2b2233'); circ(g, X+42, Y+122, 3, '#2b2233');
+  rr(g, X+11, Y+101, 10, 8, 1, '#ffb36b'); rr(g, X+23, Y+101, 10, 8, 1, '#9be38d'); rr(g, X+35, Y+101, 10, 8, 1, '#fff4c2');
+  // 廚餘桶、回收籃
+  rr(g, X+78, Y+106, 18, 18, 2, '#3cb371'); g.fillStyle='#fff'; g.font='bold 8px "Microsoft JhengHei",sans-serif'; g.fillText('廚餘', X+87, Y+115);
+  rr(g, X+100, Y+108, 18, 16, 2, '#3c7fd0'); g.fillStyle='#fff'; g.fillText('回收', X+109, Y+116);
 }
 function drawStage(g){ // 司令台：後牆、屋頂、柱子、高台、中間樓梯、講台
   const X=56*TS, Y=20*TS, W=6*TS, H=4*TS, cx=X+W/2;   // 192×128
@@ -1298,6 +1326,17 @@ function drawStatic(g,c,tx,ty){
       rr(g, X+7, Y+8, 18, 9, 4, '#f2c27a');
       rr(g, X+21, Y+1, 8, 11, 3, '#f2c27a'); g.fillStyle=OL; g.beginPath(); g.arc(X+26,Y+5,1.2,0,7); g.fill();
       g.fillStyle='#e25555'; g.fillRect(X+20,Y+1,3,8); rr(g, X+12, Y+7, 7, 4, 1, '#3c8de0');
+      break;
+    case 'w': // 水龍頭＋水桶
+      g.fillStyle='rgba(0,0,0,.15)'; g.fillRect(X+6,Y+26,22,4);
+      rr(g, X+13, Y+2, 6, 22, 1, '#9aa6b2'); rr(g, X+13, Y+4, 14, 5, 2, '#b8c2cc'); circ(g, X+16, Y+3, 3, '#3c7fd0');
+      rr(g, X+18, Y+16, 12, 11, 2, '#5aa9e6'); g.fillStyle='#bfe6ff'; g.fillRect(X+20, Y+18, 8, 3);
+      break;
+    case 'u': // 球場使用登記板
+      g.fillStyle='rgba(0,0,0,.18)'; g.fillRect(X+4,Y+26,26,4);
+      g.fillStyle='#7a4a24'; g.fillRect(X+6,Y+14,3,14); g.fillRect(X+23,Y+14,3,14);
+      rr(g, X+1, Y-8, 30, 24, 2, '#2e6b4f'); g.fillStyle='#fff'; g.font='bold 7px "Microsoft JhengHei",sans-serif'; g.textAlign='center'; g.textBaseline='middle'; g.fillText('使用登記', X+16, Y-3);
+      g.fillStyle='rgba(255,255,255,.75)'; for(let i=0;i<3;i++) g.fillRect(X+6, Y+3+i*4, 20, 1.5);
       break;
     case 'Y':
       g.fillStyle='rgba(0,0,0,.15)'; g.fillRect(X+4,Y+27,26,4);
@@ -1859,7 +1898,7 @@ addNPC({id:'s2', x:55, y:32, name:'小花', wander:[42,29,63,34],
   look:{skin:'#e8b98f',hair:'#5a3a1a',shirt:'#ffd447',pants:'#3a5',long:true},
   talk(n){
     if(S.hq.bottle===2){ S.hq.bottle=3; say(['啊！這是我的粉紅色水壺！你在哪裡找到的？','謝謝你！撿到東西還給主人，你真的好棒！'],{name:n.name, onEnd:()=>hqComplete('bottle')}); return; }
-    if(S.hq.bottle<2 && !S.hq.done.bottle){ S.hq.bottle=1; hqDiscover('bottle'); say(['嗚嗚……我的粉紅色水壺不見了……','好像是在校園右下角的榕樹區玩的時候弄丟的……','如果你有看到，可以幫我拿回來嗎？'],{name:n.name}); return; }
+    if(S.hq.bottle<2 && !S.hq.done.bottle){ S.hq.bottle=1; hqDiscover('bottle'); say(['嗚嗚……我的粉紅色水壺不見了……','好像是在校園右上角、小溪旁邊的步道那裡玩的時候弄丟的……','如果你有看到，可以幫我拿回來嗎？'],{name:n.name}); return; }
     say(['我們在玩鬼抓人，要一起玩嗎？','大家輪流當鬼才公平，也不可以故意不讓別人加入喔！'],{name:n.name}); }});
 addNPC({id:'s3', x:94, y:33, name:'阿哲', wander:[94,23,95,43],
   look:{skin:'#f6d2b0',hair:'#3b2a1a',shirt:'#5aa9e6',pants:'#2c3e60'},
@@ -2019,6 +2058,24 @@ addNPC({id:'sport', x:39, y:31, name:'體育組長 徐組長', dir:'left',
         [['直接全力衝刺，比較快熱起來','沒有暖身就衝刺，很容易拉傷或扭傷喔！'],['先吃很多零食補充體力','運動前吃太飽反而會不舒服喔！先暖身才是對的。']],
         '答對了！暖身做得好，運動沒煩惱！', 'shield', 'sport', '這個「守護盾」送你，運動和挑戰都要平安！')});
   }});
+addNPC({id:'farmer', x:5, y:37, name:'種菜志工 秀蘭阿姨', dir:'up',
+  look:{skin:'#e8b98f',hair:'#5a3a1a',shirt:'#6bbf8e',pants:'#6b4a2a',long:true,hat:'cap',hatColor:'#f2c27a'},
+  talk(n){ ctTalkFarmer(n); }});
+addNPC({id:'senior', x:68, y:20, name:'六年級 阿凱學長', dir:'down',
+  look:{skin:'#e8b98f',hair:'#111',shirt:'#e25555',pants:'#2c3e60'},
+  talk(n){ ctTalkSenior(n); }});
+addNPC({id:'midkid', x:64, y:17, name:'四年級 小芸', dir:'right',
+  look:{skin:'#f6d2b0',hair:'#3b2a1a',shirt:'#5aa9e6',pants:'#333',long:true},
+  talk(n){ ctTalkWaiter(n, ['我們班想打籃球，已經等好久了……','學長他們每節下課都佔著整個球場，都不讓我們打。']); }});
+addNPC({id:'lowkid', x:64, y:21, name:'二年級 小豆', dir:'right',
+  look:{skin:'#f6d2b0',hair:'#6b3e1e',shirt:'#ffd447',pants:'#3a5'},
+  talk(n){ ctTalkWaiter(n, ['我也想玩投籃……','可是大哥哥說我們太矮了，叫我們走開。嗚嗚……']); }});
+addNPC({id:'nature', x:81, y:41, name:'自然科 王老師', dir:'right',
+  look:{skin:'#f3c9a2',hair:'#4a3a3a',shirt:'#8fbf6b',pants:'#555',glasses:true,item:'book'},
+  talk(n){ ctTalkNature(n); }});
+addNPC({id:'climber', x:85, y:40, name:'三年級 阿翔', dir:'up',
+  look:{skin:'#e8b98f',hair:'#222',shirt:'#ff9a4a',pants:'#2c3e60'},
+  talk(n){ ctTalkClimber(n); }});
 addNPC({id:'kinder', x:5, y:18, name:'幼兒園 吳老師', dir:'down',
   look:{skin:'#f6d2b0',hair:'#5a3a1a',shirt:'#ffb36b',pants:'#555',long:true,item:'book'},
   talk(n){ say(['歡迎來幼兒園！這裡的小朋友年紀比較小。','看到學弟妹要溫柔，玩溜滑梯和遊戲器材時要排隊、讓他們先玩，不可以推擠喔！','書架上的繪本大家都可以看，看完記得放回原來的位置。'],{name:n.name}); }});
@@ -2390,7 +2447,7 @@ window.addEventListener('keydown', e=>{
   if(e.repeat && (e.key===' '||e.key==='Enter')) return;
   if(scene==='title'){ if(boardOpen() && (e.key==='Escape'||e.key===' '||e.key==='Enter')) closeBoard(); return; }
   if(scene==='cert'){ if(e.key==='Escape') $('#btnCertClose').click(); return; }
-  if(scene==='celebrate'){ if((e.key===' '||e.key==='Enter') && CEL && CEL.t>2.5) endCelebrate(); return; }
+  if(scene==='celebrate'){ if((e.key===' '||e.key==='Enter') && CEL && CEL.t>(CEL.perfect?8:2.5)) endCelebrate(); return; }
   if(scene==='battle'){ battleKey(e.key); return; }
   if(scene==='mini'){
     if(!e.ctrlKey && !e.metaKey && !e.altKey && e.key.length===1) e.preventDefault();
@@ -2442,8 +2499,8 @@ function currentDir(){ for(let i=order.length-1;i>=0;i--) if(held[order[i]]) ret
   pad.addEventListener('pointermove', e=>{ if(e.pointerId===pid){ e.preventDefault(); move(e); } });
   pad.addEventListener('pointerup', end); pad.addEventListener('pointercancel', end); pad.addEventListener('lostpointercapture', end);
 })();
-$('#cv').addEventListener('pointerdown', ()=>{ if(scene==='celebrate' && CEL && CEL.t>2.5) endCelebrate(); });
-$('#abtn').addEventListener('pointerdown', e=>{ e.preventDefault(); if(scene==='celebrate'){ if(CEL && CEL.t>2.5) endCelebrate(); return; } if(scene!=='play') return; if(QTE){ endQTE(true); return; } if(DLG){ if(choicesShowing()) nudgeChoices(); else dialogKey(' '); } else if($('#panel').classList.contains('hidden')) interact(); });
+$('#cv').addEventListener('pointerdown', ()=>{ if(scene==='celebrate' && CEL && CEL.t>(CEL.perfect?8:2.5)) endCelebrate(); });
+$('#abtn').addEventListener('pointerdown', e=>{ e.preventDefault(); if(scene==='celebrate'){ if(CEL && CEL.t>(CEL.perfect?8:2.5)) endCelebrate(); return; } if(scene!=='play') return; if(QTE){ endQTE(true); return; } if(DLG){ if(choicesShowing()) nudgeChoices(); else dialogKey(' '); } else if($('#panel').classList.contains('hidden')) interact(); });
 // 觸控時一直按「對話」跳過文字，不可以順便幫孩子選掉答案：選項出現後一定要點選項
 function choicesShowing(){ return !!(DLG && DLG.choices && DLG.i===DLG.lines.length-1 && DLG.shown>=DLG.lines[DLG.i].t.length); }
 function nudgeChoices(){ const c=$('#dChoices'); c.classList.remove('nudge'); void c.offsetWidth; c.classList.add('nudge'); }
@@ -2468,6 +2525,10 @@ function facingTarget(){
   if(c==='A') return {easel:true, x:ax, y:ay};
   if(c==='c') return {sofa:true, x:ax, y:ay};
   if(c==='i') return {pot:true, x:ax, y:ay};
+  const ts = TREE_SPOTS.find(o=>o.x===ax&&o.y===ay); if(ts && S.ct.tree>=1 && S.ct.tree<3) return {treeSpot:ts, x:ax, y:ay};
+  if(c==='v' && S.ct.veg===1) return {vegCol:ax, x:ax, y:ay};
+  if(c==='w') return {faucet:true, x:ax, y:ay};
+  if(c==='u' && S.ct.ball>=3) return {board:true, x:ax, y:ay};
   if(c==='h' && bldAt(ax,ay) && bldAt(ax,ay).k==='disaster') return {drill:true, x:ax, y:ay};
   if(c==='Q' && badgeCount()<5) return {text:`🔒 校長室：集滿 5 枚守護徽章才能進入（目前 ${badgeCount()}/5）。還沒拿到的徽章可以按「📋 任務」查看。`, x:ax, y:ay};
   if(EXTRA_TALK[c]) return {text:EXTRA_TALK[c], x:ax, y:ay};
@@ -2494,6 +2555,10 @@ function interact(){
   else if(t.pc) say(['電腦裡有「檔案打地鼠」：正常的檔案才點，病毒和詐騙不能點！要玩嗎？（玩完記得讓眼睛休息）'], {name:'💻 電腦', choices:[{t:'📂 玩檔案打地鼠', f:()=>startMini('whack')},{t:'先不用了'}]});
   else if(t.sofa) say(['舒服的沙發。要坐下來，到「心情小花園」放鬆一下嗎？'], {name:'🛋️ 沙發', choices:[{t:'🌱 去心情小花園', f:()=>startMini('calm')},{t:'先不用了'}]});
   else if(t.fire) say(['這是練習用滅火器。真的失火要先大喊「失火了」，小朋友以逃生為優先！要練習「拉、瞄、壓、掃」嗎？'], {name:'🧯 滅火器', choices:[{t:'🧯 來練習滅火', f:()=>startMini('fire')},{t:'先不用了'}]});
+  else if(t.treeSpot) ctTreeSpot(t.treeSpot);
+  else if(t.vegCol!==undefined) ctWater(t.vegCol);
+  else if(t.faucet) ctFaucet();
+  else if(t.board) ctBoard();
   else if(t.drill) say(['防災器材櫃裡有防災頭套、手電筒和急救箱。要進行哪一種防災演練？'], {name:'🚨 防災演練', choices:[{t:'🌏 地震模擬', f:()=>startMini('quake')},{t:'🔥 火災模擬', f:()=>startMini('firesim')},{t:'先不用了'}]});
   else if(t.pot) say(['小孔廟供奉至聖先師孔子，經過時要保持安靜、愛護古蹟。廟前放著一個「投壺」，這是古代的禮儀遊戲，要試試看嗎？'], {name:'⛩️ 小孔廟', choices:[{t:'🏺 來玩投壺', f:()=>startMini('pot')},{t:'先不用了'}]});
   else if(t.easel) say(['畫架上有白紙和畫筆。要畫一張畫嗎？'], {name:'🎨 畫架', choices:[{t:'🎨 來畫畫', f:()=>startMini('art')},{t:'先不用了'}]});
@@ -2581,11 +2646,14 @@ function togglePanel(){
     const q=HQ[k], seen=S.hq.seen[k]||S.hq.done[k], done=S.hq.done[k];
     h += `<div class="qrow"><span style="font-size:22px">${done?'✅':seen?'🔎':'❓'}</span><b>${seen?q.name:'❓❓❓'}</b><small>${seen ? q.desc+'（'+hqProgress(k)+'）' : '還沒發現……到處走走、跟大家聊聊吧！'}</small></div>`;
   }
+  h += `<h3>🏫 校園任務（${ctDoneCount()}/${CT_KEYS.length}，不計分，完成有小禮物）</h3>`;
+  for(const k of CT_KEYS){ const q=CT[k], d=S.ct.done[k]; h += `<div class="qrow"><span style="font-size:22px">${d?'✅':'⬜'}</span><b>${q.name}</b><small>📍${q.where}｜${q.desc}（${ctProgress(k)}）</small></div>`; }
+  h += `<div class="qrow"><span style="font-size:22px">${S.perfect?'🌟':'⬜'}</span><b>🌟 完美守護者</b><small>${S.perfect ? '你完成了全部任務！' : '五大任務、大魔王、隱藏任務、校園任務全部完成，會有特別的典禮（小遊戲和金徽章不用）'}</small></div>`;
   // 小遊戲：列出在哪裡玩、玩過了沒（不計分）
   const MG_LIST = [['mg_piano','🎹 彈鋼琴','音樂教室的鋼琴'],['mg_whack','📂 檔案打地鼠','電腦教室的電腦'],['mg_fire','🧯 滅火練習','防災教育中心的滅火器'],['mg_quake','🌏 地震模擬','防災教育中心的器材櫃'],['mg_firesim','🔥 火災模擬','防災教育中心的器材櫃'],['mg_art','🎨 畫畫','美術教室的畫架'],['mg_calm','🌱 心情小花園','輔導室的沙發'],['mg_pot','🏺 投壺','小孔廟']];
   h += `<h3>🎮 小遊戲（${MG_LIST.filter(g=>S.gift[g[0]]).length}/${MG_LIST.length}，不計分，第一次完成有小禮物）</h3>`;
   for(const [k,n,w] of MG_LIST) h += `<div class="qrow"><span style="font-size:22px">${S.gift[k]?'✅':'⬜'}</span><b>${n}</b><small>📍面向${w}，按${TOUCH?'「對話」鍵':'空白鍵'}</small></div>`;
-  const owned = Object.keys(ACC).filter(a=>HQ_KEYS.some(k=>S.hq.done[k] && HQ[k].reward===a));
+  const owned = Object.keys(ACC).filter(a=>HQ_KEYS.some(k=>S.hq.done[k] && HQ[k].reward===a) || (a==='gold' && S.perfect));
   if(owned.length){
     h += `<h3>👕 我的造型</h3><div><button class="cbtn acc ${!S.acc?'on':''}" data-a="">不穿戴</button>` +
          owned.map(a=>`<button class="cbtn acc ${S.acc===a?'on':''}" data-a="${a}">${ACC[a].name}</button>`).join('') + '</div>';
@@ -2594,11 +2662,13 @@ function togglePanel(){
     <button class="cbtn" id="pClose">關閉</button>
     <button class="cbtn" id="pDress">🎨 換裝</button>
     ${S.done?'<button class="cbtn" id="pCert">📜 我的獎狀</button>':''}
+    ${S.perfect?'<button class="cbtn" id="pPerfect">🏆 再看一次典禮</button>':''}
     <button class="cbtn" id="pReset">🔄 重新開始</button></div>`;
   p.innerHTML = h; p.classList.remove('hidden');
   $('#pClose').onclick = togglePanel;
   p.querySelectorAll('.acc').forEach(b=>b.onclick=()=>{ S.acc = b.dataset.a; refreshLook(); save(); sfx('talk'); togglePanel(); togglePanel(); });
   if($('#pCert')) $('#pCert').onclick = ()=>{ togglePanel(); showCert(); };
+  if($('#pPerfect')) $('#pPerfect').onclick = ()=>{ togglePanel(); perfectCeremony(true); };
   $('#pDress').onclick = ()=>{ togglePanel(); openDresser(true); };
   $('#pReset').onclick = ()=>{ if(confirm('確定要清除進度、回到標題畫面嗎？')){ try{ localStorage.removeItem('campusGuardianSave'); }catch(e){} location.reload(); } };
 }
@@ -2631,7 +2701,7 @@ function updateHUD(pop){
   const lv = level();
   $('#hLvN').textContent = lv;
   $('#hName').textContent = (S.cls ? S.cls+' ' : '') + S.name;
-  $('#hTitle').textContent = (S.done ? '👑 校園守護者' : LV_TITLES[Math.min(lv-1, LV_TITLES.length-1)]) + `｜⭐ ${calcScore()} 分`;
+  $('#hTitle').textContent = (S.perfect ? '🌟 完美守護者' : S.done ? '👑 校園守護者' : LV_TITLES[Math.min(lv-1, LV_TITLES.length-1)]) + `｜⭐ ${calcScore()} 分`;
   $('#hExp').style.width = ((S.exp%60)/60*100)+'%';
   $('#badges').innerHTML = TOPIC_KEYS.map(k=>`<span class="${S.badges[k] && flyingBadge!==k?'on':''}${S.gold&&S.gold[k]?' gold':''}${pop===k?' pop':''}" title="${TOPICS[k].badge}${S.gold&&S.gold[k]?'（金徽章）':''}">${TOPICS[k].icon}</span>`).join('');
 }
@@ -2748,13 +2818,17 @@ function updateCel(dt){
     if(!muted) sfx('talk');
   }
   for(let i=CEL.fw.length-1;i>=0;i--){ const f=CEL.fw[i]; f.l-=dt; if(f.l<=0){ CEL.fw.splice(i,1); continue; } f.x+=f.vx*dt; f.y+=f.vy*dt; f.vy+=60*dt; f.vx*=.985; }
-  if(CEL.t>12) endCelebrate();
+  if(CEL.perfect){ const n = Math.min(CEL.list.length, Math.max(0, Math.floor((CEL.t-1.2)/.45))); if(n>CEL.shown){ CEL.shown=n; if(mgAudio()) tone(880+n*30,.1,'triangle',0,.05); } }
+  if(CEL.t > (CEL.perfect ? 17 : 12)) endCelebrate();
 }
 function endCelebrate(){
   if(!CEL) return;
   for(const s of CEL.saved){ Object.assign(s.n, {x:s.x, y:s.y, px:s.px, py:s.py, dir:s.dir, moving:s.moving}); }
   P.x=CEL.p.x; P.y=CEL.p.y; P.px=P.x*TS; P.py=P.y*TS; P.dir=CEL.p.dir;
-  CEL=null; scene='play'; checkZone(); showCert();
+  const perfect = CEL.perfect, replay = CEL.replay;
+  CEL=null; scene='play'; checkZone();
+  if(perfect && !replay){ S.perfect = true; S.acc = 'gold'; refreshLook(); save(); updateHUD(); toast('🌟 獲得稱號「完美守護者」和造型「✨ 完美守護者金披風」！', true, 4500); }
+  showCert();
 }
 function drawCelebrate(){
   if(!CEL) return;
@@ -2774,9 +2848,16 @@ function drawCelebrate(){
   rr(ctx, -255, -30, 510, 60, 12, '#f6c445');
   ctx.fillStyle='rgba(255,255,255,.35)'; ctx.fillRect(-247,-24,494,6);
   ctx.fillStyle=OL; ctx.font='900 30px "Microsoft JhengHei",sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
-  ctx.fillText(`🎉 恭喜 ${S.name} 成為校園守護者！`, 0, 2);
+  ctx.fillText(CEL.perfect ? `🌟 ${S.name} 完美達成所有任務！` : `🎉 恭喜 ${S.name} 成為校園守護者！`, 0, 2);
   ctx.restore();
-  if(CEL.t>2.5){ ctx.globalAlpha=.6+.4*Math.sin(T*4); ctx.fillStyle='#fff'; ctx.strokeStyle=OL; ctx.lineWidth=4; ctx.font='bold 18px "Microsoft JhengHei",sans-serif'; ctx.textAlign='center';
+  if(CEL.perfect){ // 回顧清單
+    const L = CEL.list, w = 240, x0 = VW - w - 16, y0 = 130, h = 30 + L.length*21;
+    ctx.globalAlpha = .92; ctx.lineWidth=3; ctx.strokeStyle=OL; rr(ctx, x0, y0, w, h, 12, '#fffdf6'); ctx.globalAlpha = 1;
+    ctx.fillStyle='#c0502a'; ctx.font='bold 15px "Microsoft JhengHei",sans-serif'; ctx.textAlign='left'; ctx.textBaseline='middle'; ctx.fillText('🏆 完成項目', x0+14, y0+16);
+    ctx.font='bold 13px "Microsoft JhengHei",sans-serif';
+    L.forEach((t,i)=>{ const on = i < CEL.shown; ctx.fillStyle = on ? OL : 'rgba(43,34,51,.25)'; ctx.fillText((on?'✅ ':'⬜ ')+t, x0+14, y0+38+i*21); });
+  }
+  if(CEL.t > (CEL.perfect ? 8 : 2.5)){ ctx.globalAlpha=.6+.4*Math.sin(T*4); ctx.fillStyle='#fff'; ctx.strokeStyle=OL; ctx.lineWidth=4; ctx.font='bold 18px "Microsoft JhengHei",sans-serif'; ctx.textAlign='center';
     ctx.strokeText('按空白鍵（或點畫面）領取獎狀', VW/2, VH-40); ctx.fillText('按空白鍵（或點畫面）領取獎狀', VW/2, VH-40); ctx.globalAlpha=1; }
 }
 function startBattle(o){
@@ -3167,10 +3248,190 @@ const ACC = {
   helmet: {name:'⛑️ 防災安全帽', look:{hat:'helmet'}},
   star:   {name:'🌟 友誼星星髮夾', look:{star:true}},
   crown:  {name:'👑 交友皇冠', look:{crown:true}},
+  gold:   {name:'✨ 完美守護者金披風', look:{cape:'#f6c445'}},
 };
 const TRASH = [[1,1],[38,1],[31,20],[47,33],[64,37],[58,9],[1,43],[30,43]];
 const EXITS = [[33,16],[28,16],[16,16],[74,2],[62,2]];
-const BOTTLE = [85,43];
+const BOTTLE = [91,13];   // 東北角、溪畔步道旁的草地（榕樹區留給大榕樹任務）
+/* ---------------- 校園任務：菜圃、籃球場、大榕樹（不計分，完成送道具） ---------------- */
+const CT = {
+  veg:  {name:'🥬 小農夫', desc:'幫種菜志工阿姨替菜圃澆水', where:'西南角的菜圃'},
+  ball: {name:'🏀 球場輪流小幫手', desc:'讓想打球的人都能輪流使用籃球場', where:'北面光電球場'},
+  tree: {name:'🌳 榕樹下的小小觀察家', desc:'完成大榕樹的觀察紀錄卡', where:'東南角的榕樹區'},
+};
+const CT_KEYS = Object.keys(CT);
+const TREE_SPOTS = [
+  {k:'root', x:82, y:40, name:'🌿 氣根', t:'從樹枝垂下來的是「氣根」，碰到地面會長成新的樹幹。不要拉扯，也不要拿來盪鞦韆！'},
+  {k:'nest', x:85, y:38, name:'🪺 鳥巢', t:'樹上有鳥媽媽在孵蛋。只能遠遠看，不可以丟石頭，也不可以爬上去摸。'},
+  {k:'fig',  x:86, y:41, name:'🫐 榕果', t:'這是榕樹的果實，小鳥很愛吃。掉在地上踩到會很滑，走路要小心。'},
+  {k:'bug',  x:80, y:40, name:'🐛 毛毛蟲', t:'有些毛毛蟲的毛會讓皮膚又紅又癢，只能看、不能摸！不小心碰到，要用清水沖洗，再告訴大人。'},
+];
+function ctInit(){ S.ct = Object.assign({veg:0, vegW:{}, water:false, ball:0, waited:{}, tree:0, seen:{}, kid:false, done:{}}, S.ct||{}); ctApply(); }
+function ctDoneCount(){ return S && S.ct ? CT_KEYS.filter(k=>S.ct.done[k]).length : 0; }
+function ctProgress(k){
+  const c = S.ct;
+  if(c.done[k]) return '已完成';
+  if(k==='veg') return c.veg===0 ? '找菜圃旁的志工阿姨' : c.veg===1 ? (c.water ? `澆水 ${Object.keys(c.vegW).length}/6` : '先到水龍頭裝水') : '回去找阿姨';
+  if(k==='ball') return ['找籃球場旁的同學聊聊','聽聽等待的同學怎麼說（'+Object.keys(c.waited).length+'/2）','跟學長溝通','到場邊的登記板登記','回去找學長'][Math.min(c.ball,4)];
+  if(k==='tree') return c.tree===0 ? '找榕樹旁的王老師' : c.tree===1 ? `觀察 ${Object.keys(c.seen).length}/4${c.kid?'':'，還有同學在爬樹！'}` : '回去找王老師';
+  return '';
+}
+function moveNPC(id, x, y, dir){ const n = NPCS.find(o=>o.id===id); if(!n) return; n.x=x; n.y=y; n.px=x*TS; n.py=y*TS; n.moving=false; if(dir) n.dir=dir; }
+function ctApply(){ // 讀檔後把人物放回任務進度對應的位置
+  if(S.ct.ball>=4){ moveNPC('senior', 65, 25, 'up'); moveNPC('midkid', 68, 20, 'down'); moveNPC('lowkid', 70, 22, 'down'); }
+  if(S.ct.kid) moveNPC('climber', 88, 42, 'left');
+}
+function ctComplete(k, item){
+  if(S.ct.done[k]) return;
+  S.ct.done[k] = true; gainExp(10); save(); updateHUD(); sfx('win');
+  toast(`🎉 完成校園任務「${CT[k].name}」！`, true, 3500);
+  setTimeout(()=>giveItem(item, 1, 'ct_'+k), 3600);
+  setTimeout(tryPerfect, 4500);
+}
+function ctQuiz(n, q, right, wrongs, okMsg, onOk){
+  say([q], {name:n.name, choices: shuffle([{t:right, f:()=>{ sfx('ok'); say([okMsg], {name:n.name, onEnd:onOk}); }},
+    ...wrongs.map(w=>({t:w[0], f:()=>{ sfx('bad'); say([w[1], '再想想看，想好了再來找我。'], {name:n.name}); }}))])});
+}
+// ---- 菜圃 ----
+function ctTalkFarmer(n){
+  const c = S.ct;
+  if(c.done.veg){ say(['謝謝你幫忙！你看，菜長得好漂亮。','吃飯的時候多吃蔬菜，吃多少拿多少，不要浪費食物喔！'],{name:n.name}); return; }
+  if(c.veg===0){ c.veg=1; save(); say(['你好！我是種菜的志工阿姨。','這幾天好熱，菜圃的菜都快渴死了……','可以幫我到旁邊的水龍頭裝水，替 6 排菜都澆一澆嗎？'],{name:n.name}); return; }
+  if(c.veg===1){ say([c.water ? `還有 ${6-Object.keys(c.vegW).length} 排菜還沒澆到水喔！` : '水龍頭在菜圃的左邊，先去裝水吧！'],{name:n.name}); return; }
+  ctQuiz(n, '辛苦了！菜都喝飽水了。考你一題：摸完泥土、拔完菜之後，要先做什麼？', '用肥皂把手洗乾淨',
+    [['直接拿東西吃','泥土裡有細菌和寄生蟲，手沒洗乾淨就吃東西很容易生病！'],['在衣服上擦一擦就好','衣服擦不掉細菌！要用肥皂把手洗乾淨。']],
+    '答對了！濕、搓、沖、捧、擦，手洗乾淨才不會生病。', ()=>ctComplete('veg','heal'));
+}
+function ctFaucet(){
+  const c = S.ct;
+  if(c.veg!==1 || c.done.veg){ say([EXTRA_TALK.w],{name:'🚰 水龍頭'}); return; }
+  if(c.water){ say(['水桶已經裝滿了，快去替菜澆水吧！'],{name:'🚰 水龍頭'}); return; }
+  c.water = true; save(); sfx('ok');
+  say(['嘩啦啦……水桶裝滿水了！','裝好水要記得把水龍頭關緊，節約用水。','面向菜圃的每一排菜按空白鍵澆水吧！'],{name:'🚰 水龍頭'});
+}
+function ctWater(x){
+  const c = S.ct;
+  if(!c.water){ say(['手上還沒有水，先到菜圃左邊的水龍頭裝水吧！'],{name:'🥬 菜圃'}); return; }
+  if(c.vegW[x]){ say(['這一排已經澆過水了，換旁邊的吧！'],{name:'🥬 菜圃'}); return; }
+  c.vegW[x] = true; sfx('ok'); if(mgAudio()) tone(660,.08,'triangle',0,.04);
+  const k = Object.keys(c.vegW).length;
+  if(k>=6){ c.veg = 2; save(); say(['澆完最後一排了！菜都喝飽水，看起來精神多了。','回去告訴志工阿姨吧！'],{name:'🥬 菜圃'}); }
+  else { save(); toast(`💧 澆好一排菜！（${k}/6）`, true); }
+}
+// ---- 籃球場輪流 ----
+function ctTalkWaiter(n, lines){
+  const c = S.ct;
+  if(c.done.ball || c.ball>=4){ say(['謝謝你幫忙！大家輪流打，每個人都玩得好開心！'],{name:n.name}); return; }
+  if(c.ball===0) c.ball = 1;
+  c.waited[n.id] = true;
+  if(c.ball===1 && c.waited.midkid && c.waited.lowkid){ c.ball = 2; save(); say([...lines, '（大家都想用球場……去跟正在打球的阿凱學長溝通看看吧！）'],{name:n.name}); return; }
+  save(); say(lines,{name:n.name});
+}
+function ctTalkSenior(n){
+  const c = S.ct;
+  if(c.done.ball){ say(['輪流打球大家都開心，輸贏也要有風度。','打完球記得把球放回球籃喔！'],{name:n.name}); return; }
+  if(c.ball<=1){ if(c.ball===0){ c.ball=1; save(); } say(['我們正在打全場，不要擋路啦！','（旁邊好像有同學在等……先去問問他們怎麼了。）'],{name:n.name}); return; }
+  if(c.ball===2){
+    say(['幹嘛？我們打得正開心耶。'],{name:n.name, choices: shuffle([
+      {t:'大家都想打球，我們輪流用好不好？', f:()=>{ sfx('ok'); say(['……好吧，他們好像真的等很久了。','那要怎麼輪流比較好？'],{name:n.name, choices:[
+        {t:'分成兩個半場，兩組同時打', f:()=>ctBallMethod(n,'分成兩個半場')},
+        {t:'每組打 10 分鐘就換下一組', f:()=>ctBallMethod(n,'每組打 10 分鐘就換')},
+        {t:'到登記板排隊，照順序上場', f:()=>ctBallMethod(n,'到登記板排隊')}]}); }},
+      {t:'你們打很久了，快滾開！', f:()=>{ sfx('bad'); say(['你說什麼？想吵架嗎！','（用兇的只會吵起來，問題還是沒解決。好好說說看吧！）'],{name:n.name}); }},
+      {t:'算了，我們去別的地方玩', f:()=>{ sfx('bad'); say(['（這樣其他同學還是沒辦法打球……大家都有權利使用球場，好好溝通看看吧！）'],{name:'旁白'}); }}])});
+    return;
+  }
+  if(c.ball===3){ say(['去場邊的登記板，把三組都登記上去吧！'],{name:n.name}); return; }
+  ctQuiz(n, '謝謝你想到好辦法！最後考你：大家都想用球場的時候，怎麼做最好？', '輪流使用、排隊登記，不霸佔球場',
+    [['先搶到的人就可以一直打','球場是大家的，一直霸佔別人就沒得玩了。要輪流使用！'],['用猜拳決定，輸的人今天都不能打','這樣輸的人永遠沒機會。輪流使用才公平！']],
+    '答對了！球場是大家的，輪流用才公平。輸贏都要有風度，打完記得把球放回球籃！', ()=>ctComplete('ball','shield'));
+}
+function ctBallMethod(n, m){
+  S.ct.ball = 3; S.ct.method = m; save(); sfx('ok');
+  say([`好，就照「${m}」的方法！`, '你去場邊的登記板，把三組的順序登記上去吧。'],{name:n.name});
+}
+function ctBoard(){
+  const c = S.ct;
+  if(c.ball>=4){ say(['登記板上寫著：① 六年級　② 四年級　③ 二年級。大家照順序輪流使用。'],{name:'📋 登記板'}); return; }
+  c.ball = 4; save(); sfx('ok');
+  say(['你在登記板上寫下輪流的順序：','① 六年級（阿凱學長）　② 四年級（小芸）　③ 二年級（小豆）', `使用方式：${c.method||'輪流使用'}。`],{name:'📋 登記板', onEnd:()=>{
+    toast('⏰ 換場囉！下一組上場！', true, 2500); if(mgAudio()){ tone(1800,.25,'square',0,.04); tone(1800,.25,'square',.35,.04); }
+    ctApply(); say(['（學長們下場休息，四年級和二年級的同學開心地上場打球！）','回去跟阿凱學長說一聲吧！'],{name:'旁白'});
+  }});
+}
+// ---- 大榕樹 ----
+function ctTalkNature(n){
+  const c = S.ct;
+  if(c.done.tree){ say(['大榕樹幫我們遮陽，我們也要好好愛護它。','有空常來樹下觀察，會發現更多小生物喔！'],{name:n.name}); return; }
+  if(c.tree===0){ c.tree=1; save(); say(['我是自然科的王老師。這棵大榕樹已經好老好老了，上面住著好多小生物。','請你當「小小觀察家」，找出榕樹附近閃閃發亮的 4 個地方，完成觀察紀錄卡！','對了……那邊好像有同學在爬樹，好危險，先去提醒他吧！'],{name:n.name}); return; }
+  if(c.tree===1){ say([`觀察紀錄卡還沒完成喔（${Object.keys(c.seen).length}/4）${c.kid?'':'。還有同學在爬樹，先去提醒他！'}`],{name:n.name}); return; }
+  ctQuiz(n, '紀錄卡完成了，好棒！最後一題：夏天在戶外活動，怎麼預防中暑？', '在樹蔭下休息、多喝水、戴帽子',
+    [['趁太陽最大的時候一直跑','中午太陽最大，一直跑很容易中暑！要找陰涼處休息、多喝水。'],['口渴了才喝一點點水','等到口渴才喝就太慢了！要常常喝水，在樹蔭下休息。']],
+    '答對了！大榕樹的樹蔭就是最好的休息地方。我們也要好好愛護它。', ()=>ctComplete('tree','compass'));
+}
+function ctTalkClimber(n){
+  const c = S.ct;
+  if(c.kid){ say(['在樹下玩也很好玩！謝謝你提醒我。'],{name:n.name}); return; }
+  if(c.tree===0){ say(['嘿咻！我要抓著氣根盪到樹上去！'],{name:n.name}); return; }
+  say(['嘿咻！我要抓著氣根盪到樹上去！'],{name:n.name, choices: shuffle([
+    {t:'氣根會斷掉，爬樹很容易摔下來，我們在樹下玩就好', f:()=>{ sfx('ok'); c.kid = true; save(); say(['對耶……摔下來一定很痛。','好，我到樹蔭下玩就好！'],{name:n.name, onEnd:()=>{ ctApply(); ctTreeCheck(); }}); }},
+    {t:'我也要一起盪！', f:()=>{ sfx('bad'); say(['（等等！氣根可能會斷，爬樹也很容易摔傷。應該提醒他才對！）'],{name:'旁白'}); }}])});
+}
+function ctTreeSpot(o){
+  const c = S.ct;
+  if(c.seen[o.k]){ say([o.t],{name:o.name}); return; }
+  c.seen[o.k] = true; save(); sfx('ok');
+  say([`你找到了「${o.name}」！（${Object.keys(c.seen).length}/4）`, o.t],{name:o.name, onEnd:ctTreeCheck});
+}
+function ctTreeCheck(){
+  const c = S.ct;
+  if(c.tree!==1 || !c.kid || Object.keys(c.seen).length<4) return;
+  c.tree = 2; save();
+  say(['📝 觀察紀錄卡完成！', TREE_SPOTS.map(o=>'✅ '+o.name).join('　'), '回去交給王老師吧！'],{name:'🌳 觀察紀錄卡'});
+}
+function drawCampusTasks(g, t){
+  const c = S.ct;
+  // 菜圃：澆過水的菜變濕、長大
+  for(let x=3; x<=8; x++){
+    const wet = c.vegW[x] || c.done.veg;
+    if(wet){ for(const y of [35,36]){ g.fillStyle='rgba(60,35,15,.35)'; g.fillRect(x*TS, y*TS, TS, TS); if(c.done.veg){ circ(g, x*TS+16, y*TS+14, 9, '#4fb35a'); circ(g, x*TS+16, y*TS+12, 5, '#9be38d'); } } }
+    else if(c.veg===1 && c.water && ((t*1.2+x*.3)%2.4)<.4) sparkle(g, x*TS+16, 35*TS+10, 4);
+  }
+  if(c.veg===1 && !c.water && ((t*1.2)%2.2)<.6) sparkle(g, 2*TS+16, 36*TS+4, 5);
+  // 登記板寫上順序
+  if(c.ball>=4){ g.fillStyle='#ffd447'; g.font='bold 6px sans-serif'; g.textAlign='left'; g.textBaseline='middle'; g.fillText('①6 ②4 ③2', 65*TS+5, 15*TS+7); }
+  else if(c.ball===3 && ((t*1.2)%2.2)<.6) sparkle(g, 65*TS+28, 15*TS-6, 5);
+  // 大榕樹的觀察點
+  for(const o of TREE_SPOTS){
+    const X=o.x*TS, Y=o.y*TS;
+    if(o.k==='root'){ g.strokeStyle='#8a6038'; g.lineWidth=2; for(const d of [8,16,24]){ g.beginPath(); g.moveTo(X+d,Y-2); g.lineTo(X+d+Math.sin(t+d)*1.5,Y+26); g.stroke(); } }
+    if(o.k==='nest'){ g.strokeStyle=OL; g.lineWidth=1.2; ell(g, X+16, Y+18, 11, 6, '#9a6a3c'); circ(g, X+12, Y+14, 3, '#e8f4ff'); circ(g, X+19, Y+14, 3, '#e8f4ff'); }
+    if(o.k==='fig'){ for(const [dx,dy] of [[8,20],[15,24],[22,19],[12,14],[24,26]]){ g.fillStyle='#8a4a8a'; g.beginPath(); g.arc(X+dx, Y+dy, 2.4, 0, 7); g.fill(); } }
+    if(o.k==='bug'){ g.fillStyle='#4fb35a'; g.beginPath(); g.ellipse(X+16, Y+22, 11, 5, -.3, 0, 7); g.fill(); for(let i=0;i<5;i++){ g.fillStyle=i%2?'#ffd447':'#2b2233'; g.beginPath(); g.arc(X+9+i*3.6, Y+21-i*.8+Math.sin(t*4+i)*.8, 2.2, 0, 7); g.fill(); } }
+    if(c.tree===1 && !c.seen[o.k] && ((t*1.3 + o.x*.2) % 2.4) < .5) sparkle(g, X+24, Y+8, 4);
+  }
+}
+/* ---------------- 全部完成：完美守護者 ---------------- */
+function allDone(){ return !!(S && S.done && TOPIC_KEYS.every(k=>S.badges[k]) && hqDoneCount()===HQ_KEYS.length && CT_KEYS.every(k=>S.ct.done[k])); }
+function tryPerfect(){
+  if(!S || S.perfect || !allDone()) return;
+  if(scene!=='play' || DLG || MG){ setTimeout(tryPerfect, 800); return; }
+  say(['🌟 你把五大任務、隱藏任務和校園任務全部完成了！','校長請全校師生到司令台前集合，要頒發一個特別的獎給你！'],{name:'📢 校園廣播', onEnd:()=>perfectCeremony(false)});
+}
+function perfectList(){
+  return [...TOPIC_KEYS.map(k=>TOPICS[k].icon+' '+TOPICS[k].name), '👑 打倒糊塗大魔王', ...HQ_KEYS.map(k=>HQ[k].name), ...CT_KEYS.map(k=>CT[k].name)];
+}
+function perfectCeremony(replay){
+  celebrate();
+  CEL.perfect = true; CEL.replay = !!replay; CEL.list = perfectList(); CEL.shown = 0;
+  P.x=58; P.y=25; P.px=58.5*TS; P.py=24.8*TS; P.dir='up';
+  const pr = NPCS.find(n=>n.id==='principal');
+  if(pr){ pr.px=58.5*TS; pr.py=21.4*TS; pr.dir='down'; }
+  const quest = NPCS.filter(n=>n.quest), others = NPCS.filter(n=>n!==pr && !n.quest);
+  quest.forEach((n,i)=>{ n.px=(58.5+(i-2)*1.7)*TS; n.py=26.4*TS; n.dir='up'; });
+  others.forEach((n,i)=>{ const r=Math.floor(i/11), c=i%11; n.px=(50+c*1.6+(r%2)*.8)*TS; n.py=(28+r*1.4)*TS; n.dir='up'; });
+  $('#hint').textContent='🌟 完美守護者頒獎典禮';
+}
 const socialList = () => NPCS.filter(n=>n.id!=='principal').map(n=>n.id);
 /* ---------------- 道具欄 ----------------
    取得方式都是固定的（每個人都拿得到一樣多），不會因為運氣影響排行榜。 */
@@ -3254,7 +3515,7 @@ function toggleBattleBag(force){
   $('#bBagX').onclick = ()=>toggleBattleBag(false);
   box.querySelectorAll('.buse').forEach(b=>b.onclick=()=>{ useItem(b.dataset.k); toggleBattleBag(false); });
 }
-function hqInit(){ S.hq = Object.assign({trash:{}, exits:{}, bottle:0, friend:0, talked:{}, done:{}, seen:{}}, S.hq||{}); S.flags = S.flags||{}; }
+function hqInit(){ S.hq = Object.assign({trash:{}, exits:{}, bottle:0, friend:0, talked:{}, done:{}, seen:{}}, S.hq||{}); S.flags = S.flags||{}; ctInit(); }
 function hqDoneCount(){ return S && S.hq ? HQ_KEYS.filter(k=>S.hq.done[k]).length : 0; }
 function hqProgress(k){
   const h=S.hq;
@@ -3278,6 +3539,7 @@ function hqComplete(k){
   toast(`🎉 完成隱藏任務「${HQ[k].name}」！獲得造型「${ACC[a].name}」，積分 +${HQ_POINTS}`, true, 4500);
   // 隱藏任務改成只送造型和積分（道具太多，挑戰就沒有緊張感）；完成第 3 個時送一個守護盾
   if(hqDoneCount()===3) setTimeout(()=>giveItem('shield', 1, 'hq3'), 4600);
+  setTimeout(tryPerfect, 5000);
 }
 function refreshLook(){ const base = S.custom ? buildLook(S.custom) : (LOOKS[S.look]||LOOKS[0]); P.look = Object.assign({}, base, (S.acc && ACC[S.acc]) ? ACC[S.acc].look : {}); }
 function hqStep(){ // 走到某格時檢查
@@ -3318,6 +3580,7 @@ function drawHidden(g,t){
     else { g.fillStyle='#f4f1e6'; g.beginPath(); g.moveTo(X+10,Y+20); g.lineTo(X+14,Y+13); g.lineTo(X+21,Y+15); g.lineTo(X+22,Y+22); g.lineTo(X+15,Y+24); g.closePath(); g.fill(); g.stroke(); }
     if(((t*1.3 + i*0.37) % 3) < 0.35) sparkle(g, X+22, Y+12, 4);
   }
+  drawCampusTasks(g, t);
   if(S.hq.bottle<2 && !S.hq.done.bottle){ const [x,y]=BOTTLE; const ph=(t*1.2)%2.2; if(ph<0.7) sparkle(g, x*TS+16, y*TS+14, 3+ph*5); }
   for(const [x,y] of EXITS){
     const X=x*TS, Y=y*TS+13, found=S.hq.exits[x+','+y];
@@ -3651,10 +3914,12 @@ function showCert(){
     <div class="who"><input class="certname" value="${escapeHTML(S.name)}" maxlength="10" aria-label="獎狀姓名"> 同學</div>
     <div class="noprint">✏️ 可以點上面的名字，改成真實姓名再列印（不會上傳）</div>
     <p>在「校園的日常」挑戰中，完成防災、交通安全、性別平等、反霸凌、校園常規五大任務，並打倒糊塗大魔王，展現守護自己與他人的知識與勇氣，表現優異，特頒此狀，以資鼓勵。</p>
-    <div style="font-size:24px;margin-top:6px">榮獲「校園守護者」稱號・Lv.${level()}</div>
+    <div style="font-size:24px;margin-top:6px">榮獲「${S.perfect?'🌟 完美守護者':'校園守護者'}」稱號・Lv.${level()}</div>
+    ${S.perfect?'<div style="font-size:18px;margin-top:4px;color:#b8860b">完美達成：五大任務、大魔王、5 個隱藏任務、3 個校園任務全部完成</div>':''}
     <div style="font-size:20px;margin-top:4px">守護積分 ${calcScore()} 分・隱藏任務 ${hqDoneCount()}/5・遊戲時間 ${fmtTime(S.playT)}${S.gold&&Object.keys(S.gold).length?`・🌟 金徽章 ${Object.keys(S.gold).length}/5`:''}</div>
     <div class="date">${escapeHTML(SCHOOL_NAME)}　　中華民國 ${roc} 年 ${d.getMonth()+1} 月 ${d.getDate()} 日</div>
-    <div class="seal">校園<br>守護者</div>`;
+    <div class="seal">${S.perfect?'完美<br>守護者':'校園<br>守護者'}</div>`;
+  $('#paper').classList.toggle('perfect', !!S.perfect);
   $('#cert').classList.remove('hidden');
   scene='cert'; clearHeld();
 }
