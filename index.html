@@ -289,6 +289,21 @@
     .paper{max-width:none;width:100%}
     .certbtns,.noprint{display:none}
   }
+  /* 商店 */
+  #hCoin{margin-left:2px}
+  .coinbig{float:right;font-size:20px;background:#fff4c2;border:2px solid var(--ink);border-radius:20px;padding:2px 12px}
+  .shoptop{display:flex;gap:12px;align-items:center;background:#fff8e6;border:2px dashed #e6d3a8;border-radius:10px;padding:6px 10px;margin-bottom:8px}
+  .shoptop canvas{flex:none}
+  .shopnote{font-size:15px;line-height:1.5}
+  .shopnote small{color:#7a6a5a}
+  .slotbar .cbtn{font-size:14px;padding:3px 9px}
+  .shopgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .sitem{display:flex;flex-direction:column;align-items:center;gap:2px;background:#fff;border:2px solid #e6d3a8;border-radius:10px;padding:6px 4px;font-size:13px;text-align:center}
+  .sitem b{font-size:14px}
+  .sitem.worn{border-color:var(--ok);background:#effaf1}
+  .sitem .sbtn{font-size:14px;padding:3px 10px;margin-top:2px}
+  .sitem .sbtn.poor{opacity:.55}
+  .shopempty{grid-column:1/-1;text-align:center;padding:20px;color:#7a6a5a}
 </style>
 </head>
 <body>
@@ -310,6 +325,7 @@
       <button class="hbtn frame" id="btnMap" title="小地圖 (M)">🗺️</button>
       <button class="hbtn frame" id="btnBag" title="道具 (B)">🎒</button>
       <button class="hbtn frame" id="btnQuest" title="任務清單 (Q)">📋 任務</button>
+      <button class="hbtn frame" id="btnShop" title="商店 (C)">🛍️ 💰<span id="hCoin">0</span></button>
       <button class="hbtn frame" id="btnBoard" title="排行榜 (R)">🏆</button>
       <button class="hbtn frame" id="btnMute" title="音效開關">🔊</button>
     </div>
@@ -422,7 +438,7 @@ const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzOO0XzGfQORw3W59Kga
 
 const QUIZ = {
   disaster: [
-    {q:'上課時突然發生地震，教室搖晃得很厲害，你應該怎麼做？', a:['趴下，躲到桌子下，護住頭頸部','馬上跑出教室，到空曠的操場比較安全','先躲到窗戶旁邊，方便看外面的情況','站到門口，等搖晃停了再找地方躲'], exp:'地震時先就地避難！趴下、躲在堅固的桌子下、抓穩桌腳，等搖晃停止再聽老師指示疏散。'},
+    {q:'上課時突然發生地震，教室搖晃得很厲害，你應該怎麼做？', a:['趴下，躲到桌子下，護住頭頸部','馬上跑出教室，到空曠的操場比較安全','先躲到窗戶旁邊，方便看外面的情況','站到門口，等搖晃停了再找地方躲'], exp:'地震時先就地避難！趴下、躲在堅固的桌子下、抓穩桌腳，主震結束後，聽到「1 長 4 短」的哨音再依序疏散。'},
     {type:'order', q:'請依正確順序，排出地震避難三步驟：', items:['趴下','掩護','穩住'], exp:'「趴下」降低身體、「掩護」保護頭頸部、「穩住」抓緊桌腳直到搖晃停止。'},
     {q:'發生火災要逃生時，下列哪一個做法正確？', a:['走樓梯往下、往室外逃','搭電梯下樓，比走樓梯更快更安全','往頂樓跑，在上面等直升機來救','先回教室拿書包，再跟大家一起逃'], exp:'火災時電梯可能停電或變成煙囪，非常危險！要走樓梯往下、往外逃生，生命比東西重要。'},
     {q:'火災時，打開門發現走廊都是濃煙、無法通過，應該怎麼辦？', a:['退回房間關門，到窗邊求救','憋住氣，低頭用最快的速度衝過濃煙','躲進衣櫃或床底下，安靜等人來找','把所有門窗打開，讓濃煙趕快散出去'], exp:'記住口訣「小火快逃、濃煙關門」。關上門能擋住濃煙，再到窗邊揮手、打 119 求救。'},
@@ -430,7 +446,7 @@ const QUIZ = {
     {q:'颱風天停止上課時，下列哪一個做法最正確？', a:['待在家裡，注意氣象新聞','雨變小的時候，出門去超商買零食','到陽台上看看風雨到底有多大','去河堤看看水位漲得多高'], exp:'颱風天風雨很大，就算雨暫時變小也可能突然變大。留在安全的室內，並準備好手電筒和飲用水。'},
     {q:'家裡的緊急避難包，最需要準備下列哪些東西？', a:['飲用水、手電筒、急救用品','電動玩具、漫畫書和喜歡的零食','平板電腦、充電線和藍牙耳機','玩偶、枕頭和漂亮的衣服'], exp:'避難包要準備：水、乾糧、手電筒、哨子、急救用品、保暖衣物、重要證件影本等。'},
     {type:'order', q:'學校火災演練時，請排出正確的逃生順序：', items:['聽到警報，停下手邊工作','聽老師指示，壓低身體','沿著牆壁走樓梯往下','到操場集合，向老師報到'], exp:'不慌張、聽指揮、不推擠、不說話、不回頭。火場逃生以「快逃」最優先，不要為了找手帕、弄濕毛巾而耽誤時間。到集合點後一定要讓老師點名。'},
-    {q:'地震停止後，要從教室疏散到操場時，可以用什麼保護頭部？', a:['書包或防災頭套','用雙手摀住眼睛往前跑','拿手機照亮前面的路就好','把課本夾在腋下，用跑的'], exp:'疏散時可能還有東西掉落，用書包或防災頭套保護頭部，並且不推擠、靠一側走。'},
+    {q:'地震停止後，要從教室疏散到操場時，可以用什麼保護頭部？', a:['在原教室戴防災頭套；在科任教室或戶外，用空書包或課本護頭','用雙手摀住眼睛往前跑','拿手機照亮前面的路就好','把課本夾在腋下，用跑的'], exp:'疏散時可能還有東西掉落：在原教室要戴防災頭套；在科任教室或戶外，用空書包或課本保護頭部。不推擠、靠一側走。'},
     {type:'order', q:'請排出使用滅火器的正確順序：', items:['拉：拉開安全插銷','瞄：瞄準火源底部','壓：用力壓下握把','掃：左右來回掃射'], exp:'滅火器口訣「拉、瞄、壓、掃」。不過小朋友遇到火災，最重要的還是趕快逃生、告訴大人。'},
     {q:'在家裡聞到很濃的瓦斯味，應該怎麼做？', a:['不碰電器開關，開窗，到屋外找大人','先打開電燈，看清楚到底是哪裡在漏氣','打開抽油煙機，把瓦斯味抽出去','關緊門窗，不讓瓦斯味跑到外面'], exp:'開關電器或點火可能產生火花引起爆炸！要開窗通風、請大人關掉瓦斯開關，到室外再打電話求救。'},
     {q:'地震時人在走廊，附近沒有桌子可以躲，應該怎麼做？', a:['蹲低趴下，護住頭頸部，遠離窗戶','趕快跑到窗戶旁邊，看看外面的情況','靠在玻璃櫃旁邊，抓住櫃子穩住身體','用最快的速度衝下樓梯跑出去'], exp:'沒有桌子時，就靠著堅固的牆邊趴低，保護頭頸部，遠離玻璃、櫃子等可能倒下或掉落的東西。'},
@@ -603,7 +619,7 @@ function building(x1,y1,x2,y2){ R('#',x1,y1,x2,y2); R(',',x1+1,y1+1,x2-1,y2-1); 
   // 性別友善廁所（北）：門在下方
   building(1,2,8,5); map[5][2]='D'; for(const x of [4,5,6,7]) map[3][x]='U'; map[3][2]='V'; map[3][3]='V'; map[6][4]='G';
   // 音樂教室：鋼琴、鼓、木琴（門在左側）
-  building(10,2,17,7); map[5][10]='D'; map[3][14]='N'; map[3][15]='N'; map[6][16]='J'; map[6][11]='X'; map[3][11]='p';
+  building(10,2,17,7); map[5][10]='D'; map[3][14]='N'; map[3][15]='N'; map[6][16]='J'; map[6][11]='X'; map[3][11]='p'; map[6][13]='I';   // I：直笛架
   // 總務處：事務組辦公桌、報修看板、設備櫃（門在左側）
   building(20,2,27,7); map[5][20]='D'; R('k',23,4,25,4); map[3][26]='H'; map[6][26]='Z'; map[3][21]='p';
   map[8][28]='K';                    // 施工三角錐
@@ -614,7 +630,7 @@ function building(x1,y1,x2,y2){ R('#',x1,y1,x2,y2); R(',',x1+1,y1+1,x2-1,y2-1); 
   for(const x of [42,43,45,46]) for(const y of [3,5]) map[y][x]='M';
   // 英語教室：白板、課桌、地球儀
   building(50,2,57,9); map[9][53]='D'; R('b',52,2,55,2);
-  for(const x of [51,52,55,56]) for(const y of [5,7]) map[y][x]='k'; map[3][51]='O';
+  for(const x of [51,52,55,56]) for(const y of [5,7]) map[y][x]='k'; map[3][51]='O'; map[3][56]='a'; map[8][56]='d';   // a：英語白板、d：單字圖卡
   // 健康中心（門在左側）
   building(60,2,67,7); map[4][60]='D'; map[3][64]='Y'; map[3][66]='Y'; map[3][65]='C'; map[6][66]='h';
   // 圖書館
@@ -629,6 +645,7 @@ function building(x1,y1,x2,y2){ R('#',x1,y1,x2,y2); R(',',x1+1,y1+1,x2-1,y2-1); 
   R('k',3,16,4,16); map[16][6]='q'; map[18][2]='j'; map[18][6]='q';
   map[23][3]='R'; map[23][4]='R'; map[23][5]='R';   // 資源回收區
   R('E',23,41,26,42);                // 大象溜滑梯（一進校門的右邊，藝術裝置，不能玩）
+  R('T',24,43,26,43);                // 大象後面種一排樹（那塊草地走不進去）
   // 防災教育中心（門在右側）
   R('_',8,12,9,20);                  // 幼兒園和防災教育中心之間的走道
   building(10,13,17,20); map[16][17]='D'; R('h',12,14,15,14); map[14][11]='e'; map[19][16]='e'; map[19][11]='e';
@@ -638,7 +655,7 @@ function building(x1,y1,x2,y2){ R('#',x1,y1,x2,y2); R(',',x1+1,y1+1,x2-1,y2-1); 
   building(32,13,43,20); map[20][38]='D'; R('b',35,13,40,13);
   for(const x of [34,35,36,40,41]) for(const y of [16,18]) map[y][x]='k';
   // 性別友善廁所（南，司令台左邊）：門在左側
-  building(46,17,53,20); map[19][46]='D'; for(const x of [49,50,51,52]) map[18][x]='U'; map[18][47]='V'; map[18][48]='V'; map[17][45]='G';
+  building(46,17,53,20); map[19][46]='D'; for(const x of [49,50,51,52]) map[18][x]='U'; map[18][47]='V'; map[18][48]='V'; map[17][54]='G';
   R('x',56,17,61,20);                // 司令台（另外畫）
   map[20][62]='P';                   // 升旗台
   R('o',66,12,79,26);                // 北面光電球場：左邊籃球全場、右邊排球場，兩個都是直的（屋頂是太陽能板，下面可以走）
@@ -664,7 +681,7 @@ function building(x1,y1,x2,y2){ R('#',x1,y1,x2,y2); R(',',x1+1,y1+1,x2-1,y2-1); 
   R('=',0,46,MW-1,49); R('z',18,46,20,49);
   R('_',0,50,MW-1,51);
   R('f',0,52,MW-1,52);
-  map[45][16]='L'; map[50][21]='L';
+  map[44][16]='L'; map[50][21]='L';
   // 安翠樓和南耘樓之間多留 3 列空地（走廊下面）
   const spacer = () => map[12].map((c,x)=> x===0 ? 'T' : (x===8||x===9||x===18||x===44||x===45||x===94||x===95) ? '_' : (x>=96 ? 'W' : '.'));
   map.splice(12, 0, spacer(), spacer(), spacer()); map.length = MH;
@@ -718,12 +735,12 @@ const EXTRA_TALK = {
   Z:'（設備櫃：放著備用的燈管、延長線和工具，只有大人可以拿喔！）'
 };
 
-const SOLID = new Set(['y','w','u','x','#','T','W','v','m','n','r','i','q','j','E','f','k','b','c','e','h','p','S','P','L','B','Y','C','U','V','G','O','N','J','X','R','K','M','A','H','Z']);
+const SOLID = new Set(['I','a','d','y','w','u','x','#','T','W','v','m','n','r','i','q','j','E','f','k','b','c','e','h','p','S','P','L','B','Y','C','U','V','G','O','N','J','X','R','K','M','A','H','Z']);
 const NPC_WALK = new Set(['.','_','t',',','F','o']);
-const BG = {T:'.',F:'.',f:'.',S:'.',P:'.',L:'_',k:',',c:',',e:',',h:',',p:',',b:'#',Q:'#',D:',',g:'_',B:',',Y:',',C:',',U:',',V:',',G:'.',O:',',m:'.',n:'.',r:'.',i:'_',x:'.',y:'.',w:'.',u:'.',q:',',j:',',E:'.',N:',',J:',',X:',',R:'.',K:'.',M:',',A:',',H:',',Z:','};
+const BG = {I:',',a:',',d:',',T:'.',F:'.',f:'.',S:'.',P:'.',L:'_',k:',',c:',',e:',',h:',',p:',',b:'#',Q:'#',D:',',g:'_',B:',',Y:',',C:',',U:',',V:',',G:'.',O:',',m:'.',n:'.',r:'.',i:'_',x:'.',y:'.',w:'.',u:'.',q:',',j:',',E:'.',N:',',J:',',X:',',R:'.',K:'.',M:',',A:',',H:',',Z:','};
 const BOOK_TIPS = [
   '📕《小心！陌生人》：不跟陌生人走、不吃陌生人給的東西、不告訴陌生人個人資料。',
-  '📗《地震來了怎麼辦》：趴下、掩護、穩住！搖晃停止後再聽指示疏散。',
+  '📗《地震來了怎麼辦》：趴下、掩護、穩住！主震結束後，聽到「1 長 4 短」的哨音再疏散。',
   '📘《網路安全小學堂》：密碼不告訴別人、不亂點連結、不傳私密照片。',
   '📙《情緒小怪獸》：生氣、難過都是正常的，可以深呼吸，或找信任的人說說。',
   '📒《交通安全繪本》：走斑馬線、看小綠人、左右看清楚，走路不滑手機。',
@@ -1299,6 +1316,27 @@ function drawStatic(g,c,tx,ty){
       if(left){ g.fillStyle='#f4c542'; g.fillRect(x0+4, Y-1, 3, 3); }
       if(right){ rr(g, x1-12, Y-2, 9, 7, 1, '#fff'); g.fillStyle='#2b2233'; g.fillRect(x1-10, Y, 5, .8); g.fillRect(x1-10, Y+2.5, 5, .8); }
       break; }
+    case 'I': { // 直笛架
+      g.fillStyle='rgba(0,0,0,.18)'; g.fillRect(X+4,Y+26,26,4);
+      rr(g, X+4, Y+18, 24, 9, 2, '#a0652e'); g.fillStyle='#7a4a24'; g.fillRect(X+5,Y+21,22,1.5);
+      for(const [dx,c] of [[9,'#f3e2b8'],[16,'#e8d4a0'],[23,'#f3e2b8']]){ rr(g, X+dx-2, Y-3, 4, 22, 1.5, c); g.fillStyle='#7a4a24'; for(const yy of [4,8,12]){ g.beginPath(); g.arc(X+dx, Y+yy, .8, 0, 7); g.fill(); } }
+      break; }
+    case 'a': { // 英語白板（填空）
+      g.fillStyle='rgba(0,0,0,.18)'; g.fillRect(X+3,Y+26,28,4);
+      g.fillStyle='#8b939c'; g.fillRect(X+6,Y+17,2,10); g.fillRect(X+24,Y+17,2,10);
+      rr(g, X+1, Y-6, 30, 24, 2, '#dfe5ea'); rr(g, X+3, Y-4, 26, 20, 1, '#fff');
+      g.font='bold 6.5px sans-serif'; g.textAlign='left'; g.textBaseline='middle';
+      g.fillStyle='#2f7fb8'; g.fillText('I am', X+5, Y+1); g.fillStyle='#d62d2d'; g.fillRect(X+19, Y+3, 8, 1.3);
+      g.fillStyle='#3cb371'; g.fillText('A B C', X+5, Y+10);
+      break; }
+    case 'd': { // 單字圖卡牆（配對）
+      g.fillStyle='rgba(0,0,0,.18)'; g.fillRect(X+3,Y+26,28,4);
+      g.fillStyle='#7a4a24'; g.fillRect(X+6,Y+17,2,10); g.fillRect(X+24,Y+17,2,10);
+      rr(g, X+1, Y-6, 30, 24, 2, '#c9a06a');
+      ['#fff4a8','#cfe9ff','#ffd6e0','#d8f5d0'].forEach((c,i)=>rr(g, X+3+(i%2)*14, Y-4+(i>>1)*10, 12, 9, 1, c));
+      g.textAlign='center'; g.textBaseline='middle'; g.font='6px sans-serif'; g.fillText('🍎', X+9, Y+.6); g.fillText('🐱', X+23, Y+10.6);
+      g.fillStyle='#2b2233'; g.font='bold 5px sans-serif'; g.fillText('cat', X+23, Y+.6); g.fillText('apple', X+9, Y+10.6);
+      break; }
     case 'J': // 鼓
       g.fillStyle='rgba(0,0,0,.18)'; g.fillRect(X+5,Y+26,24,4);
       rr(g, X+6, Y+10, 20, 15, 3, '#d62d2d');
@@ -1665,10 +1703,28 @@ function drawItem(g, it, hx, hy, cx, by, side){
   } else if(it==='clip'){ // 報修單夾板
     rr(g, hx-4.5, hy-7, 9, 11, 1, '#b5803f'); rr(g, hx-3.5, hy-5.5, 7, 8.5, .5, '#fff'); rr(g, hx-1.8, hy-8, 3.6, 2, .6, '#8b939c');
     g.fillStyle='#9aa0a6'; for(const yy of [-3.5,-1.5,.5]) g.fillRect(hx-2.6, hy+yy, 5, .8);
+  } else if(it==='balloon'){ // 氣球
+    const bx = hx + (side?2:3), bY = hy - 30 + Math.sin(T*2)*1.2;
+    g.strokeStyle='#777'; g.lineWidth=.7; g.beginPath(); g.moveTo(hx,hy); g.quadraticCurveTo(bx+3, (hy+bY)/2, bx, bY+6); g.stroke();
+    g.strokeStyle=OL; g.lineWidth=1.1; g.beginPath(); g.ellipse(bx, bY, 5.2, 6.2, 0, 0, 7); g.fillStyle='#ff5d8f'; g.fill(); g.stroke();
+    g.fillStyle='rgba(255,255,255,.55)'; g.beginPath(); g.ellipse(bx-1.8, bY-2, 1.2, 2, -.4, 0, 7); g.fill();
+  } else if(it==='wand'){ // 星星魔杖
+    const a = -Math.PI/2 + (side?0.9:0.4) + Math.sin(T*3)*0.12, ex = hx+Math.cos(a)*12, ey = hy+Math.sin(a)*12;
+    g.lineCap='round'; g.strokeStyle=OL; g.lineWidth=2.6; g.beginPath(); g.moveTo(hx,hy); g.lineTo(ex,ey); g.stroke();
+    g.strokeStyle='#b48cff'; g.lineWidth=1.4; g.beginPath(); g.moveTo(hx,hy); g.lineTo(ex,ey); g.stroke();
+    g.strokeStyle=OL; g.lineWidth=1; g.beginPath(); for(let j=0;j<10;j++){ const r=j%2?1.8:4.2, aa=-Math.PI/2+j*Math.PI/5; g.lineTo(ex+Math.cos(aa)*r, ey+Math.sin(aa)*r); } g.closePath(); g.fillStyle='#ffe066'; g.fill(); g.stroke();
+    if(Math.sin(T*5)>.3){ g.fillStyle='#fff'; g.beginPath(); g.arc(ex+5, ey-4, .9, 0, 7); g.fill(); }
   } else if(it==='heart' && !side){ // 愛心胸章（畫在胸口）
     const x=cx-3.6, y=by+15.5;
     g.beginPath(); g.moveTo(x, y+2.6); g.bezierCurveTo(x-4,y,x-2.2,y-3,x,y-1.2); g.bezierCurveTo(x+2.2,y-3,x+4,y,x,y+2.6); g.fillStyle='#ff4f8b'; g.fill(); g.lineWidth=.9; g.stroke();
   }
+  g.restore();
+}
+function drawWings(g, cx, by, side){ // 天使翅膀
+  g.save(); g.strokeStyle=OL; g.lineWidth=1.1;
+  const wing = sx=>{ g.fillStyle='#fff'; g.beginPath(); g.moveTo(cx+sx*3, by+16); g.quadraticCurveTo(cx+sx*15, by+5, cx+sx*17.5, by+11); g.quadraticCurveTo(cx+sx*14, by+15, cx+sx*16.5, by+19); g.quadraticCurveTo(cx+sx*10, by+23, cx+sx*3, by+20.5); g.closePath(); g.fill(); g.stroke();
+    g.strokeStyle='rgba(120,140,200,.6)'; g.beginPath(); g.moveTo(cx+sx*6, by+17.5); g.lineTo(cx+sx*13.5, by+12); g.moveTo(cx+sx*6, by+19.5); g.lineTo(cx+sx*13, by+18); g.stroke(); g.strokeStyle=OL; };
+  if(side) wing(-1); else { wing(-1); wing(1); }
   g.restore();
 }
 const BLINK = new WeakMap();
@@ -1708,6 +1764,8 @@ function drawPerson(g, x, y, dir, L, step, still){
     rr(g, cx-10, by+15+sw, 3.8, 6.5, 1.8, L.shirt); circ(g, cx-8.1, by+21.7+sw, 2.1, L.skin);
     rr(g, cx+6.2, by+15-sw, 3.8, 6.5, 1.8, L.shirt); circ(g, cx+8.1, by+21.7-sw, 2.1, L.skin);
   }
+  if(L.wings && dir!=='up') drawWings(g, cx, by, side);
+  if(L.pack && side) rr(g, cx-10.5, by+14.5, 5.5, 8.5, 2, '#ff8a3d');
   // 披風（背面以外：先畫在身體後面）
   if(L.cape && dir!=='up') rr(g, cx-8.5, by+13.5, 17, 12.5, 3, L.cape);
   // 身體（圓圓短短）
@@ -1715,12 +1773,25 @@ function drawPerson(g, x, y, dir, L, step, still){
   g.fillStyle=darken(L.shirt,.2); g.fillRect(cx-6, by+20.6, 12, 2.2);
   g.fillStyle='rgba(255,255,255,.25)'; g.fillRect(cx-4.6, by+15.6, 3.4, 1.8);
   g.fillStyle='rgba(40,20,60,.14)'; g.fillRect(cx+3, by+16, 2.8, 4.4); // 背光側陰影
+  if(L.pat){ // 商店衣服的花樣
+    g.save(); g.beginPath(); g.roundRect(cx-6.6,by+14,13.2,9.5,4.5); g.clip(); const pc = L.patCol||'#fff';
+    if(L.pat==='stripe'){ g.fillStyle=pc; for(const yy of [15.4,18,20.6]) g.fillRect(cx-7, by+yy, 14, 1.3); }
+    else if(L.pat==='dot'){ g.fillStyle=pc; for(const [dx,dy] of [[-3.5,16.4],[1.5,17],[-1,20],[4,20.4],[-5,19.6]]){ g.beginPath(); g.arc(cx+dx, by+dy, .9, 0, 7); g.fill(); } }
+    else if(L.pat==='num'){ g.fillStyle=pc; g.fillRect(cx-7, by+14, 14, 1.1); if(dir!=='right'){ g.font='bold 6px sans-serif'; g.textAlign='center'; g.textBaseline='middle'; g.fillText('7', cx, by+18.4); } }
+    else if(L.pat==='sailor'){ g.fillStyle=pc; if(dir==='down'){ g.beginPath(); g.moveTo(cx-6.6,by+14); g.lineTo(cx+6.6,by+14); g.lineTo(cx,by+19); g.closePath(); g.fill(); g.fillStyle='#e25555'; g.beginPath(); g.moveTo(cx-1.6,by+18); g.lineTo(cx+1.6,by+18); g.lineTo(cx,by+20.6); g.closePath(); g.fill(); } else g.fillRect(cx-7, by+14, 14, dir==='up'?5:2.4); }
+    else if(L.pat==='zip'){ g.fillStyle=pc; g.fillRect(cx-7,by+20.4,14,3); if(dir==='down'){ g.fillStyle='rgba(0,0,0,.3)'; g.fillRect(cx-.5, by+14, 1, 9.5); } }
+    else if(L.pat==='overall'){ g.fillStyle=L.pants; if(dir!=='right'){ g.fillRect(cx-5,by+14,2,7); g.fillRect(cx+3,by+14,2,7); } g.fillRect(cx-6.6, by+19.6, 13.2, 4); if(dir==='down'){ g.fillRect(cx-4,by+17.4,8,4); g.fillStyle='#ffd447'; g.beginPath(); g.arc(cx-4,by+17.6,.8,0,7); g.arc(cx+4,by+17.6,.8,0,7); g.fill(); } else if(dir==='right') g.fillRect(cx-1,by+14,2,7); }
+    g.restore();
+  }
+  if(L.pack && dir==='up'){ rr(g, cx-5.5, by+14.5, 11, 9, 2.5, '#ff8a3d'); g.fillStyle='#ffd447'; g.fillRect(cx-5,by+17,10,1.4); g.fillStyle='#3cb371'; g.fillRect(cx-5,by+19,10,1.4); g.fillStyle='#3c8de0'; g.fillRect(cx-5,by+21,10,1.2); }
+  if(L.pack && dir==='down'){ g.fillStyle='#ff8a3d'; g.fillRect(cx-5,by+14,1.6,6); g.fillRect(cx+3.4,by+14,1.6,6); }
   if(L.vest){ g.fillStyle=L.vest; g.fillRect(cx-6, by+15, 12, 7.6); g.fillStyle='#fff'; g.fillRect(cx-6, by+18.4, 12, 1.8); g.beginPath(); g.roundRect(cx-6.6,by+14,13.2,9.5,4.5); g.stroke(); }
   if(L.tie && dir==='down'){ g.fillStyle=L.tie; g.beginPath(); g.moveTo(cx-1.5,by+14.6); g.lineTo(cx+1.5,by+14.6); g.lineTo(cx+1,by+20); g.lineTo(cx,by+21.4); g.lineTo(cx-1,by+20); g.closePath(); g.fill(); }
+  if(L.wings && dir==='up') drawWings(g, cx, by, false);
   if(L.cape && dir==='up'){ g.beginPath(); g.moveTo(cx-6.6,by+14); g.lineTo(cx+6.6,by+14); g.lineTo(cx+9,by+26); g.quadraticCurveTo(cx,by+28,cx-9,by+26); g.closePath(); g.fillStyle=L.cape; g.fill(); g.stroke(); g.fillStyle='rgba(255,255,255,.2)'; g.fillRect(cx-5,by+16,3,8); }
   if(side){ rr(g, cx-2+sw*.8, by+15, 3.8, 6.5, 1.8, L.shirt); circ(g, cx+sw*.8, by+21.7, 2.1, L.skin); }
   const itemArgs = [L.item, side ? cx+sw*.8 : cx+8.1, by+21.7 - (side?0:sw), cx, by, side];
-  const itemAfterHead = L.item==='flag' || L.item==='baton';
+  const itemAfterHead = L.item==='flag' || L.item==='baton' || L.item==='balloon' || L.item==='wand';
   if(L.item && dir!=='up' && !itemAfterHead) drawItem(g, ...itemArgs);
   // 頭（以下都在放大座標裡畫）
   headOn();
@@ -1778,6 +1849,7 @@ function drawPerson(g, x, y, dir, L, step, still){
     g.strokeStyle=darken(L.skin,.5); g.lineWidth=.9; g.beginPath(); g.moveTo(cx+6.3,by+10.6); g.lineTo(cx+7.4,by+10.4); g.stroke();
   }
   g.strokeStyle=OL; g.lineWidth=1.1;
+  if(L.shades && dir!=='up'){ if(dir==='down'){ rr(g, cx-6.6, by+4.9, 5.8, 4.2, 1.6, '#1d1824'); rr(g, cx+.8, by+4.9, 5.8, 4.2, 1.6, '#1d1824'); g.fillStyle='#1d1824'; g.fillRect(cx-1,by+6,2,.9); g.fillStyle='rgba(255,255,255,.55)'; g.fillRect(cx-5.4,by+5.6,1.6,1); g.fillRect(cx+2,by+5.6,1.6,1); } else rr(g, cx+2, by+4.9, 6.6, 4.2, 1.6, '#1d1824'); }
   if(L.glasses && dir!=='up'){ if(dir==='down'){ g.strokeRect(cx-6,by+4.8,5,4.4); g.strokeRect(cx+1,by+4.8,5,4.4); g.beginPath(); g.moveTo(cx-1,by+6.5); g.lineTo(cx+1,by+6.5); g.stroke(); } else g.strokeRect(cx+2,by+4.8,6,4.4); }
   g.lineWidth=1.25;
   // 帽子
@@ -1800,6 +1872,14 @@ function drawPerson(g, x, y, dir, L, step, still){
     g.beginPath(); for(let j=0;j<10;j++){ const r=j%2?1.8:4, a=-Math.PI/2+j*Math.PI/5; g.lineTo(sx+Math.cos(a)*r, sy+Math.sin(a)*r); } g.closePath();
     g.fillStyle='#ffe066'; g.fill(); g.lineWidth=1; g.stroke();
   }
+  if(L.hat==='straw'){ g.beginPath(); g.ellipse(cx, by+1.6, 13, 3.6, 0, 0, 7); g.fillStyle='#f2cf6b'; g.fill(); g.stroke(); g.beginPath(); g.arc(cx, by+1.6, 7.6, Math.PI, 0); g.closePath(); g.fill(); g.stroke(); g.fillStyle='#e25555'; g.fillRect(cx-7.4, by-.6, 14.8, 2); }
+  if(L.hat==='beanie'){ const hc = L.hatColor||'#e25555'; g.beginPath(); g.arc(cx, by+3, 9.3, Math.PI, 0); g.closePath(); g.fillStyle=hc; g.fill(); g.stroke(); rr(g, cx-9.6, by+1, 19.2, 3.6, 1.6, darken(hc,.15)); circ(g, cx, by-6.8, 2.6, '#fff'); }
+  if(L.hat==='chef'){ for(const dx of [-4.5,0,4.5]) circ(g, cx+dx, by-6.5, 4.4, '#fff'); g.fillStyle='#fff'; g.fillRect(cx-7,by-7,14,5); rr(g, cx-7.5, by-3, 15, 5, 1.5, '#fff'); }
+  if(L.ears==='bunny'){ for(const sx of (side ? [-1] : [-1,1])){ g.beginPath(); g.ellipse(cx+sx*4, by-9, 2.6, 7, sx*.15, 0, 7); g.fillStyle='#fff'; g.fill(); g.stroke(); if(dir!=='up'){ g.beginPath(); g.ellipse(cx+sx*4, by-8.5, 1.2, 5, sx*.15, 0, 7); g.fillStyle='#ffb3c8'; g.fill(); } } }
+  if(L.ears==='cat'){ for(const sx of [-1,1]){ g.beginPath(); g.moveTo(cx+sx*2.5, by-3.5); g.lineTo(cx+sx*7, by-10); g.lineTo(cx+sx*8.6, by-1.5); g.closePath(); g.fillStyle=L.hair; g.fill(); g.stroke(); if(dir!=='up'){ g.beginPath(); g.moveTo(cx+sx*4, by-3.6); g.lineTo(cx+sx*6.8, by-7.4); g.lineTo(cx+sx*7.4, by-3); g.closePath(); g.fillStyle='#ffb3c8'; g.fill(); } } }
+  if(L.phones){ g.strokeStyle='#3a3f55'; g.lineWidth=2; g.beginPath(); g.arc(cx, by+4, 10, Math.PI*1.08, Math.PI*1.92); g.stroke(); g.strokeStyle=OL; g.lineWidth=1.1;
+    if(side) rr(g, cx-3.5, by+2, 5.5, 7.5, 2.5, '#4fc3c3'); else { rr(g, cx-11.6, by+2.5, 4, 7, 2, '#4fc3c3'); rr(g, cx+7.6, by+2.5, 4, 7, 2, '#4fc3c3'); } }
+  if(L.wreath){ const fc = ['#ff7aa8','#ffd447','#fff','#ff9a4a','#b48cff']; g.lineWidth=.8; for(let j=0;j<7;j++){ const a = Math.PI*(1.05+j*.15); circ(g, cx+Math.cos(a)*8.8, by+3.6+Math.sin(a)*8.8, 2, fc[j%5]); } }
   g.restore(); // 結束頭部放大
   if(itemAfterHead && dir!=='up') drawItem(g, ...itemArgs);
   g.restore();
@@ -1834,7 +1914,8 @@ function calcScore(){ if(!S||!S.ts) return 0; let s=0; for(const k of TOPIC_KEYS
 function fmtTime(sec){ sec=Math.round(sec||0); const h=Math.floor(sec/3600), m=Math.floor(sec%3600/60), s=sec%60; return (h?h+':'+String(m).padStart(2,'0'):m)+':'+String(s).padStart(2,'0'); }
 function save(){
   if(!S) return;
-  S.x=P.x; S.y=P.y; S.dir=P.dir;
+  const pp = CEL ? CEL.p : P;   // 慶典時玩家被移到操場：存原本的位置
+  S.x=pp.x; S.y=pp.y; S.dir=pp.dir;
   try{ localStorage.setItem('campusGuardianSave', JSON.stringify(S)); }catch(e){}
 }
 function loadSave(){
@@ -1858,7 +1939,7 @@ addNPC({id:'rules', x:38, y:17, name:'班導師 黃老師', quest:'rules',
   talk:questTalk('rules',
     ['{name}同學早安，我是黃老師。','最近「散漫怪」跑進校園，讓大家上課遲到、走廊奔跑、亂丟垃圾……','讓老師看看你是不是守規矩的好學生吧！'],
     ['你是全班的好榜樣！','守規矩不是為了怕被罵，而是讓大家都能安全、快樂地學習。'])});
-addNPC({id:'traffic', x:22, y:48, name:'導護志工 方阿伯', quest:'traffic',
+addNPC({id:'traffic', x:17, y:53, name:'導護志工 方阿伯', quest:'traffic',
   look:{skin:'#e8b98f',hair:'#9a9a9a',shirt:'#3c7fd0',pants:'#334',vest:'#ffe23a',hat:'cap',hatColor:'#ffd400',item:'baton',mustache:'#b5b5b5'},
   talk:questTalk('traffic',
     ['早安！我是導護志工方阿伯。','上下學時路上車子好多，「闖紅燈怪」最喜歡誘惑小朋友亂穿越馬路！','你知道怎麼保護自己的交通安全嗎？來挑戰看看！'],
@@ -1936,7 +2017,7 @@ addNPC({id:'yu', x:61, y:32, name:'小宇', dir:'down',
     say(['（小宇低著頭，眼眶紅紅的……）','……謝謝你過來陪我。'],{name:n.name});
   }});
 // 新地點的角色
-addNPC({id:'librarian', x:72, y:4, name:'圖書館 劉阿姨',
+addNPC({id:'librarian', x:74, y:3, name:'圖書館 劉阿姨',
   look:{skin:'#f6d2b0',hair:'#5a3a2a',shirt:'#6b8e4e',pants:'#444',glasses:true,long:true},
   talk(n){
     if(!S.gift.lib){ say(['歡迎來到圖書館！在這裡要輕聲細語喔。','書架上有很多安全知識的書，面向書架按空白鍵就可以翻翻看。','看完的書記得放回原位，愛惜書本，下一位同學才能看到乾淨的書。','這兩張「提示卡」送給你，答題卡住的時候可以用喔！'],{name:n.name, onEnd:()=>giveItem('hint',2,'lib')}); return; }
@@ -2058,7 +2139,7 @@ addNPC({id:'sport', x:39, y:31, name:'體育組長 徐組長', dir:'left',
         [['直接全力衝刺，比較快熱起來','沒有暖身就衝刺，很容易拉傷或扭傷喔！'],['先吃很多零食補充體力','運動前吃太飽反而會不舒服喔！先暖身才是對的。']],
         '答對了！暖身做得好，運動沒煩惱！', 'shield', 'sport', '這個「守護盾」送你，運動和挑戰都要平安！')});
   }});
-addNPC({id:'farmer', x:5, y:37, name:'種菜志工 秀蘭阿姨', dir:'up',
+addNPC({id:'farmer', x:9, y:36, name:'種菜志工 秀蘭阿姨', dir:'left',
   look:{skin:'#e8b98f',hair:'#5a3a1a',shirt:'#6bbf8e',pants:'#6b4a2a',long:true,hat:'cap',hatColor:'#f2c27a'},
   talk(n){ ctTalkFarmer(n); }});
 addNPC({id:'senior', x:68, y:20, name:'六年級 阿凱學長', dir:'down',
@@ -2076,7 +2157,7 @@ addNPC({id:'nature', x:81, y:41, name:'自然科 王老師', dir:'right',
 addNPC({id:'climber', x:85, y:40, name:'三年級 阿翔', dir:'up',
   look:{skin:'#e8b98f',hair:'#222',shirt:'#ff9a4a',pants:'#2c3e60'},
   talk(n){ ctTalkClimber(n); }});
-addNPC({id:'kinder', x:5, y:18, name:'幼兒園 吳老師', dir:'down',
+addNPC({id:'kinder', x:6, y:18, name:'幼兒園 吳老師', dir:'down',
   look:{skin:'#f6d2b0',hair:'#5a3a1a',shirt:'#ffb36b',pants:'#555',long:true,item:'book'},
   talk(n){ say(['歡迎來幼兒園！這裡的小朋友年紀比較小。','看到學弟妹要溫柔，玩溜滑梯和遊戲器材時要排隊、讓他們先玩，不可以推擠喔！','書架上的繪本大家都可以看，看完記得放回原來的位置。'],{name:n.name}); }});
 addNPC({id:'clean', x:6, y:26, name:'衛生組長 許組長',
@@ -2097,7 +2178,7 @@ addNPC({id:'build', x:28, y:9, name:'總務主任 林主任', dir:'down',
         [['自己拿工具敲一敲修好','自己修可能會受傷喔！交給大人和總務處處理。'],['不管它，繼續坐','壞掉的椅子可能會讓人跌倒受傷，要告訴大人喔！']],
         '答對了！一起愛護校園，大家用得更安全！', 'compass', 'build', '這個「指南針」送你，校園變大了，不怕迷路！')});
   }});
-addNPC({id:'info', x:44, y:4, name:'資訊組長 蕭組長', dir:'down',
+addNPC({id:'info', x:44, y:3, name:'資訊組長 蕭組長', dir:'down',
   look:{skin:'#f6d2b0',hair:'#2a2a2a',shirt:'#3c4a6b',pants:'#2c3e60',glasses:true,item:'laptop'},
   talk(n){
     // 每次聊一個重點（短短兩三句），讀起來比較輕鬆
@@ -2119,7 +2200,7 @@ const ART_TALKS = [
   ['拿剪刀走路時，先把剪刀合起來，握住刀身、刀尖朝下；拿給別人時，把刀柄朝向對方。','用美工刀一定要有老師在旁邊，不用的時候要把刀片推回去。'],
   ['顏料、膠水用完要蓋好蓋子，也不可以放進嘴巴。','畫完要把水桶和畫筆洗乾淨、桌面擦乾淨，再離開教室。'],
   ['每個人畫的都不一樣，沒有誰畫得比較「醜」。','欣賞同學的作品時，說說你喜歡哪裡，不要取笑別人喔！']];
-addNPC({id:'art', x:85, y:4, name:'美術老師 邱老師', dir:'down',
+addNPC({id:'art', x:87, y:3, name:'美術老師 邱老師', dir:'down',
   look:{skin:'#f6d2b0',hair:'#6b3e1e',shirt:'#c2559a',pants:'#4a4f6a',long:true,bow:'#ffd447',item:'palette'},
   talk(n){
     const ti = (S.artI||0) % ART_TALKS.length; S.artI = ti + 1;
@@ -2136,7 +2217,7 @@ const AFFAIR_TALKS = [
   ['班上的設備要一起愛護：電扇開關不要一直按，窗戶輕輕關，桌椅不要拿來站或搖。','愛護設備，大家用起來才安全，學校也不用一直花錢修理。'],
   ['放學前，值日生記得幫忙關燈、關電扇、關冷氣、關窗戶。','節省能源，設備也會比較耐用喔！'],
   ['看到插座冒煙、電線破掉，千萬不要用手碰！','馬上離開，告訴老師，讓專業的人來處理。']];
-addNPC({id:'affair', x:24, y:3, name:'事務組長 陳老師', dir:'down',
+addNPC({id:'affair', x:25, y:3, name:'事務組長 陳老師', dir:'down',
   look:{skin:'#f3c9a2',hair:'#3a2a22',shirt:'#5aa58a',pants:'#3a3f55',glasses:true,long:true,item:'clip'},
   talk(n){
     const ti = (S.affI||0) % AFFAIR_TALKS.length; S.affI = ti + 1;
@@ -2353,7 +2434,7 @@ const ZONES = [
   {n:'☀️ 北面光電球場',x1:66,y1:15,x2:79,y2:29},
   {n:'☀️ 南面光電球場',x1:57,y1:37,x2:64,y2:46},
   {n:'🌳 榕樹區',x1:76,y1:35,x2:92,y2:45},
-  {n:'⛩️ 小孔廟',x1:9,y1:27,x2:15,y2:35},
+  {n:'⛩️ 小孔廟',x1:10,y1:27,x2:15,y2:35},
   {n:'🥬 菜圃',x1:2,y1:34,x2:9,y2:37},
   {n:'🐘 大象藝術裝置',x1:22,y1:43,x2:27,y2:46},
   {n:'🏞️ 溪畔步道',x1:94,y1:0,x2:95,y2:46},
@@ -2384,6 +2465,7 @@ function updateEscort(){
     }
     return;
   }
+  if(ESC.ph!=='back'){ const p=$('#panel'); if(!p.classList.contains('hidden')){ p.classList.add('hidden'); p.dataset.mode=''; } }
   if(n.moving) return;
   if(ESC.ph==='come'){
     if(!escStep(n, ESC.side, P.y)){
@@ -2407,7 +2489,9 @@ function updateEscort(){
   }
   if(ESC.ph==='back'){
     if(DLG) return;
-    if(!escStep(n, ESC.hx, ESC.hy, true)){ n.fast=false; n.dir='down'; ESC=null; }
+    const ox=n.x, oy=n.y;
+    if(!escStep(n, ESC.hx, ESC.hy, true)){ n.fast=false; n.dir='down'; ESC=null; return; }
+    if(n.x===P.x && n.y===P.y){ n.x=ox; n.y=oy; n.moving=false; puff(n.px,n.py); n.x=ESC.hx; n.y=ESC.hy; n.px=n.x*TS; n.py=n.y*TS; n.fast=false; n.dir='down'; ESC=null; }   // 前面是玩家：直接回到原位
   }
 }
 function updateNPCs(dt){
@@ -2452,17 +2536,26 @@ window.addEventListener('keydown', e=>{
   if(scene==='mini'){
     if(!e.ctrlKey && !e.metaKey && !e.altKey && e.key.length===1) e.preventDefault();
     // 打地鼠用數字鍵盤時，789 在上排：換成跟畫面一樣的位置
+    if(e.repeat && MG && ['piano','art','drum','recorder','cloze','match'].includes(MG.kind)) return;   // 按住不放不算多次
     let key = e.key; if(MG && MG.kind==='whack' && /^Numpad[1-9]$/.test(e.code)) key = '789456123'[+e.code.slice(6)-1];
     mgKey(key, true); return; }   // 擋掉 Firefox 按 ' 或 / 開「快速尋找」
   if(scene!=='play') return;
   if(QTE){ if(e.key===' '||e.key==='Enter') endQTE(true); return; }
-  if(DLG){ dialogKey(e.key); return; }
-  if(!$('#panel').classList.contains('hidden')){ if(['q','Q','r','R','b','B','i','I','Escape',' ','Enter'].includes(e.key)) togglePanel(); return; }
+  if(DLG){ if(e.repeat && KEYMAP[e.key]) return; dialogKey(e.key); return; }   // 按住方向鍵時，選項不會自己一直切換
+  if(ESC) return;   // 方阿伯護送中
+  if(!$('#panel').classList.contains('hidden')){
+    if(e.key==='q'||e.key==='Q') togglePanel();
+    else if(e.key==='b'||e.key==='B'||e.key==='i'||e.key==='I') showBag();
+    else if(e.key==='r'||e.key==='R'){ boardOpen() ? closeBoard() : showBoard(); }
+    else if(e.key==='c'||e.key==='C'){ const p=$('#panel'); if(p.dataset.mode==='shop'){ p.classList.add('hidden'); p.dataset.mode=''; } else showShop(); }
+    else if(['Escape',' ','Enter'].includes(e.key)){ const p=$('#panel'); p.classList.add('hidden'); p.dataset.mode=''; }
+    return; }
   if(e.key==='r'||e.key==='R'){ showBoard(); return; }
   if(e.key==='b'||e.key==='B'||e.key==='i'||e.key==='I'){ showBag(); return; }
   if(k){ if(!held[k]){ held[k]=true; order.push(k); } return; }
   if(e.key===' '||e.key==='Enter'||e.key==='e'||e.key==='E') interact();
   if(e.key==='q'||e.key==='Q') togglePanel();
+  if(e.key==='c'||e.key==='C') showShop();
   if(e.key==='m'||e.key==='M') toggleMini();
 });
 window.addEventListener('keyup', e=>{ if(scene==='mini') mgKey(e.key, false); const k=KEYMAP[e.key]; if(k){ held[k]=false; const i=order.indexOf(k); if(i>=0) order.splice(i,1);} });
@@ -2520,6 +2613,10 @@ function facingTarget(){
   if(c==='U') return {stall:true, x:ax, y:ay};
   if(c==='V') return {sink:true, x:ax, y:ay};
   if(c==='N') return {piano:true, x:ax, y:ay};
+  if(c==='J') return {drum:true, x:ax, y:ay};
+  if(c==='I') return {recorder:true, x:ax, y:ay};
+  if(c==='a') return {cloze:true, x:ax, y:ay};
+  if(c==='d') return {match:true, x:ax, y:ay};
   if(c==='M') return {pc:true, x:ax, y:ay};
   if(c==='e') return {fire:true, x:ax, y:ay};
   if(c==='A') return {easel:true, x:ax, y:ay};
@@ -2552,6 +2649,10 @@ function interact(){
   else if(t.sink) washHands();
   // 小遊戲入口：一句話＋選項，不要讓孩子先讀好幾頁
   else if(t.piano) say(['鋼琴（彈琴前要先洗手）。要彈彈看嗎？可以跟著發亮的琴鍵彈〈小星星〉喔！'], {name:'🎹 鋼琴', choices:[{t:'🎹 來彈鋼琴', f:()=>startMini('piano')},{t:'先不用了'}]});
+  else if(t.drum) say(['鼓（敲鼓要用鼓棒，不可以用手用力拍或站上去玩）。要跟著節奏打打看嗎？'], {name:'🥁 鼓', choices:[{t:'🥁 玩打鼓節奏', f:()=>startMini('drum')},{t:'先不用了'}]});
+  else if(t.recorder) say(['直笛架上放著直笛（直笛要自己用、不共用，吹完要清潔）。要學吹直笛嗎？'], {name:'🎶 直笛', choices:[{t:'🎶 來吹直笛', f:()=>startMini('recorder')},{t:'先不用了'}]});
+  else if(t.cloze) say(['白板上寫著英文句子，中間少了一個字。要挑戰「英語填空」嗎？'], {name:'🔤 英語白板', choices:[{t:'🔤 玩英語填空', f:()=>startMini('cloze')},{t:'先不用了'}]});
+  else if(t.match) say(['牆上貼著單字卡和圖片卡。要玩「單字圖片配對」嗎？'], {name:'🃏 單字圖卡', choices:[{t:'🃏 玩單字配對', f:()=>startMini('match')},{t:'先不用了'}]});
   else if(t.pc) say(['電腦裡有「檔案打地鼠」：正常的檔案才點，病毒和詐騙不能點！要玩嗎？（玩完記得讓眼睛休息）'], {name:'💻 電腦', choices:[{t:'📂 玩檔案打地鼠', f:()=>startMini('whack')},{t:'先不用了'}]});
   else if(t.sofa) say(['舒服的沙發。要坐下來，到「心情小花園」放鬆一下嗎？'], {name:'🛋️ 沙發', choices:[{t:'🌱 去心情小花園', f:()=>startMini('calm')},{t:'先不用了'}]});
   else if(t.fire) say(['這是練習用滅火器。真的失火要先大喊「失火了」，小朋友以逃生為優先！要練習「拉、瞄、壓、掃」嗎？'], {name:'🧯 滅火器', choices:[{t:'🧯 來練習滅火', f:()=>startMini('fire')},{t:'先不用了'}]});
@@ -2632,7 +2733,7 @@ $('#dlg').addEventListener('click', ()=>advanceDlg());
 /* ---------------- 任務面板 / 小地圖 ---------------- */
 function togglePanel(){
   const p = $('#panel');
-  if(!p.classList.contains('hidden')){ p.classList.add('hidden'); p.dataset.mode=''; return; }
+  if(!p.classList.contains('hidden')){ const was=p.dataset.mode; p.classList.add('hidden'); p.dataset.mode=''; if(was==='quest') return; }
   clearHeld();
   p.dataset.mode = 'quest';
   let h = `<h2>📋 守護者任務（${badgeCount()}/5）</h2>`;
@@ -2673,8 +2774,9 @@ function togglePanel(){
   $('#pReset').onclick = ()=>{ if(confirm('確定要清除進度、回到標題畫面嗎？')){ try{ localStorage.removeItem('campusGuardianSave'); }catch(e){} location.reload(); } };
 }
 function toggleMini(){ showMini=!showMini; try{ localStorage.setItem('cgMini', showMini?'1':'0'); }catch(e){} $('#mini').classList.toggle('hidden', !showMini || scene==='title'); }
-$('#btnQuest').onclick = ()=>{ if(scene==='play' && !DLG && !QTE) togglePanel(); };
-$('#btnBag').onclick = ()=>{ if(scene==='play' && !DLG && !QTE) showBag(); };
+$('#btnQuest').onclick = ()=>{ if(scene==='play' && !DLG && !QTE && !ESC) togglePanel(); };
+$('#btnShop').onclick = ()=>{ if(scene==='play' && !DLG && !QTE && !ESC){ const p=$('#panel'); if(!p.classList.contains('hidden') && p.dataset.mode==='shop'){ p.classList.add('hidden'); p.dataset.mode=''; } else showShop(); } };
+$('#btnBag').onclick = ()=>{ if(scene==='play' && !DLG && !QTE && !ESC) showBag(); };
 $('#btnMap').onclick = ()=>{ if(scene==='play') toggleMini(); };
 function setMuteBtn(){ $('#btnMute').textContent = muted?'🔇':'🔊'; }
 $('#btnMute').onclick = ()=>{ muted=!muted; try{ localStorage.setItem('cgMuted', muted?'1':'0'); }catch(e){} setMuteBtn(); };
@@ -2703,6 +2805,7 @@ function updateHUD(pop){
   $('#hName').textContent = (S.cls ? S.cls+' ' : '') + S.name;
   $('#hTitle').textContent = (S.perfect ? '🌟 完美守護者' : S.done ? '👑 校園守護者' : LV_TITLES[Math.min(lv-1, LV_TITLES.length-1)]) + `｜⭐ ${calcScore()} 分`;
   $('#hExp').style.width = ((S.exp%60)/60*100)+'%';
+  $('#hCoin').textContent = S.coins||0;
   $('#badges').innerHTML = TOPIC_KEYS.map(k=>`<span class="${S.badges[k] && flyingBadge!==k?'on':''}${S.gold&&S.gold[k]?' gold':''}${pop===k?' pop':''}" title="${TOPICS[k].badge}${S.gold&&S.gold[k]?'（金徽章）':''}">${TOPICS[k].icon}</span>`).join('');
 }
 // 拿到徽章：徽章從畫面中央放大，再飛進右上角的欄位
@@ -2734,10 +2837,19 @@ function gainExp(n){
     for(let l=before+1; l<=now; l++) if(R[l]) setTimeout(()=>giveItem(R[l][0], R[l][1], 'lv'+l), 2900);
   }
 }
-let toastT;
-function toast(msg, good, ms){
-  const t=$('#toast'); t.textContent=msg; t.classList.toggle('good',!!good); t.classList.add('show');
-  clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'), ms||2600);
+let toastT, toastQ = [], toastAt = 0;
+function toast(msg, good, ms){   // 同時有好幾則提示時排隊顯示，每則至少停 1.5 秒
+  toastQ.push([msg, good, ms||2600]);
+  const since = performance.now() - toastAt;
+  if(!$('#toast').classList.contains('show') || (toastQ.length===1 && since>=1500)) toastShow();
+  else if(toastQ.length===1){ clearTimeout(toastT); toastT = setTimeout(toastShow, 1500-since); }
+}
+function toastShow(){
+  const t=$('#toast'), it=toastQ.shift();
+  clearTimeout(toastT);
+  if(!it){ t.classList.remove('show'); return; }
+  t.textContent=it[0]; t.classList.toggle('good',!!it[1]); t.classList.add('show'); toastAt = performance.now();
+  toastT = setTimeout(toastShow, toastQ.length ? 1500 : it[2]);
 }
 
 /* ---------------- 戰鬥（答題） ---------------- */
@@ -2755,14 +2867,14 @@ function battleTopic(topic, npc, practice){
         stuckT = 0;
         const pts = Math.max(0, b.correct*10 - b.wrong*5) + (S.tries[topic]===1 ? 30 : 0);
         S.ts[topic] = pts;
-        S.badges[topic]=true; save(); sfx('win'); submitScore(); flyBadge(topic);
+        S.badges[topic]=true; save(); sfx('win'); submitScore(); flyBadge(topic); setTimeout(()=>addCoins(50, '拿到徽章'), 1800);
         const c = badgeCount();
         say([`恭喜你打倒了${T.monster.name}，獲得【${T.badge}】${T.icon}！`,
              `本關守護積分 +${pts}${S.tries[topic]===1?'（含一次過關獎勵 +30）':''}，目前總積分 ${calcScore()} 分。`,
              c<5 ? `目前收集了 ${c}/5 枚徽章，繼續加油！（按「📋 任務」可以查看還有哪些）` : '你已經集滿 5 枚守護徽章了！快去校長室接受最終挑戰吧！'], {name:npc.name});
       } else if(S.badges[topic] && b.wrong===0 && !(S.gold&&S.gold[topic])){
         // 拿到徽章後，練習模式「全部答對」可以升級成金徽章（破關後的新目標）
-        S.gold = S.gold||{}; S.gold[topic] = true; save(); updateHUD(topic); sfx('badge');
+        S.gold = S.gold||{}; S.gold[topic] = true; save(); updateHUD(topic); sfx('badge'); addCoins(30, '金徽章');
         say([`太厲害了！一題都沒有答錯！`, `你的【${T.badge}】升級成 🌟 金徽章了！（目前金徽章 ${Object.keys(S.gold).length}/5）`], {name:npc.name});
       } else { save(); say(['練習得很好！複習越多次，記得越清楚喔！', ...(S.badges[topic] && !(S.gold&&S.gold[topic]) ? ['小祕密：練習時一題都不答錯，徽章會升級成 🌟 金徽章喔！'] : [])],{name:npc.name}); }
     },
@@ -2783,7 +2895,7 @@ function bossBattle(npc){
     onWin(b){
       if(first){ S.ts.boss = Math.max(0, b.correct*10 - b.wrong*5) + 100 + (S.tries.boss===1 ? 50 : 0); }
       S.done=true; save(); updateHUD(); sfx('win');
-      if(first) submitScore();
+      if(first){ submitScore(); addCoins(100, '打倒大魔王'); }
       say(['你打倒了糊塗大魔王！', ...(first?[`大魔王守護積分 +${S.ts.boss}，總積分 ${calcScore()} 分！`]:[]),'從今天起，你就是我們學校的「校園守護者」！','走！全校師生都在操場等著幫你慶祝！'],{name:npc.name, onEnd:celebrate});
     },
     onLose(b){ save(); say(['大魔王果然很厲害……','回去找各位老師複習一下，再來挑戰吧！'],{name:npc.name, onEnd:()=>setTimeout(()=>teacherCare('lose', b.lastWrong), 500)}); }
@@ -2828,6 +2940,7 @@ function endCelebrate(){
   const perfect = CEL.perfect, replay = CEL.replay;
   CEL=null; scene='play'; checkZone();
   if(perfect && !replay){ S.perfect = true; S.acc = 'gold'; refreshLook(); save(); updateHUD(); toast('🌟 獲得稱號「完美守護者」和造型「✨ 完美守護者金披風」！', true, 4500); }
+  else save();
   showCert();
   if(!perfect) setTimeout(tryPerfect, 500);   // 大魔王是最後一項時：關掉獎狀後接著舉行完美典禮
 }
@@ -3047,7 +3160,7 @@ $('#bFlee').onclick = ()=>{ if(BT && !BT.answered) finishBattle(true); };
 function readQuestion(){
   if(!BT || !window.speechSynthesis) { toast('這個瀏覽器不支援朗讀功能'); return; }
   const q = BT.q; speechSynthesis.cancel();
-  const opts = [...document.querySelectorAll('#bBody .obtn')].map((b,i)=>`第${i+1}個，${b.textContent.replace(/^\d/,'')}`);
+  const opts = [...document.querySelectorAll('#bBody .obtn')].map((b,i)=>b.classList.contains('gone') ? '' : `第${i+1}個，${b.textContent.replace(/^\d/,'')}`).filter(Boolean);
   const u = new SpeechSynthesisUtterance(q.q.replace(/（依序點選）/,'') + '。' + opts.join('。'));
   u.lang = 'zh-TW'; u.rate = .9;
   const v = speechSynthesis.getVoices().find(v=>/zh[-_]TW/i.test(v.lang)) || speechSynthesis.getVoices().find(v=>/^zh/i.test(v.lang));
@@ -3277,14 +3390,19 @@ function ctProgress(k){
   if(k==='tree') return c.tree===0 ? '找榕樹旁的王老師' : c.tree===1 ? `觀察 ${Object.keys(c.seen).length}/4${c.kid?'':'，還有同學在爬樹！'}` : '回去找王老師';
   return '';
 }
-function moveNPC(id, x, y, dir){ const n = NPCS.find(o=>o.id===id); if(!n) return; n.x=x; n.y=y; n.px=x*TS; n.py=y*TS; n.moving=false; if(dir) n.dir=dir; }
+function moveNPC(id, x, y, dir){ const n = NPCS.find(o=>o.id===id); if(!n) return; n.x=x; n.y=y; n.px=x*TS; n.py=y*TS; n.moving=false; if(dir) n.dir=dir;
+  for(const o of NPCS) if(o!==n && o.x===x && o.y===y){   // 剛好有人站在這裡：移到旁邊空的格子
+    for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,1],[1,-1],[-1,-1]]){ const ax=x+dx, ay=y+dy;
+      if(NPC_WALK.has(tileAt(ax,ay)) && !NO_WANDER.has(ax+','+ay) && !occupied(ax,ay,o)){ o.x=ax; o.y=ay; o.px=ax*TS; o.py=ay*TS; o.moving=false; break; } }
+  }
+}
 function ctApply(){ // 讀檔後把人物放回任務進度對應的位置
   if(S.ct.ball>=4){ moveNPC('senior', 65, 25, 'up'); moveNPC('midkid', 68, 20, 'down'); moveNPC('lowkid', 70, 22, 'down'); }
   if(S.ct.kid) moveNPC('climber', 88, 42, 'left');
 }
 function ctComplete(k, item){
   if(S.ct.done[k]) return;
-  S.ct.done[k] = true; gainExp(10); save(); updateHUD(); sfx('win');
+  S.ct.done[k] = true; gainExp(10); save(); updateHUD(); sfx('win'); addCoins(30, '校園任務');
   toast(`🎉 完成校園任務「${CT[k].name}」！`, true, 3500);
   setTimeout(()=>giveItem(item, 1, 'ct_'+k), 3600);
   setTimeout(tryPerfect, 4500);
@@ -3416,7 +3534,7 @@ function drawCampusTasks(g, t){
 function allDone(){ return !!(S && S.done && TOPIC_KEYS.every(k=>S.badges[k]) && hqDoneCount()===HQ_KEYS.length && CT_KEYS.every(k=>S.ct.done[k])); }
 function tryPerfect(){
   if(!S || S.perfect || !allDone()) return;
-  if(scene!=='play' || DLG || MG){ setTimeout(tryPerfect, 800); return; }
+  if(scene!=='play' || DLG || MG || QTE || evBusy || ESC){ setTimeout(tryPerfect, 800); return; }
   say(['🌟 你把五大任務、隱藏任務和校園任務全部完成了！','校長請全校師生到司令台前集合，要頒發一個特別的獎給你！'],{name:'📢 校園廣播', onEnd:()=>perfectCeremony(false)});
 }
 function perfectList(){
@@ -3538,14 +3656,28 @@ function hqDiscover(k){
 function hqComplete(k){
   if(S.hq.done[k]) return;
   S.hq.seen[k] = true; S.hq.done[k] = true;
-  const a = HQ[k].reward; S.acc = a; refreshLook();
+  const a = HQ[k].reward; S.acc = a; refreshLook(); addCoins(30, '隱藏任務');
   save(); updateHUD(); sfx('win'); submitScore();
   toast(`🎉 完成隱藏任務「${HQ[k].name}」！獲得造型「${ACC[a].name}」，積分 +${HQ_POINTS}`, true, 4500);
   // 隱藏任務改成只送造型和積分（道具太多，挑戰就沒有緊張感）；完成第 3 個時送一個守護盾
   if(hqDoneCount()===3) setTimeout(()=>giveItem('shield', 1, 'hq3'), 4600);
   setTimeout(tryPerfect, 5000);
 }
-function refreshLook(){ const base = S.custom ? buildLook(S.custom) : (LOOKS[S.look]||LOOKS[0]); P.look = Object.assign({}, base, (S.acc && ACC[S.acc]) ? ACC[S.acc].look : {}); }
+function fixProgress(){
+  if(!S) return;
+  if(scene!=='play' || DLG || MG || QTE || evBusy || ESC){ setTimeout(fixProgress, 800); return; }
+  const h = S.hq;
+  if(!h.done.exits && Object.keys(h.exits).length>=EXITS.length) hqComplete('exits');
+  if(!h.done.bottle && h.bottle>=3) hqComplete('bottle');
+  if(!h.done.friend && h.friend>=3) hqComplete('friend');
+  if(!h.done.social && socialList().every(id=>h.talked[id])) hqComplete('social');
+  const ctItem = {veg:'heal', ball:'shield', tree:'compass'};
+  for(const k of CT_KEYS) if(S.ct.done[k]) giveItem(ctItem[k], 1, 'ct_'+k);
+  if(hqDoneCount()>=3) giveItem('shield', 1, 'hq3');
+  const R = {3:['hint',1], 5:['hint',1], 7:['shield',1]};
+  for(const l in R) if(level()>=+l) giveItem(R[l][0], R[l][1], 'lv'+l);
+}
+function refreshLook(){ P.look = Object.assign({}, baseLook(), wearLook(), (S.acc && ACC[S.acc]) ? ACC[S.acc].look : {}); }   // 基本造型 → 商店服裝 → 任務造型
 function hqStep(){ // 走到某格時檢查
   const key = P.x+','+P.y;
   if(TRASH.some(([x,y])=>x===P.x&&y===P.y) && !S.hq.trash[key]){
@@ -3615,7 +3747,7 @@ const RECYCLE = [
 ];
 const BINS = ['紙類','塑膠類','鋁箔包／紙容器','一般垃圾'];
 function evReward(ok){
-  if(ok){ S.ev=(S.ev||0)+1; gainExp(15); sfx('ok');
+  if(ok){ S.ev=(S.ev||0)+1; gainExp(15); sfx('ok'); addCoins(5, '答對事件');
     // 隨機事件累積答對 3 次、6 次……送一個愛心飯糰
     if(S.ev%3===0) setTimeout(()=>giveItem('heal', 1, 'ev'+S.ev), 2200);
   } else sfx('bad'); }
@@ -3693,7 +3825,7 @@ function startQTE(){
 function endQTE(ok){
   if(!QTE) return; QTE=null;
   $('#qte').classList.add('hidden'); $('#cv').classList.remove('quake'); evReward(ok);
-  say(ok ? [{n:'✅ 做得好！',t:'反應很快！地震時立刻「趴下、掩護、穩住」，保護頭頸部，等搖晃停止再聽老師指示疏散。（經驗 +15）'}]
+  say(ok ? [{n:'✅ 做得好！',t:'反應很快！地震時立刻「趴下、掩護、穩住」，保護頭頸部。主震結束後，聽到「1 長 4 短」的哨音再依序疏散。（經驗 +15）'}]
          : [{n:'💡 想一想',t:'地震來的時候，要立刻「趴下、掩護、穩住」！不要慌張亂跑，用書包或手臂保護頭頸部。'}],
       {onEnd:()=>{ evBusy=false; }});
 }
@@ -3706,12 +3838,20 @@ function updateEvents(dt, free){
   if(!free || !S.crossed) return;
   if(tileAt(P.x,P.y)==='z'){ evT = Math.max(evT, 5); return; }   // 走在斑馬線上時不觸發事件
   if(inToilet()){ evT = Math.max(evT, 10); return; }             // 在廁所裡不觸發事件
+  if(P.y>=47){ evT = Math.max(evT, 5); return; }                  // 在校外人行道不觸發校園事件
   evT -= dt;
+}
+// 走到格子上（沒有在移動）時才觸發：按住方向鍵一直走也會遇到事件
+function fireDue(){
+  if(!S || !S.crossed || tileAt(P.x,P.y)==='z' || inToilet() || P.y>=47) return;
   if(evT<=0){
     // 玩家正要去找「！」關主時先不打擾，晚一點再觸發
     const nearQuest = NPCS.some(n=>((n.quest && !S.badges[n.quest]) || (n.id==='principal' && badgeCount()>=5 && !S.done)) && Math.abs(n.x-P.x)+Math.abs(n.y-P.y)<=4);
-    if(nearQuest){ evT = 15; return; }
-    evT = 120 + Math.random()*50; triggerEvent(); }
+    if(nearQuest) evT = 15;
+    else { evT = 120 + Math.random()*50; triggerEvent(); if(DLG || evBusy || QTE) return; }
+  }
+  if(stuckT > 240 && !S.done){ stuckT = 0; careT = Math.max(careT, 90); teacherCare('hint'); return; }
+  if(careT <= 0){ careT = 150 + Math.random()*60; teacherCare('chat'); }
 }
 // 時間光線：遊戲時間 0→30 分鐘，畫面從清晨的清爽光線漸漸變成午後的暖金色
 function drawDaylight(){
@@ -3811,11 +3951,11 @@ function careChat(t, kind, q, onEnd){
   chats[Math.random()*chats.length|0]();
 }
 function teacherCare(kind, q){
-  const t = NPCS.find(n=>n.id==='patrol'); if(!t || DLG || scene!=='play') return false;
+  const t = NPCS.find(n=>n.id==='patrol'); if(!t || DLG || QTE || ESC || scene!=='play') return false;
   let spot = null;
   for(const [dx,dy] of [[0,1],[1,0],[-1,0],[0,-1],[1,1],[-1,1],[1,-1],[-1,-1]]){
     const x=P.x+dx, y=P.y+dy;
-    if(NPC_WALK.has(tileAt(x,y)) && !occupied(x,y,t)){ spot=[x,y]; break; }
+    if(NPC_WALK.has(tileAt(x,y)) && !NO_WANDER.has(x+','+y) && !occupied(x,y,t)){ spot=[x,y]; break; }
   }
   if(!spot) return false;
   puff(t.px,t.py);
@@ -3836,10 +3976,8 @@ function inToilet(){ return (P.x>=46 && P.x<=53 && P.y>=20 && P.y<=23) || (P.x>=
 // 站在室內的地板上（教室、圖書館、健康中心……）
 function indoorNow(){ const c = tileAt(P.x,P.y); return c===',' || c==='D'; }
 function updateCare(dt, free){
-  if(!free || tileAt(P.x,P.y)==='z' || inToilet()) return;
+  if(!free || tileAt(P.x,P.y)==='z' || inToilet() || P.y>=47) return;
   careT -= dt; stuckT += dt;
-  if(stuckT > 240 && !S.done){ stuckT = 0; careT = Math.max(careT, 90); teacherCare('hint'); return; }
-  if(careT <= 0){ careT = 150 + Math.random()*60; teacherCare('chat'); }
 }
 
 /* ---------------- 排行榜 ---------------- */
@@ -3905,7 +4043,7 @@ function showBoard(scope){
   }).catch(()=>{ if(req===boardReq && boardOpen()) list.innerHTML = '<div class="bmsg">排行榜連線失敗，請檢查網路後再試。</div>'; });
 }
 function closeBoard(){ const p=$('#panel'); p.classList.add('hidden'); p.dataset.mode=''; }
-$('#btnBoard').onclick = ()=>{ if(scene==='play' && !DLG && !QTE){ boardOpen() ? closeBoard() : showBoard('class'); } };
+$('#btnBoard').onclick = ()=>{ if(scene==='play' && !DLG && !QTE && !ESC){ boardOpen() ? closeBoard() : showBoard('class'); } };
 $('#btnBoardT').onclick = ()=>showBoard('all');
 
 /* ---------------- 獎狀 ---------------- */
@@ -3939,7 +4077,10 @@ function tone(f, d, type, when, vol){
   o.type=type||'square'; o.frequency.value=f;
   g.gain.setValueAtTime(v, actx.currentTime+when); g.gain.exponentialRampToValueAtTime(.0001, actx.currentTime+when+d);
   o.connect(g); g.connect(actx.destination); o.start(actx.currentTime+when); o.stop(actx.currentTime+when+d+.02);
+  TONES.add(o); o.onended = ()=>TONES.delete(o);
 }
+var TONES = new Set();
+function stopTones(){ for(const o of TONES){ try{ o.stop(); }catch(e){} } TONES.clear(); }
 function sfx(kind){
   if(muted) return;
   try{
@@ -4051,7 +4192,8 @@ function startGame(data, isNew){
   if(!S.sid) S.sid = newSid();
   if(!S.cls) S.cls = '';
   S.seen = S.seen||{}; S.wrong = S.wrong||{}; S.acc = S.acc||'';
-  hqInit(); invInit(); refreshLook(); compassT = 0;
+  hqInit(); invInit(); coinInit(); refreshLook(); compassT = 0;
+  setTimeout(fixProgress, 1500);  // 進度已存、但還沒標記完成就關掉網頁的任務和道具，讀檔後補上
   setTimeout(tryPerfect, 2500);   // 更新前就已經全部完成的存檔，讀檔後補辦完美典禮
   if(S.hq.friend>=3){ const yu = NPCS.find(n=>n.id==='yu'); if(yu) yu.wander=[42,29,63,34]; }
   evT = 70; careT = 150; stuckT = 0; evBusy = false;
@@ -4136,12 +4278,15 @@ function startMini(kind){
   MG = {kind, t:0, ptr:{}, kh:{}, btns:[]}; MINI[kind].init(MG);
   scene = 'mini'; $('#mg').classList.remove('hidden'); mgAudio();
 }
+function mgAgain(){ if(MG && (MG.ovT||0) > 1) restartMini(); }   // 結算畫面至少停 1 秒，避免多按一下就重玩
 function restartMini(){ const k = MG.kind; MG = {kind:k, t:0, ptr:{}, kh:{}, btns:[]}; MINI[k].init(MG); }
 function endMini(){
-  if(!MG) return; MG = null;
+  if(!MG) return; MG = null; stopTones();
   $('#mg').classList.add('hidden'); scene = 'play'; clearHeld(); save();
 }
-function mgReward(key, item){ if(S.gift[key]) return false; gainExp(10); giveItem(item, 1, key); return true; }
+function mgReward(key, item){   // 小遊戲過關：第一次送經驗、道具和 20 金幣；之後每次 5 金幣（每個小遊戲最多 10 次）
+  if(S.gift[key]){ S.mgCoin = S.mgCoin||{}; if((S.mgCoin[key]||0) < 10){ S.mgCoin[key] = (S.mgCoin[key]||0) + 1; addCoins(5, '小遊戲過關'); } return false; }
+  gainExp(10); giveItem(item, 1, key); addCoins(20, '小遊戲第一次過關'); return true; }
 function mgKey(k, down){
   if(!MG) return;
   if(down && k==='Escape'){ endMini(); return; }
@@ -4267,6 +4412,7 @@ const DRILL_INFO = {
 function drillStart(m){ m.phase='stage'; m.si=0; m.st=0; m.tries=0; m.firstOk=0; m.fb=null; m.order=null; sfx('talk'); }
 function drillChoose(m, i){
   const S0 = m.stages[m.si]; if(m.phase!=='stage' || m.st < (S0.hold||0)) return;
+  if(!m.order) m.order = shuffle(S0.choices.slice());
   const c = m.order[i]; if(!c) return;
   m.tries++;
   if(c.ok && m.tries===1) m.firstOk++;
@@ -4285,7 +4431,7 @@ function drillNext(m){
   } else m.phase='stage';
 }
 function drillScene(m, S0){
-  const g = mgx, sh = (S0.shake && m.phase==='stage' && m.st < (S0.hold||0)+.01 && m.kind==='quake') ? 6 : 0;
+  const g = mgx, sh = (S0.shake && m.phase==='stage' && m.st < (S0.hold||0)+.01 && m.kind==='quake') ? (S0.duck ? 6*Math.max(0, 1-m.st/S0.hold) : 6) : 0;
   const ox = sh ? Math.sin(m.t*40)*sh : 0, oy = sh ? Math.cos(m.t*33)*sh*.6 : 0;
   g.save(); g.translate(ox, oy);
   const sc = S0.scene;
@@ -4326,7 +4472,7 @@ function drillMini(kind){
   return {
     init(m){ m.phase='ready'; m.si=0; m.st=0; m.reward=''; m.stages = kind==='quake' ? quakeStages(Math.random()<.5?'class':'special') : FIRE_STAGES; },
     btn(m, id){ if(id==='start'||id==='next') drillNext(m); else if(/^c\d$/.test(id)) drillChoose(m, +id.slice(1)); },
-    key(m, k, down){ if(!down) return; if(m.phase==='over'){ if(k===' '||k==='Enter') restartMini(); return; }
+    key(m, k, down){ if(!down) return; if(m.phase==='over'){ if(k===' '||k==='Enter') mgAgain(); return; }
       if(k===' '||k==='Enter') drillNext(m); else if(/^[1-3]$/.test(k)) drillChoose(m, +k-1); },
     pointer(){},
     update(m, dt){
@@ -4362,7 +4508,7 @@ function drillMini(kind){
       mgPanel(30, 404, 740, 160);
       mgWrap(S0.say, 50, 428, 700, 18, MG_INK, 26);
       if(m.phase==='stage'){
-        if(m.st < (S0.hold||0)){ mgT(S0.shake && kind==='quake' ? '（搖晃中……）' : '……', 400, 500, 18, '#8a7a9a'); return; }
+        if(m.st < (S0.hold||0)){ mgT(S0.shake && kind==='quake' ? (S0.duck ? '（搖晃慢慢變小……）' : '（搖晃中……）') : '……', 400, 500, 18, '#8a7a9a'); return; }
         if(!m.order){ m.order = shuffle(S0.choices.slice()); }
         const n = m.order.length, w = n===2 ? 340 : 226, gap = 12, x0 = 400 - (n*w+(n-1)*gap)/2;
         m.order.forEach((c,i)=>{
@@ -4419,7 +4565,7 @@ function potOver(m){
 MINI.pot = {
   init(m){ m.phase='ready'; m.n=0; m.inN=0; m.ears=0; m.aim=0; m.pow=0; m.aimT=0; m.powT=0; m.marks=[]; m.msg=''; m.msgT=0; m.fly=null; m.reward=''; },
   btn(m, id){ if(id==='start') potPress(m); },
-  key(m, k, down){ if(!down) return; if(m.phase==='over'){ if(k===' '||k==='Enter') restartMini(); return; } if(k===' '||k==='Enter') potPress(m); },
+  key(m, k, down){ if(!down) return; if(m.phase==='over'){ if(k===' '||k==='Enter') mgAgain(); return; } if(k===' '||k==='Enter') potPress(m); },
   pointer(m, type){ if(type==='down' && m.phase!=='over') potPress(m); },
   update(m, dt){
     m.t += dt; if(m.msgT>0) m.msgT -= dt;
@@ -4503,6 +4649,510 @@ MINI.pot = {
     }
   }
 };
+
+/* ---- 🥁 音樂教室：打鼓節奏 ---- */
+const DRUM_LANES = [
+  {n:'小鼓', col:'#e25555', key:'F', keys:['f','F','ArrowLeft']},
+  {n:'大鼓', col:'#3c8de0', key:'空白鍵', keys:[' ','ArrowDown']},
+  {n:'鈸',   col:'#f0a030', key:'J', keys:['j','J','ArrowRight']},
+];
+// 每個字是一個八分音符：B 大鼓、S 小鼓、C 鈸、. 休息
+const DRUM_SONGS = [
+  {id:'walk',  name:'🚶 慢慢走',     bpm:84,  p:'B...S...B...S...B...S...B.B.S...B...S...B...S...B.B.S...S...C.......'},
+  {id:'march', name:'🎺 快樂進行曲', bpm:100, p:'B.S.B.S.B.S.BBS.B.S.B.S.B.S.C...B.S.BBS.B.S.BBS.B.SSB.S.C.......'},
+  {id:'fair',  name:'🏮 熱鬧廟會',   bpm:112, p:'B.S.BSS.B.S.BSS.C.S.B.S.C.S.BSS.B.SSB.SSB.SSBSS.C.......'},
+];
+const DRUM_X = [260, 400, 540], DRUM_HIT = 470, DRUM_TOP = 70, DRUM_TRAVEL = 1.6;
+function drumSound(l){
+  if(!mgAudio()) return;
+  if(l===0){ tone(190,.12,'triangle',0,.18); tone(1500,.05,'square',0,.03); tone(2600,.04,'square',.005,.02); }
+  else if(l===1){ tone(70,.28,'sine',0,.35); tone(110,.12,'sine',0,.2); }
+  else { tone(3200,.3,'square',0,.02); tone(4700,.25,'square',.004,.015); tone(6100,.18,'triangle',0,.02); }
+}
+function drumStart(m, id){
+  const sg = DRUM_SONGS.find(s=>s.id===id); if(!sg) return;
+  const beat = 60/sg.bpm, lead = beat*4 + .4;
+  m.song = sg; m.beat = beat; m.phase = 'play'; m.ct = -.4; m.tick = -1;
+  m.notes = []; [...sg.p].forEach((c,i)=>{ const l = 'SBC'.indexOf(c); if(l>=0) m.notes.push({t:lead + i*beat/2, l, j:null}); });
+  m.end = m.notes[m.notes.length-1].t + 1.2;
+  m.per = 0; m.good = 0; m.combo = 0; m.maxc = 0; m.fb = null; m.flash = [0,0,0];
+}
+function drumHit(m, l){
+  drumSound(l); m.flash[l] = .15;
+  if(m.phase!=='play') return;
+  const n = m.notes.find(n=>n.l===l && !n.j && Math.abs(n.t-m.ct)<.18);
+  if(!n) return;
+  const d = Math.abs(n.t-m.ct);
+  n.j = d<.08 ? 'per' : 'good';
+  if(n.j==='per') m.per++; else m.good++;
+  m.combo++; m.maxc = Math.max(m.maxc, m.combo);
+  m.fb = {t:.5, l, txt: n.j==='per' ? 'Perfect!' : 'Good!', col: n.j==='per' ? '#ffd447' : '#9be3b0'};
+}
+function drumFinish(m){
+  m.phase = 'over';
+  const N = m.notes.length, hit = m.per + m.good;
+  m.pass = hit/N >= .6; m.reward = '';
+  if(m.pass){ S.mgDrum = S.mgDrum||{}; S.mgDrum[m.song.id] = true; if(mgReward('mg_drum', 'hint')) m.reward = '🎁 第一次過關：經驗 +10、💡 提示卡！'; }
+  sfx(m.pass ? 'win' : 'warn'); save();
+}
+MINI.drum = {
+  init(m){ m.phase = 'pick'; m.reward = ''; m.flash = [0,0,0]; },
+  btn(m, id){ if(m.phase==='pick') drumStart(m, id); },
+  key(m, k, down){
+    if(!down) return;
+    if(m.phase==='over'){ if(k===' '||k==='Enter') mgAgain(); return; }
+    if(m.phase==='pick'){ const i = '123'.indexOf(k); if(i>=0) drumStart(m, DRUM_SONGS[i].id); return; }
+    const l = DRUM_LANES.findIndex(L=>L.keys.includes(k)); if(l>=0) drumHit(m, l);
+  },
+  pointer(m, type, x, y){
+    if(type!=='down' || m.phase!=='play' || y<380) return;
+    const l = DRUM_X.findIndex(px=>Math.abs(x-px)<70); if(l>=0) drumHit(m, l);
+  },
+  update(m, dt){
+    m.t += dt; for(let i=0;i<3;i++) if(m.flash[i]>0) m.flash[i] -= dt;
+    if(m.fb){ m.fb.t -= dt; if(m.fb.t<=0) m.fb = null; }
+    if(m.phase!=='play') return;
+    m.ct += dt;
+    const b = Math.floor((m.ct-.4)/m.beat);   // 打拍子的「滴答」聲，幫助抓節奏
+    if(b>m.tick && m.ct>=.4){ m.tick = b; if(mgAudio()) tone(b<4 ? 1320 : 990, .04, 'square', 0, b<4 ? .05 : .018); }
+    for(const n of m.notes) if(!n.j && m.ct-n.t>.18){ n.j = 'miss'; m.combo = 0; m.fb = {t:.5, l:n.l, txt:'Miss', col:'#ff8a8a'}; }
+    if(m.ct > m.end) drumFinish(m);
+  },
+  draw(m){
+    m.btns = [];
+    const g = mgx.createLinearGradient(0,0,0,576); g.addColorStop(0,'#3b2a5e'); g.addColorStop(1,'#1d1730'); mgx.fillStyle = g; mgx.fillRect(0,0,800,576);
+    mgHeader('🥁 音樂教室・打鼓節奏', TOUCH ? '鼓點掉到下面的圓圈時，點一下那面鼓｜✖ 離開' : 'F 小鼓｜空白鍵 大鼓｜J 鈸（也可以用 ← ↓ →）｜Esc 離開');
+    // 三條鼓道
+    DRUM_LANES.forEach((L,i)=>{
+      const x = DRUM_X[i];
+      mgx.fillStyle = 'rgba(255,255,255,.06)'; mgx.fillRect(x-60, 56, 120, 470);
+      mgx.strokeStyle = m.flash[i]>0 ? L.col : 'rgba(255,255,255,.5)'; mgx.lineWidth = m.flash[i]>0 ? 7 : 4;
+      circ(mgx, x, DRUM_HIT, 38, m.flash[i]>0 ? lighten(L.col,.35) : 'rgba(255,255,255,.12)');
+      mgT(L.n, x, DRUM_HIT-4, 18, '#fff'); if(!TOUCH) mgT(L.key, x, DRUM_HIT+16, 12, 'rgba(255,255,255,.75)', 'center', false);
+    });
+    if(m.phase==='play' || m.phase==='over'){
+      const sp = (DRUM_HIT-DRUM_TOP)/DRUM_TRAVEL;
+      for(const n of m.notes){
+        if(n.j==='per' || n.j==='good') continue;
+        const y = DRUM_HIT - (n.t-m.ct)*sp;
+        if(y<DRUM_TOP-30 || y>560) continue;
+        mgx.strokeStyle = MG_INK; mgx.lineWidth = 3;
+        circ(mgx, DRUM_X[n.l], y, 24, n.j==='miss' ? '#7a7290' : DRUM_LANES[n.l].col);
+        mgx.fillStyle = 'rgba(255,255,255,.45)'; mgx.beginPath(); mgx.ellipse(DRUM_X[n.l]-7, y-8, 7, 4, -.4, 0, 7); mgx.fill();
+      }
+      if(m.ct < m.notes[0].t - .2){ const left = Math.ceil((m.notes[0].t - .2 - m.ct)/m.beat); if(left<=4) mgT(left>0 ? String(left) : '開始！', 400, 250, 64, '#ffd447'); }
+      if(m.fb) mgT(m.fb.txt, DRUM_X[m.fb.l], DRUM_HIT-70-(.5-m.fb.t)*40, 24, m.fb.col);
+      mgT(`${m.song.name}`, 680, 80, 16, '#fff');
+      mgT(`連擊 ${m.combo}`, 680, 110, 22, '#ffd447');
+      mgT(`Perfect ${m.per}　Good ${m.good}`, 680, 140, 14, '#fff', 'center', false);
+      mgx.fillStyle = 'rgba(255,255,255,.2)'; mgx.fillRect(620, 160, 120, 8);
+      mgx.fillStyle = '#9be3b0'; mgx.fillRect(620, 160, 120*Math.min(1, Math.max(0, m.ct/m.end)), 8);
+    }
+    if(m.phase==='pick'){
+      mgx.fillStyle = 'rgba(10,12,24,.6)'; mgx.fillRect(0,52,800,524);
+      mgPanel(140, 84, 520, 420);
+      mgT('🥁 打鼓節奏', 400, 118, 26, MG_INK);
+      let y = 156;
+      for(const l of ['鼓點會從上面掉下來，掉到圓圈裡的時候，打那一面鼓。',
+                      TOUCH ? '點下面的「小鼓、大鼓、鈸」來打鼓。' : '小鼓按 F、大鼓按空白鍵、鈸按 J（也可以用方向鍵 ← ↓ →）。',
+                      '開始前會先數 4 拍，跟著「滴答」聲數「1、2、3、4」就能抓到節奏！' + (TOUCH ? '' : '（也可以按 1、2、3 選歌）'),
+                      `打中六成就過關${S.gift.mg_drum ? '' : '，第一次過關有獎勵'}。`,
+                      '🔊 鼓聲很大聲：真的打鼓時要保護耳朵，鼓棒也不能拿來打人喔！'])
+        y = mgWrap(l, 400, y, 460, 16, '#4a3a5a', 24, 'center') + 32;
+      DRUM_SONGS.forEach((s,i)=>mgButton(m, s.id, s.name + (S.mgDrum && S.mgDrum[s.id] ? ' ✅' : ''), 160+i*166, 430, 156, 50, false));
+    }
+    if(m.phase==='over'){
+      const N = m.notes.length, hit = m.per + m.good;
+      mgResult(m, m.pass ? '🎉 節奏達人！' : '🥁 再練習一下！',
+        [`打中 ${hit} / ${N} 個鼓點（Perfect ${m.per}、Good ${m.good}），最高連擊 ${m.maxc}`, '打鼓時跟著拍子數「1、2、3、4」，耳朵仔細聽，手就會跟上節奏！'], m.reward);
+    }
+  }
+};
+
+/* ---- 🎶 音樂教室：吹直笛（學指法） ---- */
+// 孔的編號：0 是背面的拇指孔，1～7 是正面由上往下
+const REC_NOTES = {
+  'Sol': {f:784,  hold:[0,1,2,3]},
+  'La':  {f:880,  hold:[0,1,2]},
+  'Si':  {f:988,  hold:[0,1]},
+  '高Do':{f:1047, hold:[0,2]},
+  '高Re':{f:1175, hold:[2]},
+};
+const REC_SONGS = [
+  {id:'learn', name:'🎵 認識指法', n:['Si','La','Sol','Si','La','Sol','高Do','高Re','高Do','Si']},
+  {id:'buns',  name:'🍞 熱十字麵包', n:['Si','La','Sol','Si','La','Sol','Sol','Sol','Sol','Sol','La','La','La','La','Si','La','Sol']},
+  {id:'mary',  name:'🐑 瑪莉的小羊', n:['Si','La','Sol','La','Si','Si','Si','La','La','La','Si','高Re','高Re','Si','La','Sol','La','Si','Si','Si','Si','La','La','Si','La','Sol']},
+];
+const REC_X = 230, REC_HOLES = [[150,196],[230,196],[230,246],[230,296],[230,346],[230,396],[230,446],[230,496]];
+function recSound(f){ if(!mgAudio()) return; tone(f, .55, 'sine', 0, .13); tone(f*2, .35, 'sine', 0, .018); tone(f*3, .2, 'triangle', 0, .006); }
+function recSel(m, id){
+  m.song = REC_SONGS.find(s=>s.id===id) || REC_SONGS[0]; m.i = 0; m.done = false;
+  m.msg = m.song.id==='learn' ? '先照著右邊的「指法提示」按住孔，再按「吹」。' : `吹〈${m.song.name.replace(/^\S+\s/,'')}〉：看音名、按好指法，再按「吹」！`;
+}
+function recNoteOf(cover){ const s = [...cover].sort((a,b)=>a-b).join(','); return Object.keys(REC_NOTES).find(k=>REC_NOTES[k].hold.join(',')===s) || null; }
+function recBlow(m){
+  if(m.done) return;
+  const want = m.song.n[m.i], got = recNoteOf(m.cover);
+  m.blowT = .3;
+  if(got===want){
+    recSound(REC_NOTES[got].f); m.i++; m.good = .4;
+    if(m.i >= m.song.n.length){
+      m.done = true; sfx('win'); S.mgRec = S.mgRec||{}; S.mgRec[m.song.id] = true;
+      m.msg = `🎉 吹完〈${m.song.name.replace(/^\S+\s/,'')}〉了！`;
+      if(mgReward('mg_recorder', 'heal')) m.msg += '　🎁 第一次吹完：經驗 +10、🍙 愛心飯糰！';
+      save();
+    } else m.msg = ['很好聽！','手指蓋得很密！','繼續下一個音！'][m.i%3];
+  } else {
+    if(got) recSound(REC_NOTES[got].f); else if(mgAudio()) tone(1900, .18, 'sawtooth', 0, .03);
+    m.shake = .3;
+    m.msg = got ? `這是「${got}」的聲音。要吹的是「${want}」，看看提示再試一次！` : '嗶——聲音破掉了！孔要完全蓋住，按照指法再試一次。';
+  }
+}
+MINI.recorder = {
+  init(m){ m.cover = new Set(); m.hint = true; m.shake = 0; m.good = 0; m.blowT = 0; recSel(m, 'learn'); },
+  btn(m, id){
+    if(id==='blow') recBlow(m);
+    else if(id==='hint') m.hint = !m.hint;
+    else if(id==='clear') m.cover.clear();
+    else recSel(m, id);
+  },
+  key(m, k, down){
+    if(!down) return;
+    if(k===' '||k==='Enter'){ recBlow(m); return; }
+    if(k==='h'||k==='H'){ m.hint = !m.hint; return; }
+    const sel = {z:'learn', x:'buns', c:'mary'}[k.toLowerCase()]; if(sel){ recSel(m, sel); return; }
+    const h = '12345678'.indexOf(k); if(h>=0){ m.cover.has(h) ? m.cover.delete(h) : m.cover.add(h); sfx('talk'); }
+  },
+  pointer(m, type, x, y){
+    if(type!=='down') return;
+    const h = REC_HOLES.findIndex(([hx,hy])=>Math.hypot(x-hx, y-hy) < 20);
+    if(h>=0){ m.cover.has(h) ? m.cover.delete(h) : m.cover.add(h); sfx('talk'); }
+  },
+  update(m, dt){ m.t += dt; if(m.shake>0) m.shake -= dt; if(m.good>0) m.good -= dt; if(m.blowT>0) m.blowT -= dt; },
+  draw(m){
+    m.btns = [];
+    const g = mgx.createLinearGradient(0,0,0,576); g.addColorStop(0,'#2f5d62'); g.addColorStop(1,'#1b3438'); mgx.fillStyle = g; mgx.fillRect(0,0,800,576);
+    mgHeader('🎶 音樂教室・吹直笛', TOUCH ? '點孔把它蓋住，再按「吹」｜✖ 離開' : '數字鍵 1～8 蓋住／放開孔（1 是背面拇指）｜空白鍵 吹｜H 提示｜Z X C 選曲｜Esc 離開');
+    REC_SONGS.forEach((s,i)=>mgButton(m, s.id, s.name + (S.mgRec && S.mgRec[s.id] ? ' ✅' : ''), 330+i*152, 60, 146, 44, m.song.id===s.id));
+    // 直笛
+    const ox = m.shake>0 ? Math.sin(m.t*60)*4 : 0;
+    mgx.strokeStyle = MG_INK; mgx.lineWidth = 3;
+    rr(mgx, REC_X-24+ox, 96, 48, 40, 14, '#f3e2b8');            // 吹口
+    rr(mgx, REC_X-20+ox, 130, 40, 400, 12, '#f6e9c6');
+    rr(mgx, REC_X-28+ox, 520, 56, 34, 12, '#f3e2b8');           // 尾端
+    mgx.fillStyle = '#c9a06a'; mgx.fillRect(REC_X-12+ox, 104, 24, 6);
+    if(m.blowT>0){ mgT('♪', REC_X+46, 110-(.3-m.blowT)*80, 30, '#ffd447'); }
+    mgT('拇指（背面）', 150, 160, 13, '#fff', 'center', false);
+    mgx.strokeStyle = 'rgba(255,255,255,.5)'; mgx.lineWidth = 2; mgx.setLineDash([4,4]); mgx.beginPath(); mgx.moveTo(172,196); mgx.lineTo(206,196); mgx.stroke(); mgx.setLineDash([]);
+    REC_HOLES.forEach(([hx,hy],h)=>{
+      mgx.strokeStyle = MG_INK; mgx.lineWidth = 3;
+      circ(mgx, hx+(h?ox:0), hy, h===0 ? 16 : 13, m.cover.has(h) ? '#2b2233' : '#fff');
+      if(!TOUCH) mgT(String(h+1), hx+(h?ox:0)+(h===0?0:34), hy+(h===0?28:0), 12, 'rgba(255,255,255,.8)', 'center', false);
+    });
+    mgT('左手', 290, 246, 13, '#cfe', 'left', false); mgT('右手', 290, 446, 13, '#cfe', 'left', false);
+    // 右邊：現在要吹的音
+    mgPanel(330, 116, 450, 200);
+    const want = m.song.n[Math.min(m.i, m.song.n.length-1)];
+    if(m.done){ mgT('🎉 吹完了！', 555, 170, 30, MG_INK); mgT('可以換一首，或再吹一次。', 555, 214, 16, '#6a5a7a', 'center', false); }
+    else {
+      mgT('現在要吹', 450, 146, 15, '#6a5a7a'); mgT(want, 450, 196, 44, m.good>0 ? '#2e9d5b' : MG_INK);
+      const cur = recNoteOf(m.cover); mgT(cur ? `你按的是：${cur}` : '你按的指法：不是學過的音', 450, 250, 14, cur===want ? '#2e9d5b' : '#8a7a9a', 'center', false);
+      if(m.hint){   // 指法提示（小直笛）
+        mgT('指法提示', 680, 140, 14, '#c0502a');
+        rr(mgx, 672, 154, 16, 110, 6, '#f6e9c6');
+        REC_HOLES.forEach(([hx,hy],h)=>{ const px = h===0 ? 652 : 680, py = 166 + (h===0?0:(h-1)*15); mgx.strokeStyle = MG_INK; mgx.lineWidth = 2; circ(mgx, px, py, h===0?6:5, REC_NOTES[want].hold.includes(h) ? '#2b2233' : '#fff'); });
+        mgT('拇指', 640, 182, 11, '#6a5a7a', 'center', false);
+      }
+    }
+    // 樂譜進度
+    const n = m.song.n, start = Math.max(0, Math.min(m.i-4, n.length-9));
+    for(let j=0; j<9 && start+j<n.length; j++){
+      const k = start+j, x = 362+j*48, y = 286;
+      mgx.strokeStyle = MG_INK; mgx.lineWidth = k===m.i&&!m.done ? 3.5 : 1.5;
+      circ(mgx, x, y, 18, (m.done || k<m.i) ? '#9be3b0' : (k===m.i ? '#ffd447' : '#fff'));
+      mgT(n[k], x, y+1, n[k].length>2 ? 10 : 12, MG_INK);
+    }
+    mgWrap(m.msg, 555, 344, 440, 16, '#fff', 24, 'center');
+    mgButton(m, 'blow', '🎶 吹' + (TOUCH ? '' : '（空白鍵）'), 400, 410, 180, 56, true);
+    mgButton(m, 'hint', m.hint ? '💡 提示：開' : '💡 提示：關', 590, 410, 140, 56, false);
+    mgButton(m, 'clear', '✋ 全部放開', 400, 476, 180, 44, false);
+    mgWrap('小訣竅：輕輕吹，像說「嘟——」；手指的指腹要把孔完全蓋住，聲音才會好聽。直笛要自己用，吹完要清潔。', 555, 534, 400, 13, '#cfe', 20, 'center');
+  }
+};
+
+/* ---- 🔤 英語教室：英語填空 ---- */
+// a 的第一個是正確答案（遊戲會打亂順序）
+const CLOZE = [
+  {s:'Good ___, teacher!', a:['morning','night','bye'], e:'🌅', zh:'老師，早安！'},
+  {s:'I wash my ___ before lunch.', a:['hands','shoes','chairs'], e:'🧼', zh:'午餐前我會洗手。'},
+  {s:'Look ___ and right before you cross the road.', a:['left','up','down'], e:'🚸', zh:'過馬路前，先看左邊再看右邊。'},
+  {s:'The light is ___. Stop!', a:['red','green','blue'], e:'🚦', zh:'紅燈了，停下來！'},
+  {s:'Please ___ in line.', a:['wait','jump','sleep'], e:'🧍', zh:'請排隊等候。'},
+  {s:'This is my ___. I read it every day.', a:['book','cake','dog'], e:'📖', zh:'這是我的書，我每天都會讀。'},
+  {s:'I am ___. Can I have some water?', a:['thirsty','tall','happy'], e:'💧', zh:'我口渴了，可以喝點水嗎？'},
+  {s:'___ you! — You\'re welcome.', a:['Thank','Sorry','Hello'], e:'🙏', zh:'謝謝你！——不客氣。'},
+  {s:'Put the bottle in the ___ bin.', a:['recycling','music','pencil'], e:'♻️', zh:'把瓶子丟進回收桶。'},
+  {s:'I feel sick. I go to the ___\'s office.', a:['nurse','cook','driver'], e:'🏥', zh:'我不舒服，我去健康中心（護理師辦公室）。'},
+  {s:'Don\'t ___ in the hallway.', a:['run','walk','smile'], e:'🏃', zh:'不要在走廊奔跑。'},
+  {s:'It\'s raining. Take your ___.', a:['umbrella','sunglasses','kite'], e:'☔', zh:'下雨了，帶你的雨傘。'},
+  {s:'Turn off the ___ when you leave.', a:['lights','books','friends'], e:'💡', zh:'離開時要關燈。'},
+  {s:'Brush your ___ after meals.', a:['teeth','hair','bag'], e:'😁', zh:'吃完飯要刷牙。'},
+  {s:'Be ___ to your friends.', a:['kind','mean','late'], e:'💛', zh:'要對朋友友善。'},
+  {s:'Wear a ___ when you ride a bike.', a:['helmet','crown','scarf'], e:'🚲', zh:'騎腳踏車要戴安全帽。'},
+  {s:'Stop, ___, and roll!', a:['drop','run','jump'], e:'🔥', zh:'衣服著火時：停、躺、滾！'},
+  {s:'Drop, cover, and ___ on!', a:['hold','run','go'], e:'🌏', zh:'地震時：趴下、掩護、穩住！'},
+  {s:'I have a cold. I wear a ___.', a:['mask','cape','ring'], e:'😷', zh:'我感冒了，我戴口罩。'},
+  {s:'Excuse ___. Where is the library?', a:['me','you','it'], e:'📚', zh:'不好意思，請問圖書館在哪裡？'},
+];
+const CLOZE_N = 8, CLOZE_PASS = 6;
+function speakEn(text){
+  if(muted || !window.speechSynthesis) return;
+  try{ speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.lang = 'en-US'; u.rate = .85;
+    const vs = speechSynthesis.getVoices(); const v = vs.find(v=>/^en[-_]US/i.test(v.lang)) || vs.find(v=>/^en/i.test(v.lang)); if(v) u.voice = v;
+    speechSynthesis.speak(u); }catch(e){}
+}
+function clozeNext(m){
+  if(m.phase==='fb' && !m.fb.ok){ m.phase = 'q'; m.fb = null; return; }   // 答錯：同一題再選一次
+  if(m.phase==='fb') m.i++;
+  if(m.i >= m.qs.length){
+    m.phase = 'over'; m.reward = '';
+    if(m.ok >= CLOZE_PASS && mgReward('mg_cloze', 'hint')) m.reward = `🎁 第一次答對 ${CLOZE_PASS} 題以上：經驗 +10、💡 提示卡！`;
+    sfx(m.ok >= CLOZE_PASS ? 'win' : 'warn'); save(); return;
+  }
+  m.phase = 'q'; m.fb = null; m.tries = 0; m.order = shuffle(m.qs[m.i].a.slice());
+}
+function clozePick(m, i){
+  if(m.phase!=='q') return;
+  const q = m.qs[m.i], w = m.order[i]; if(!w) return;
+  const ok = w===q.a[0]; m.tries++;
+  if(ok && m.tries===1) m.ok++;
+  m.fb = {ok, w}; m.phase = 'fb'; sfx(ok ? 'ok' : 'bad');
+  if(ok) speakEn(q.s.replace('___', q.a[0]).replace('—', ','));
+}
+MINI.cloze = {
+  init(m){ m.phase = 'ready'; m.qs = shuffle(CLOZE.slice()).slice(0, CLOZE_N); m.i = 0; m.ok = 0; m.reward = ''; },
+  btn(m, id){
+    if(id==='start'){ m.phase = 'q'; m.i = 0; m.tries = 0; m.order = shuffle(m.qs[0].a.slice()); }
+    else if(id==='next') clozeNext(m);
+    else if(id==='say'){ const q = m.qs[m.i]; speakEn(q.s.replace('___', q.a[0]).replace('—', ',')); }
+    else if(/^c\d$/.test(id)) clozePick(m, +id.slice(1));
+  },
+  key(m, k, down){
+    if(!down) return;
+    if(m.phase==='over'){ if(k===' '||k==='Enter') mgAgain(); return; }
+    if(m.phase==='ready'){ if(k===' '||k==='Enter') this.btn(m, 'start'); return; }
+    if(m.phase==='fb'){ if(k===' '||k==='Enter') clozeNext(m); return; }
+    const i = '123'.indexOf(k); if(i>=0) clozePick(m, i);
+  },
+  pointer(){},
+  update(m, dt){ m.t += dt; },
+  draw(m){
+    m.btns = [];
+    const g = mgx.createLinearGradient(0,0,0,576); g.addColorStop(0,'#cfe9ff'); g.addColorStop(1,'#8fc3ea'); mgx.fillStyle = g; mgx.fillRect(0,0,800,576);
+    mgHeader('🔤 英語教室・英語填空', TOUCH ? '選出空格裡的英文單字｜✖ 離開' : '按 1～3 或點選項｜空白鍵繼續｜Esc 離開');
+    if(m.phase==='ready'){
+      mgPanel(150, 100, 500, 380);
+      mgT('🔤 英語填空', 400, 136, 26, MG_INK);
+      let y = 178;
+      for(const l of ['句子中間少了一個英文單字，看圖片和中文提示，選出正確的字。', `一共 ${CLOZE_N} 題，答錯可以再選一次。`, `第一次就答對 ${CLOZE_PASS} 題以上就過關${S.gift.mg_cloze ? '' : '，第一次過關有獎勵'}。`, '答對後可以按「🔈 唸給我聽」，跟著唸一次！'])
+        y = mgWrap(l, 400, y, 440, 17, '#4a3a5a', 26, 'center') + 36;
+      mgButton(m, 'start', '▶ 開始' + (TOUCH ? '' : '（空白鍵）'), 300, 404, 200, 52, true);
+      return;
+    }
+    if(m.phase==='over'){
+      mgResult(m, m.ok>=CLOZE_PASS ? '🎉 英文好棒！' : '🔤 再練習一下！',
+        [`${CLOZE_N} 題中，第一次就答對 ${m.ok} 題`, '學英文最好的方法：每天唸一點、敢開口說，說錯也沒關係！'], m.reward);
+      return;
+    }
+    const q = m.qs[m.i];
+    mgT(`第 ${m.i+1} / ${m.qs.length} 題　　答對 ${m.ok} 題`, 400, 76, 16, '#2a4a6a');
+    mgPanel(60, 94, 680, 236);
+    mgx.font = '64px "Segoe UI Emoji","Apple Color Emoji",sans-serif'; mgx.textAlign = 'center'; mgx.textBaseline = 'middle'; mgx.fillText(q.e, 400, 150);
+    const filled = m.phase==='fb' && m.fb.ok;
+    const sent = q.s.replace('___', filled ? q.a[0] : '______');
+    mgWrap(sent, 400, 214, 620, 28, filled ? '#2e9d5b' : MG_INK, 36, 'center');
+    mgT('中文提示：' + q.zh, 400, 296, 16, '#6a5a7a', 'center', false);
+    if(m.phase==='q'){
+      m.order.forEach((w,i)=>mgButton(m, 'c'+i, (TOUCH ? '' : (i+1)+'  ') + w, 90+i*214, 360, 200, 64, false));
+      mgT('想一想：句子的意思是什麼？哪個字放進去最通順？', 400, 470, 15, '#2a4a6a', 'center', false);
+    } else {
+      mgPanel(90, 350, 620, 120, m.fb.ok ? '#e6f8ea' : '#fdeaea');
+      mgT(m.fb.ok ? '✅ 答對了！' : `❌「${m.fb.w}」不對喔，再選一次！`, 400, 380, 20, m.fb.ok ? '#2e9d5b' : '#c0392b');
+      if(m.fb.ok) mgT(q.s.replace('___', q.a[0]), 400, 420, 18, MG_INK, 'center', false);
+      else mgT('提示：看看中文的意思，想想哪個字最合適。', 400, 420, 15, '#6a5a7a', 'center', false);
+      if(m.fb.ok) mgButton(m, 'say', '🔈 唸給我聽', 170, 490, 200, 50, false);
+      mgButton(m, 'next', (m.fb.ok ? (m.i+1>=m.qs.length ? '看結果' : '下一題') : '再選一次') + (TOUCH ? '' : '（空白鍵）'), m.fb.ok ? 430 : 300, 490, 200, 50, true);
+    }
+  }
+};
+
+/* ---- 🃏 英語教室：單字圖片配對（翻牌記憶） ---- */
+const MATCH_WORDS = [['apple','🍎','蘋果'],['book','📖','書'],['pencil','✏️','鉛筆'],['bag','🎒','書包'],['ruler','📏','尺'],['clock','⏰','時鐘'],
+  ['umbrella','☂️','雨傘'],['bus','🚌','公車'],['bike','🚲','腳踏車'],['cat','🐱','貓'],['dog','🐶','狗'],['ball','⚽','球'],['milk','🥛','牛奶'],
+  ['rice','🍚','飯'],['sun','☀️','太陽'],['tree','🌳','樹'],['fish','🐟','魚'],['bird','🐦','鳥'],['water','💧','水'],['house','🏠','房子']];
+const MC_W = 150, MC_H = 124, MC_G = 14, MC_X0 = (800-4*150-3*14)/2, MC_Y0 = 70;
+function matchFlip(m, i){
+  if(m.phase!=='play' || m.lock>0) return;
+  const c = m.cards[i]; if(!c || c.up || c.done) return;
+  c.up = true; sfx('talk'); m.sel.push(i);
+  if(m.sel.length<2) return;
+  m.moves++;
+  const [a,b] = m.sel.map(j=>m.cards[j]);
+  if(a.w===b.w){
+    a.done = b.done = true; m.sel = []; sfx('ok');
+    const W = MATCH_WORDS[a.w]; m.msg = `${W[1]} ${W[0]} ＝ ${W[2]}`; speakEn(W[0]);
+    if(m.cards.every(c=>c.done)){
+      m.phase = 'over'; m.reward = '';
+      if(mgReward('mg_match', 'heal')) m.reward = '🎁 第一次全部配對成功：經驗 +10、🍙 愛心飯糰！';
+      sfx('win'); save();
+    }
+  } else { m.lock = .9; m.msg = '不一樣，記住它們的位置再試一次！'; }
+}
+MINI.match = {
+  init(m){
+    m.phase = 'ready'; m.reward = ''; m.moves = 0; m.sel = []; m.lock = 0; m.cur = 0; m.msg = '';
+    const ws = shuffle([...MATCH_WORDS.keys()]).slice(0, 6);
+    m.cards = shuffle(ws.flatMap(w=>[{w, kind:'pic', up:false, done:false}, {w, kind:'word', up:false, done:false}]));
+  },
+  btn(m, id){ if(id==='start'){ m.phase = 'play'; m.msg = '翻開兩張牌：圖片和英文單字一樣就配對成功！'; } else if(/^k\d+$/.test(id)) matchFlip(m, +id.slice(1)); },
+  key(m, k, down){
+    if(!down) return;
+    if(m.phase==='over'){ if(k===' '||k==='Enter') mgAgain(); return; }
+    if(m.phase==='ready'){ if(k===' '||k==='Enter') this.btn(m, 'start'); return; }
+    const d = KEYMAP[k];
+    if(d==='left') m.cur = (m.cur+11)%12; else if(d==='right') m.cur = (m.cur+1)%12;
+    else if(d==='up') m.cur = (m.cur+8)%12; else if(d==='down') m.cur = (m.cur+4)%12;
+    else if(k===' '||k==='Enter') matchFlip(m, m.cur);
+  },
+  pointer(){},
+  update(m, dt){
+    m.t += dt;
+    if(m.lock>0){ m.lock -= dt; if(m.lock<=0){ for(const j of m.sel) m.cards[j].up = false; m.sel = []; } }
+  },
+  draw(m){
+    m.btns = [];
+    const g = mgx.createLinearGradient(0,0,0,576); g.addColorStop(0,'#ffe9c7'); g.addColorStop(1,'#f5c98f'); mgx.fillStyle = g; mgx.fillRect(0,0,800,576);
+    mgHeader('🃏 英語教室・單字圖片配對', TOUCH ? '點牌翻開，找出圖片和英文單字的配對｜✖ 離開' : '點牌，或用方向鍵選牌、空白鍵翻開｜Esc 離開');
+    if(m.phase==='ready'){
+      mgPanel(150, 100, 500, 380);
+      mgT('🃏 單字圖片配對', 400, 136, 26, MG_INK);
+      let y = 180;
+      for(const l of ['桌上有 12 張蓋著的牌：6 張圖片、6 張英文單字。', '每次翻兩張，圖片和英文單字是同一個東西，就配對成功！', '配對成功時會唸出英文，跟著唸一次記得更牢。', `全部配對完成就過關${S.gift.mg_match ? '' : '，第一次過關有獎勵'}。`])
+        y = mgWrap(l, 400, y, 440, 17, '#4a3a5a', 26, 'center') + 34;
+      mgButton(m, 'start', '▶ 開始' + (TOUCH ? '' : '（空白鍵）'), 300, 404, 200, 52, true);
+      return;
+    }
+    m.cards.forEach((c,i)=>{
+      const x = MC_X0 + (i%4)*(MC_W+MC_G), y = MC_Y0 + Math.floor(i/4)*(MC_H+MC_G);
+      mgx.strokeStyle = MG_INK; mgx.lineWidth = 3;
+      if(c.up || c.done){
+        rr(mgx, x, y, MC_W, MC_H, 12, c.done ? '#e6f8ea' : '#fffdf6');
+        const W = MATCH_WORDS[c.w];
+        if(c.kind==='pic'){ mgx.font = '58px "Segoe UI Emoji","Apple Color Emoji",sans-serif'; mgx.textAlign = 'center'; mgx.textBaseline = 'middle'; mgx.fillStyle = MG_INK; mgx.fillText(W[1], x+MC_W/2, y+MC_H/2 - (c.done?8:0)); }
+        else mgT(W[0], x+MC_W/2, y+MC_H/2 - (c.done?8:0), W[0].length>6 ? 24 : 30, '#2f5fa8');
+        if(c.done) mgT(W[2], x+MC_W/2, y+MC_H-16, 14, '#2e9d5b', 'center', false);
+      } else {
+        rr(mgx, x, y, MC_W, MC_H, 12, '#5a8fd8');
+        mgx.fillStyle = 'rgba(255,255,255,.18)'; for(let k=0;k<4;k++) mgx.fillRect(x+12+k*34, y+10, 14, MC_H-20);
+        mgT('?', x+MC_W/2, y+MC_H/2, 44, '#fff');
+      }
+      if(!TOUCH && m.phase==='play' && m.cur===i){ mgx.strokeStyle = '#ff8a00'; mgx.lineWidth = 5; mgx.beginPath(); mgx.roundRect(x-4, y-4, MC_W+8, MC_H+8, 14); mgx.stroke(); }
+      m.btns.push({id:'k'+i, x, y, w:MC_W, h:MC_H});
+    });
+    mgT(m.msg, 400, 504, 20, MG_INK);
+    mgT(`翻牌次數：${m.moves}`, 400, 540, 15, '#6a4a2a', 'center', false);
+    if(m.phase==='over'){
+      const stars = m.moves<=9 ? '⭐⭐⭐' : m.moves<=13 ? '⭐⭐' : '⭐';
+      mgResult(m, `🎉 全部配對成功！${stars}`, [`翻了 ${m.moves} 次就全部找到（最少 6 次）`, '今天學到的單字，回家唸給家人聽聽看吧！'], m.reward);
+    }
+  }
+};
+
+/* ---------------- 金幣與商店 ---------------- */
+const SLOTS = {top:'👕 衣服', head:'🎩 頭上', face:'🕶️ 臉上', back:'🦋 背後', hand:'✋ 手上'};
+const SHOP = {
+  stripe:  {slot:'top',  name:'⚓ 海軍條紋衫', price:60,  look:{shirt:'#f4f4f4', pat:'stripe', patCol:'#2c5aa0'}},
+  dots:    {slot:'top',  name:'🍓 草莓點點衫', price:60,  look:{shirt:'#ff8fb1', pat:'dot', patCol:'#fff'}},
+  jersey:  {slot:'top',  name:'🏀 籃球背心',   price:80,  look:{shirt:'#e25555', pat:'num', patCol:'#fff'}},
+  overall: {slot:'top',  name:'👖 牛仔吊帶褲', price:90,  look:{pants:'#3c6fb0', pat:'overall'}},
+  sailor:  {slot:'top',  name:'⛵ 水手服',     price:100, look:{shirt:'#f4f4f4', pat:'sailor', patCol:'#2c5aa0'}},
+  hoodie:  {slot:'top',  name:'🧥 運動外套',   price:100, look:{shirt:'#3cb371', pat:'zip', patCol:'#2a7a4a'}},
+  straw:   {slot:'head', name:'👒 小草帽',     price:70,  look:{hat:'straw'}},
+  beanie:  {slot:'head', name:'🧶 毛線帽',     price:70,  look:{hat:'beanie', hatColor:'#e25555'}},
+  wreath:  {slot:'head', name:'🌸 小花圈',     price:80,  look:{wreath:true}},
+  phones:  {slot:'head', name:'🎧 耳罩耳機',   price:90,  look:{phones:true}},
+  chef:    {slot:'head', name:'🍳 廚師帽',     price:90,  look:{hat:'chef'}},
+  bunny:   {slot:'head', name:'🐰 兔耳朵',     price:120, look:{ears:'bunny'}},
+  cat:     {slot:'head', name:'🐱 貓耳朵',     price:120, look:{ears:'cat'}},
+  round:   {slot:'face', name:'👓 圓框眼鏡',   price:40,  look:{glasses:true}},
+  shades:  {slot:'face', name:'🕶️ 酷炫墨鏡',   price:60,  look:{shades:true}},
+  pack:    {slot:'back', name:'🎒 彩虹書包',   price:80,  look:{pack:true}},
+  redcape: {slot:'back', name:'🦸 英雄紅披風', price:120, look:{cape:'#d62d2d'}},
+  wings:   {slot:'back', name:'😇 天使翅膀',   price:200, look:{wings:true}},
+  balloon: {slot:'hand', name:'🎈 粉紅氣球',   price:50,  look:{item:'balloon'}},
+  flute:   {slot:'hand', name:'🎶 直笛',       price:60,  look:{item:'recorder'}},
+  wand:    {slot:'hand', name:'✨ 星星魔杖',   price:100, look:{item:'wand'}},
+};
+function wearLook(skip){
+  const o = {}; if(!S || !S.wear) return o;
+  for(const s of Object.keys(SLOTS)){ if(s===skip) continue; const id = S.wear[s]; if(id && SHOP[id] && S.owned[id]) Object.assign(o, SHOP[id].look); }
+  return o;
+}
+function baseLook(){ return S.custom ? buildLook(S.custom) : (LOOKS[S.look]||LOOKS[0]); }
+function coinInit(){
+  S.owned = S.owned||{}; S.wear = S.wear||{}; S.mgCoin = S.mgCoin||{};
+  if(typeof S.coins==='number') return;
+  // 第一次有商店的存檔：依照已經完成的進度補發金幣
+  S.coins = 50*badgeCount() + (S.done?100:0) + 30*hqDoneCount() + 30*ctDoneCount() + 30*Object.keys(S.gold||{}).length
+          + 20*Object.keys(S.gift||{}).filter(k=>/^mg_/.test(k) && k!=='mg_piano3').length;
+  if(S.coins>0) setTimeout(()=>toast(`💰 商店開張了！依照你的進度，送你 ${S.coins} 枚金幣（按 C 或右上角 🛍️ 逛商店）`, true, 5000), 1800);
+}
+function addCoins(n, why){
+  if(!S || !n) return;
+  S.coins = (S.coins||0) + n; updateHUD(); save();
+  toast(`💰 金幣 +${n}${why ? '（'+why+'）' : ''}`, true);
+}
+let shopTab = 'shop', shopSlot = 'top', shopConfirm = null;
+function showShop(tab){
+  const p = $('#panel');
+  if(tab) shopTab = tab;
+  clearHeld(); p.dataset.mode = 'shop'; p.classList.remove('hidden');
+  const all = Object.entries(SHOP).filter(([id,it])=>it.slot===shopSlot && (shopTab==='shop' || S.owned[id]));
+  const worn = Object.keys(SLOTS).map(s=>S.wear[s] && SHOP[S.wear[s]] ? SHOP[S.wear[s]].name : '').filter(Boolean);
+  p.innerHTML = `<h2>🛍️ 守護者商店 <span class="coinbig">💰 ${S.coins}</span></h2>
+    <div class="btabs"><button class="cbtn ${shopTab==='shop'?'on':''}" data-tab="shop">🛍️ 買東西</button><button class="cbtn ${shopTab==='closet'?'on':''}" data-tab="closet">👕 我的衣櫥</button></div>
+    <div class="shoptop"><canvas id="shopMe" width="96" height="104"></canvas>
+      <div class="shopnote">現在穿著：${worn.length ? worn.join('、') : '（還沒有穿商店的東西）'}<br>
+      <small>💰 金幣怎麼來：拿到徽章、打倒大魔王、完成隱藏任務或校園任務、隨機事件答對、小遊戲過關。</small></div></div>
+    <div class="btabs slotbar">${Object.entries(SLOTS).map(([s,l])=>`<button class="cbtn ${s===shopSlot?'on':''}" data-slot="${s}">${l}</button>`).join('')}</div>
+    <div class="shopgrid">${all.length ? all.map(([id,it])=>{
+      const own = !!S.owned[id], on = S.wear[shopSlot]===id;
+      const lab = on ? '脫下' : own ? '穿上' : shopConfirm===id ? '確定買？' : S.coins>=it.price ? '購買' : `還差 ${it.price-S.coins}`;
+      return `<div class="sitem${on?' worn':''}"><canvas width="72" height="80" data-prev="${id}"></canvas><b>${it.name}</b>
+        <span>${own ? (on ? '✅ 穿著' : '已擁有') : '💰 '+it.price}</span>
+        <button class="cbtn sbtn${!own && S.coins<it.price ? ' poor' : ''}${shopConfirm===id ? ' on' : ''}" data-id="${id}">${lab}</button></div>`; }).join('')
+      : '<div class="shopempty">這一類還沒有買東西喔！到「🛍️ 買東西」看看吧。</div>'}</div>
+    <div style="margin-top:10px"><button class="cbtn" id="pClose">關閉</button></div>`;
+  paintAvatar($('#shopMe'), P.look, 'down', 2.6, 18);
+  p.querySelectorAll('canvas[data-prev]').forEach(c=>{ const it = SHOP[c.dataset.prev]; paintAvatar(c, Object.assign({}, baseLook(), wearLook(it.slot), it.look, (S.acc && ACC[S.acc]) ? ACC[S.acc].look : {}), 'down', 2, 15); });
+  p.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{ shopConfirm = null; sfx('talk'); showShop(b.dataset.tab); });
+  p.querySelectorAll('[data-slot]').forEach(b=>b.onclick=()=>{ shopConfirm = null; shopSlot = b.dataset.slot; sfx('talk'); showShop(); });
+  p.querySelectorAll('.sbtn').forEach(b=>b.onclick=()=>shopAct(b.dataset.id));
+  $('#pClose').onclick = ()=>{ shopConfirm = null; p.classList.add('hidden'); p.dataset.mode=''; };
+}
+function shopAct(id){
+  const it = SHOP[id]; if(!it) return;
+  if(S.owned[id]){
+    S.wear[it.slot] = S.wear[it.slot]===id ? '' : id; sfx('talk');
+  } else if(S.coins < it.price){ sfx('bad'); toast(`金幣還差 ${it.price-S.coins} 枚，去完成任務或玩小遊戲賺金幣吧！`); return; }
+  else if(shopConfirm!==id){ shopConfirm = id; sfx('talk'); }
+  else {
+    S.coins -= it.price; S.owned[id] = true; S.wear[it.slot] = id; shopConfirm = null;
+    sfx('badge'); toast(`🛍️ 買到「${it.name}」，已經幫你穿上了！`, true);
+  }
+  if(shopConfirm!==id) shopConfirm = null;
+  refreshLook(); save(); updateHUD(); showShop();
+}
 
 /* ---- 🎹 鋼琴 ---- */
 const PIANO_W = ['Do','Re','Mi','Fa','Sol','La','Si','高Do','高Re','高Mi','高Fa','高Sol'];
@@ -4790,7 +5440,7 @@ MINI.whack = {
   key(m, k, down){
     if(!down) return;
     if(m.phase==='ready'){ if(k===' '||k==='Enter') wmStart(m); return; }
-    if(m.phase==='over'){ if(k===' '||k==='Enter') restartMini(); return; }
+    if(m.phase==='over'){ if(k===' '||k==='Enter') mgAgain(); return; }
     const kk = k.toLowerCase();
     for(let r=0; r<3; r++){ let c = WM_KEYS[r].indexOf(kk); if(c<0) c = WM_KEYS2[r].indexOf(kk); if(c>=0){ wmWhack(m, r*3+c); return; } }
   },
@@ -5085,7 +5735,7 @@ MINI.fire = {
     const d = KEYMAP[k]; if(d){ m.kh[d] = down; return; }
     if(k===' ' || k==='Enter'){
       if(!down){ m.kh.space = false; return; }
-      if(m.over){ restartMini(); return; }
+      if(m.over){ mgAgain(); return; }
       if(m.step===0) firePull(m); else m.kh.space = true;
     }
   },
@@ -5220,10 +5870,10 @@ function update(dt){
     const L=DLG.lines[DLG.i];
     if(DLG.shown < L.t.length){ DLG.shown = Math.min(L.t.length, DLG.shown + dt*40); renderDlg(); }
   }
-  if(scene==='mini'){ if(MG) MINI[MG.kind].update(MG, dt); return; }
+  if(scene==='mini'){ if(MG){ MINI[MG.kind].update(MG, dt); if(MG && (MG.phase==='over' || MG.over)) MG.ovT = (MG.ovT||0) + dt; } return; }
   if(scene!=='play') return;
   const panelOpen = !$('#panel').classList.contains('hidden');
-  const free = !DLG && !panelOpen && !evBusy && !QTE && !P.moving && !ESC;
+  const free = !DLG && !panelOpen && !evBusy && !QTE && !ESC;
   updateEvents(dt, free);
   updateCare(dt, free);
   updateEscort();
@@ -5234,6 +5884,7 @@ function update(dt){
     if(P.px===tx && P.py===ty){ P.moving=false; puff(P.px,P.py); onArrive(); }
   }
   if(!P.moving){
+    if(!DLG && !panelOpen && !evBusy && !QTE && !ESC) fireDue();
     const d = (!DLG && !panelOpen && !evBusy && !QTE && !ESC) ? currentDir() : null;
     if(d) tryStep(d); else P.step=0;
   }
@@ -5243,13 +5894,13 @@ function update(dt){
   P.target = t;
   const hint = $('#hint');
   const key = TOUCH ? '「對話」鍵' : '空白鍵';
-  const txt = t ? (t.npc ? `💬 ${key}：和「${t.npc.name}」說話` : t.stall ? `🚽 ${key}：上廁所` : t.sink ? `🚰 ${key}：洗手` : t.piano ? `🎹 ${key}：彈鋼琴` : t.pc ? `📂 ${key}：檔案打地鼠` : t.sofa ? `🌱 ${key}：心情小花園` : t.fire ? `🧯 ${key}：滅火練習` : t.easel ? `🎨 ${key}：畫畫` : t.pot ? `🏺 ${key}：投壺` : t.drill ? `🚨 ${key}：防災演練` :`📋 ${key}：查看`) : (TOUCH ? '左下角搖桿走路｜右上角 📋 任務、🎒 道具' : '方向鍵移動｜Q 任務｜B 道具｜M 地圖｜R 排行榜');
+  const txt = t ? (t.npc ? `💬 ${key}：和「${t.npc.name}」說話` : t.stall ? `🚽 ${key}：上廁所` : t.sink ? `🚰 ${key}：洗手` : t.piano ? `🎹 ${key}：彈鋼琴` : t.drum ? `🥁 ${key}：打鼓節奏` : t.recorder ? `🎶 ${key}：吹直笛` : t.cloze ? `🔤 ${key}：英語填空` : t.match ? `🃏 ${key}：單字配對` : t.pc ? `📂 ${key}：檔案打地鼠` : t.sofa ? `🌱 ${key}：心情小花園` : t.fire ? `🧯 ${key}：滅火練習` : t.easel ? `🎨 ${key}：畫畫` : t.pot ? `🏺 ${key}：投壺` : t.drill ? `🚨 ${key}：防災演練` :`📋 ${key}：查看`) : (TOUCH ? '左下角搖桿走路｜右上角 📋 任務、🎒 道具' : '方向鍵移動｜Q 任務｜B 道具｜C 商店｜M 地圖｜R 排行榜');
   if(hint.textContent!==txt) hint.textContent = txt;
   // 觸控的「對話」鍵：依面前的東西換字；有東西可以互動時輕輕跳動，沒有時變淡
   if(TOUCH){
     const ab = $('#abtn'); let lab, st = '';
     if(DLG) lab = choicesShowing() ? '👆\n點選項' : '▶\n下一句';
-    else if(t){ st = 'go'; lab = t.npc ? '💬\n說話' : t.stall ? '🚽\n上廁所' : t.sink ? '🚰\n洗手' : t.piano ? '🎹\n彈琴' : t.pc ? '📂\n打地鼠' : t.sofa ? '🌱\n放鬆' : t.fire ? '🧯\n滅火' : t.easel ? '🎨\n畫畫' : t.pot ? '🏺\n投壺' : t.drill ? '🚨\n演練' : t.book ? '📖\n看書' : '📋\n查看'; }
+    else if(t){ st = 'go'; lab = t.npc ? '💬\n說話' : t.stall ? '🚽\n上廁所' : t.sink ? '🚰\n洗手' : t.piano ? '🎹\n彈琴' : t.drum ? '🥁\n打鼓' : t.recorder ? '🎶\n直笛' : t.cloze ? '🔤\n填空' : t.match ? '🃏\n配對' : t.pc ? '📂\n打地鼠' : t.sofa ? '🌱\n放鬆' : t.fire ? '🧯\n滅火' : t.easel ? '🎨\n畫畫' : t.pot ? '🏺\n投壺' : t.drill ? '🚨\n演練' : t.book ? '📖\n看書' : '📋\n查看'; }
     else { lab = '對話'; st = 'idle'; }
     if(ab.textContent!==lab) ab.textContent = lab;
     if(ab.dataset.st!==st){ ab.dataset.st = st; ab.classList.toggle('go', st==='go'); ab.classList.toggle('idle', st==='idle'); }
