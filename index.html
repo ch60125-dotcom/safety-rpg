@@ -200,6 +200,9 @@
   .bq{font-size:22px;font-weight:bold;line-height:1.45;min-height:64px}
   .btag{display:inline-block;font-size:14px;background:var(--ink);color:#fff;border-radius:6px;padding:1px 9px;margin-bottom:4px}
   .bopts{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:8px}
+  .bopts.small{grid-template-columns:1fr 1fr 1fr;gap:7px}   /* 5 個以上的排序題：排成三欄，才不會超出答題框 */
+  .bopts.small .obtn{font-size:14px;padding:4px 8px;line-height:1.25}
+  .bopts.small .obtn .k{width:20px;height:20px;line-height:18px;font-size:12px;margin-right:4px}
   .obtn{font:inherit;font-size:18px;text-align:left;padding:9px 12px;border:3px solid var(--ink);border-radius:10px;background:#fff;cursor:pointer;line-height:1.35;color:var(--ink);box-shadow:0 3px 0 rgba(0,0,0,.2)}
   .obtn:hover:not(:disabled){background:#fff1bf;transform:translateY(-1px)}
   .obtn .k{display:inline-block;width:24px;height:24px;line-height:22px;text-align:center;background:var(--ink);color:#fff;border-radius:50%;font-size:14px;margin-right:6px}
@@ -553,15 +556,15 @@ for(const k of Object.keys(QUIZ)) QUIZ[k].forEach((q,i)=>{ q.id = k + '_' + i; }
 /* ===================================================================== */
 
 const TOPICS = {
-  rules:    {name:'校園常規', badge:'常規徽章',   icon:'📚', place:'教室（左上方）',       npc:'黃老師',  bg:'class',
+  rules:    {name:'校園常規', badge:'常規徽章',   icon:'📚', place:'南耘樓 1F 活動室',     npc:'黃老師',  bg:'class',
              monster:{name:'散漫怪',   kind:'lazy',    color:'#4fb393', horn:'#2d6b57'}},
   traffic:  {name:'交通安全', badge:'交通徽章',   icon:'🚦', place:'校門口（下方）',       npc:'方阿伯',  bg:'road',
              monster:{name:'闖紅燈怪', kind:'traffic', color:'#e25555', horn:'#5a1d1d'}},
-  disaster: {name:'防災',     badge:'防災徽章',   icon:'🧯', place:'防災教育中心（左方）', npc:'阿勇隊長',bg:'alert',
+  disaster: {name:'防災',     badge:'防災徽章',   icon:'🧯', place:'防災教育中心（榕樹區旁）', npc:'阿勇隊長',bg:'alert',
              monster:{name:'慌張怪',   kind:'panic',   color:'#f0913f', horn:'#8a3b0b'}},
   bully:    {name:'反霸凌',   badge:'反霸凌徽章', icon:'🛡️', place:'操場（右方）',         npc:'陳主任',  bg:'field',
              monster:{name:'欺負怪',   kind:'bully',   color:'#6b7f96', horn:'#26303b'}},
-  gender:   {name:'性別平等', badge:'性平徽章',   icon:'🤝', place:'輔導室（右上方）',     npc:'蘇主任',  bg:'soft',
+  gender:   {name:'性別平等', badge:'性平徽章',   icon:'🤝', place:'南耘樓 2F 輔導處（走樓梯上去）', npc:'蘇主任',  bg:'soft',
              monster:{name:'偏見怪',   kind:'bias',    color:'#a074dc', horn:'#4a2a73'}},
 };
 const TOPIC_KEYS = Object.keys(TOPICS);
@@ -572,7 +575,7 @@ const LV_TITLES = ['見習守護者','校園小隊員','安全小達人','守護
 
 const $ = s => document.querySelector(s);
 const cv = $('#cv'), ctx = cv.getContext('2d');
-const VW = 800, VH = 576, TS = 32, MW = 100, MH = 56;
+const VW = 800, VH = 576, TS = 32, MW = 100, MH = 96;   // y0～55 是校園一樓，y56 以下是安萃樓、南耘樓的 2F／3F
 const OL = '#2b2233';
 const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
 function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.random()*(i+1)|0; [a[i],a[j]]=[a[j],a[i]]; } return a; }
@@ -604,6 +607,129 @@ const map = [];
 for(let y=0;y<MH;y++){ map.push(new Array(MW).fill('.')); }
 function R(c,x1,y1,x2,y2){ for(let y=y1;y<=y2;y++) for(let x=x1;x<=x2;x++) map[y][x]=c; }
 function building(x1,y1,x2,y2){ R('#',x1,y1,x2,y2); R(',',x1+1,y1+1,x2-1,y2-1); }
+/* ---------------- 一樓照真實配置重排，安萃樓、南耘樓的 2F／3F（樓上放在地圖下方，用樓梯傳送） ---------------- */
+const MOVES = [], NEWBLD = [], HALLBLD = [], DOORS = {}, STAIRS = [];
+function MV(x,y){ for(const m of MOVES) if(x>=m.x1&&x<=m.x2&&y>=m.y1&&y<=m.y2) return [x+m.dx, y+m.dy]; return [x,y]; }   // 舊座標 → 搬家後的新座標
+function moveBlock(x1,y1,x2,y2,dx,dy){   // 整間教室（地板、牆、家具）搬到新位置
+  const buf = [];
+  for(let y=y1;y<=y2;y++){ buf.push(map[y].slice(x1,x2+1)); for(let x=x1;x<=x2;x++) map[y][x]='.'; }
+  buf.forEach((row,j)=>row.forEach((c,i)=>{ map[y1+j+dy][x1+i+dx]=c; }));
+  MOVES.push({x1,y1,x2,y2,dx,dy});
+}
+const ROOMC = {   // 只有門牌的房間：屋頂、牆、邊框的顏色
+  cls:['#c8553d','#f6e7c8','#8a5a3c'], spec:['#5b8fb9','#eef4fa','#35607f'], store:['#8b939c','#eeeeee','#5b6472'],
+  book:['#a0522d','#fbefe2','#6e3418'], fire:['#d62d2d','#fff0f0','#8a1f1f'] };
+function facade(x1,y1,x2,y2,dx,s,t,c){   // 不能進去的房間：整塊牆＋上鎖的門（門牌 s、說明 t）
+  R('#',x1,y1,x2,y2); map[y2][dx]='|'; DOORS[dx+','+y2] = {s, t};
+  const [roof,wall,trim] = ROOMC[c||'cls'];
+  NEWBLD.push({k:'room', name:s, x1,y1,x2,y2, roof, wall, trim, glow:'255,230,190'});
+}
+function stairs(x1,y1,y2,b,id,fl){   // 樓梯：2 格寬，最下面兩列是樓梯（s）、上面是牆；fl＝{樓層:[到達的 x, y]}
+  R('#',x1,y1,x1+1,y2-2); R('s',x1,y2-1,x1+1,y2);
+  NEWBLD.push({k:'stair', x1,y1,x2:x1+1,y2, roof:'#9aa3ad', wall:'#eef0f2', trim:'#5b6472', glow:'230,235,245'});
+  let st = STAIRS.find(o=>o.b===b && o.id===id); if(!st){ st = {b, id, fl:{}}; STAIRS.push(st); }
+  Object.assign(st.fl, fl);
+}
+function toiletRoom(x1,y1,x2,num){   // 性別友善廁所：4 列高，門在下面，左邊洗手台、右邊獨立隔間
+  const y2 = y1+3; building(x1,y1,x2,y2); map[y2][x1+1]='D'; map[y1+1][x1+1]='V';
+  if(x2-x1-1>=6) map[y1+1][x1+2]='V';
+  for(let x=x1+3; x<=x2-1; x++) map[y1+1][x]='U';
+  NEWBLD.push({k:'shop', name:num, x1,y1,x2,y2, roof:'#7b6cc4', wall:'#f4f1ff', trim:'#4e4294', glow:'225,220,255'});
+}
+function relayout(){
+  // ---- 樓上的外框：上面一列空白、8 列房間、2 列走廊、1 列牆 ----
+  R('%',0,56,MW-1,MH-1);
+  const strip = (x0,x1,y0)=>{ R('#',x0,y0+1,x1,y0+10); R(',',x0+1,y0+9,x1-1,y0+10);
+    HALLBLD.push({k:'hall', x1:x0, y1:y0+1, x2:x1, y2:y0+11, roof:'#9aa3ad', wall:'#f3f0ea', trim:'#6b7380', glow:'240,235,220'}); };
+  strip(0,65,56);    // 安萃樓 2F（y56～67）
+  strip(0,51,68);    // 安萃樓 3F（y68～79）
+  strip(0,49,80);    // 南耘樓 2F（y80～91）
+  strip(50,88,80);   // 南耘樓 3F（y80～91，在右邊）
+  // ---- 搬上樓的教室（室內擺設、小遊戲都保留） ----
+  moveBlock(81,2,88,9,-32,55);                       // 美術教室 → 安萃樓 2F 藝術教室
+  moveBlock(10,2,17,7,5,69); map[74][15]='#'; map[76][17]='D';   // 音樂教室 → 安萃樓 3F（門改到下面，面向走廊）
+  moveBlock(50,2,57,9,-21,67);                       // 英語教室 → 安萃樓 3F 英語專科 A
+  moveBlock(70,2,78,9,-28,67);                       // 圖書館 → 安萃樓 3F
+  moveBlock(19,16,30,23,-10,65);                     // 輔導室 → 南耘樓 2F 輔導處
+  moveBlock(10,16,17,23,76,14);                      // 防災教育中心 → 榕樹區旁（門在右邊，接溪畔步道）
+  moveBlock(32,16,43,23,-6,0);                       // 教室 → 南耘樓 1F 活動室
+  // ---- 安萃樓 1F（由西到東）----
+  facade(10,2,13,7,11,'特教','【集中式特教班 210】上課中，經過時請放輕腳步。','spec');
+  facade(14,2,17,7,15,'多功B','【多功能教室 B 219】現在沒有開放。','spec');
+  stairs(18,2,9,'安萃','③',{1:[18,10],2:[17,65],3:[7,77]});
+  stairs(28,2,9,'安萃','②',{1:[28,10],2:[28,65]});
+  facade(38,2,39,8,38,'書庫','【愛的書庫 214】整理書籍中，暫時不開放。想看書可以到 3 樓的圖書館喔！','book');
+  facade(48,2,49,9,48,'消防','【消防設備室】放著消防栓和滅火器，只有大人可以進去。','fire');
+  stairs(50,2,9,'安萃','①',{1:[50,10],2:[39,65],3:[40,77]});
+  map[4][54]='T'; map[7][57]='T';
+  facade(70,2,74,9,72,'器材室','【體育器材室 211】體育課的球和器材放在這裡，借用要登記、用完要歸還。','store');
+  facade(75,2,78,9,76,'掃具室','【掃具室】掃把、拖把放在這裡，打掃完要排整齊。','store');
+  toiletRoom(81,2,88,'①'); map[6][84]='G';
+  map[5][20]='#'; map[7][21]='D';   // 處室：門改到下面（左邊是 ③ 樓梯）
+  map[3][40]='#'; map[6][41]='D';   // 電腦教室：門改到下面（左邊是愛的書庫）
+  // ---- 南耘樓 1F（由西到東）----
+  R('.',10,16,25,23); R('.',38,16,45,23); R('.',54,16,55,23); R('.',44,12,45,15);
+  stairs(10,16,23,'南耘','⑥',{1:[10,24],2:[1,89],3:[51,89]});
+  toiletRoom(12,20,17,'⑥'); map[19][14]='G';
+  R('_',18,16,21,23);                                // 南耘樓玄關（可以穿過）
+  facade(22,16,25,23,23,'五甲','五年甲班（115）上課中，經過時請放輕腳步。');
+  stairs(38,16,23,'南耘','⑤',{1:[38,24],2:[30,89],3:[69,89]});
+  facade(40,16,41,23,40,'一丙','一年丙班（113）上課中，經過時請放輕腳步。');
+  facade(42,16,43,23,42,'一乙','一年乙班（112）上課中，經過時請放輕腳步。');
+  facade(44,16,45,23,44,'一甲','一年甲班（111）是林老師的班級。上課中，經過時請放輕腳步。');
+  map[19][50]='G'; map[22][46]='#'; map[23][47]='D';   // ⑤ 廁所：門改到下面（左邊是一甲）
+  stairs(54,16,23,'南耘','④',{1:[54,24],2:[47,89],3:[86,89]});
+  // ---- 安萃樓 2F ----
+  toiletRoom(1,61,8,'④');
+  facade(9,57,12,64,10,'學前','【學前巡迴班 220】上課中，請保持安靜。','spec');
+  facade(13,57,16,64,14,'資源班','【資源班 229】上課中，請保持安靜。','spec');
+  stairs(17,57,64,'安萃','③',{});
+  facade(19,57,21,64,20,'三丁','三年丁班（228）上課中，經過時請放輕腳步。');
+  facade(22,57,24,64,23,'三丙','三年丙班（227）上課中，經過時請放輕腳步。');
+  facade(25,57,27,64,26,'三乙','三年乙班（226）上課中，經過時請放輕腳步。');
+  stairs(28,57,64,'安萃','②',{});
+  facade(30,57,32,64,31,'四丁','四年丁班（225）上課中，經過時請放輕腳步。');
+  facade(33,57,35,64,34,'四丙','四年丙班（224）上課中，經過時請放輕腳步。');
+  facade(36,57,38,64,37,'四乙','四年乙班（223）上課中，經過時請放輕腳步。');
+  stairs(39,57,64,'安萃','①',{});
+  building(41,57,48,64); map[64][44]='D';            // 自然專科教室（222）：實驗桌、藥品櫃、洗眼器
+  R('1',42,61,43,61); R('1',46,61,47,61); map[58][42]='2'; map[58][43]='2'; map[58][47]='3'; map[58][46]='p';
+  NEWBLD.push({k:'sci', x1:41,y1:57,x2:48,y2:64, roof:'#3c9a6e', wall:'#effaf4', trim:'#246b4a', glow:'215,250,230'});
+  toiletRoom(57,61,64,'③');                         // （49～56 是搬上來的藝術教室）
+  // ---- 安萃樓 3F ----
+  facade(1,69,6,76,3,'視聽','【視聽教室 238】現在沒有開放。','spec');
+  stairs(7,69,76,'安萃','③',{});
+  facade(9,69,11,76,10,'檔案二','【檔案室（二）237】只有老師可以進去。','store');
+  facade(12,69,14,76,13,'檔案一','【檔案室（一）236】只有老師可以進去。','store');
+  facade(23,69,25,76,24,'桌椅','【課桌椅儲藏室】放著備用的課桌椅。','store');      // （15～22 是音樂教室）
+  facade(26,69,28,76,27,'英語B','【英語專科教室 B 234】現在沒有課。隔壁的英語專科教室 A 可以進去！','spec');
+  facade(37,69,39,76,38,'自然高','【自然專科教室（高）232】現在沒有課。2 樓的自然專科教室可以進去看看！','spec');   // （29～36 是英語專科 A）
+  stairs(40,69,76,'安萃','①',{});                   // （42～50 是圖書館）
+  // ---- 南耘樓 2F ----
+  stairs(1,81,88,'南耘','⑥',{});
+  toiletRoom(3,85,8,'⑨');                           // （9～20 是輔導處）
+  facade(21,81,23,88,22,'書軒','【書軒 126】安靜的閱讀空間，現在沒有開放。','book');
+  facade(24,81,26,88,25,'三甲','三年甲班（125）上課中，經過時請放輕腳步。');
+  facade(27,81,29,88,28,'四甲','四年甲班（124）上課中，經過時請放輕腳步。');
+  stairs(30,81,88,'南耘','⑤',{});
+  facade(32,81,34,88,33,'二丙','二年丙班（123）上課中，經過時請放輕腳步。');
+  facade(35,81,37,88,36,'二乙','二年乙班（122）上課中，經過時請放輕腳步。');
+  facade(38,81,40,88,39,'二甲','二年甲班（121）上課中，經過時請放輕腳步。');
+  toiletRoom(41,85,46,'⑦⑧');
+  stairs(47,81,88,'南耘','④',{});
+  // ---- 南耘樓 3F ----
+  stairs(51,81,88,'南耘','⑥',{});
+  toiletRoom(53,85,58,'⑫');
+  facade(59,81,62,88,60,'多功C','【多功能教室 C 136】現在沒有開放。','spec');
+  facade(63,81,65,88,64,'五丙','五年丙班（135）上課中，經過時請放輕腳步。');
+  facade(66,81,68,88,67,'五乙','五年乙班（134）上課中，經過時請放輕腳步。');
+  stairs(69,81,88,'南耘','⑤',{});
+  facade(71,81,73,88,72,'六丙','六年丙班（133）上課中，經過時請放輕腳步。');
+  facade(74,81,76,88,75,'六乙','六年乙班（132）上課中，經過時請放輕腳步。');
+  facade(77,81,79,88,78,'六甲','六年甲班（131）上課中，經過時請放輕腳步。');
+  toiletRoom(80,85,85,'⑩⑪');
+  stairs(86,81,88,'南耘','④',{});
+}
 (function buildMap(){
   // 依照學校真實的校園配置：北邊安萃樓、中間南耘樓、司令台＋操場、東邊溪流、南大門外是馬路
   for(let x=0;x<MW;x++) map[0][x]='T';
@@ -686,12 +812,13 @@ function building(x1,y1,x2,y2){ R('#',x1,y1,x2,y2); R(',',x1+1,y1+1,x2-1,y2-1); 
   // 安萃樓和南耘樓之間多留 3 列空地（走廊下面）
   const spacer = () => map[12].map((c,x)=> x===0 ? 'T' : (x===8||x===9||x===18||x===44||x===45||x===94||x===95) ? '_' : (x>=96 ? 'W' : '.'));
   map.splice(12, 0, spacer(), spacer(), spacer()); map.length = MH;
+  relayout();
 })();
 
 /* 告示牌內容（座標 'x,y'：文字） */
 const SIGNS = {
   '22,46':'【校園公告】上下學請走斑馬線，並遵守導護志工的指揮。',
-  '22,26':'【校園地圖】北邊安萃樓（由西到東）：廁所、音樂教室、總務處、校長室、電腦教室、英語教室、健康中心、圖書館、美術教室｜中間：幼兒園，南耘樓的防災教育中心、輔導室、教室｜一進校門右邊：大象溜滑梯｜司令台左邊：廁所｜南邊：操場、南面光電球場、小孔廟、菜圃、榕樹區｜最東邊：小溪',
+  '22,26':'【校園地圖】安萃樓 1F：廁所、特教班、處室、校長室、電腦教室、保健室、器材室；2F：三、四年級、自然專科教室、藝術教室；3F：音樂教室、英語教室、圖書館｜南耘樓 1F：一年級、五甲、活動室；2F：輔導處、二年級；3F：五、六年級｜榕樹區旁：防災教育中心｜樓梯：安萃樓 ①②③、南耘樓 ④⑤⑥（走到樓梯前按空白鍵）',
   '7,26':'【防災小叮嚀】地震：趴下、掩護、穩住。火災：小火快逃、濃煙關門。報案請撥 119。',
   '31,15':'【生活常規】走廊不奔跑，上下樓梯靠右走，見到師長要問好。',
   '39,27':'【友善校園】反霸凌三步驟：不旁觀、要求助、多關心。',
@@ -733,12 +860,14 @@ const EXTRA_TALK = {
   M:'（電腦教室的電腦，螢幕旁貼著：「密碼不外流，用完要登出！」）',
   A:'（畫架上夾著一張白紙，旁邊放著水彩和蠟筆。）',
   H:'【報修看板】三年二班：電扇不轉（已通知廠商）｜五年一班：窗戶卡住（維修中）｜性別友善廁所：水龍頭漏水（已修好 ✔）。東西壞了請告訴導師，由導師填報修單交給總務處。',
-  Z:'（設備櫃：放著備用的燈管、延長線和工具，只有大人可以拿喔！）'
+  Z:'（設備櫃：放著備用的燈管、延長線和工具，只有大人可以拿喔！）',
+  '2':'【藥品櫃】實驗用的藥品都鎖在櫃子裡，要由老師拿取。藥品不能聞、不能嚐，用完要放回原位。',
+  '3':'【洗眼器】藥品不小心噴到眼睛時，馬上到洗眼器用清水沖洗至少 15 分鐘，並告訴老師！'
 };
 
-const SOLID = new Set(['I','a','d','y','w','u','x','#','T','W','v','m','n','r','i','q','j','E','f','k','b','c','e','h','p','S','P','L','B','Y','C','U','V','G','O','N','J','X','R','K','M','A','H','Z']);
+const SOLID = new Set(['%','s','|','1','2','3','I','a','d','y','w','u','x','#','T','W','v','m','n','r','i','q','j','E','f','k','b','c','e','h','p','S','P','L','B','Y','C','U','V','G','O','N','J','X','R','K','M','A','H','Z']);
 const NPC_WALK = new Set(['.','_','t',',','F','o']);
-const BG = {I:',',a:',',d:',',T:'.',F:'.',f:'.',S:'.',P:'.',L:'_',k:',',c:',',e:',',h:',',p:',',b:'#',Q:'#',D:',',g:'_',B:',',Y:',',C:',',U:',',V:',',G:'.',O:',',m:'.',n:'.',r:'.',i:'_',x:'.',l:'.',y:'.',w:'.',u:'.',q:',',j:',',E:'.',N:',',J:',',X:',',R:'.',K:'.',M:',',A:',',H:',',Z:','};
+const BG = {s:',','|':',','1':',','2':',','3':',',I:',',a:',',d:',',T:'.',F:'.',f:'.',S:'.',P:'.',L:'_',k:',',c:',',e:',',h:',',p:',',b:'#',Q:'#',D:',',g:'_',B:',',Y:',',C:',',U:',',V:',',G:'.',O:',',m:'.',n:'.',r:'.',i:'_',x:'.',l:'.',y:'.',w:'.',u:'.',q:',',j:',',E:'.',N:',',J:',',X:',',R:'.',K:'.',M:',',A:',',H:',',Z:','};
 const BOOK_TIPS = [
   '📕《小心！陌生人》：不跟陌生人走、不吃陌生人給的東西、不告訴陌生人個人資料。',
   '📗《地震來了怎麼辦》：趴下、掩護、穩住！主震結束後，聽到「1 長 4 短」的哨音再疏散。',
@@ -751,7 +880,7 @@ const BOOK_TIPS = [
 const tileAt = (x,y) => (x<0||y<0||x>=MW||y>=MH) ? '#' : map[y][x];
 // 門口前後不讓 NPC 停留，避免擋路
 const NO_WANDER = new Set();
-for(let y=0;y<MH;y++) for(let x=0;x<MW;x++) if('DQg'.includes(map[y][x])) for(const [dx,dy] of [[0,0],[1,0],[-1,0],[0,1],[0,-1]]) NO_WANDER.add((x+dx)+','+(y+dy));
+for(let y=0;y<MH;y++) for(let x=0;x<MW;x++) if('DQgs'.includes(map[y][x])) for(const [dx,dy] of [[0,0],[1,0],[-1,0],[0,1],[0,-1]]) NO_WANDER.add((x+dx)+','+(y+dy));
 
 const BLD = [
   {k:'class',     x1:32,y1:16,x2:43,y2:23, roof:'#c8553d', wall:'#f6e7c8', trim:'#8a5a3c', glow:'255,214,150'},
@@ -770,8 +899,11 @@ const BLD = [
   // 裝飾用的建築（不能進去）
   {k:'kinder',    x1:1, y1:16,x2:7, y2:23, roof:'#f2994a', wall:'#fff3dc', trim:'#c0603a', glow:'255,225,180'},
 ];
+// 搬家的教室：範圍跟著移動，並記下位移（畫牆上裝飾時換回原本的座標）
+for(const b of BLD){ const m = MOVES.find(m=>b.x1>=m.x1&&b.x2<=m.x2&&b.y1>=m.y1&&b.y2<=m.y2); if(m){ b.x1+=m.dx; b.x2+=m.dx; b.y1+=m.dy; b.y2+=m.dy; b.dx=m.dx; b.dy=m.dy; } }
+BLD.push(...NEWBLD, ...HALLBLD);
 const bldAt = (x,y) => BLD.find(b=>x>=b.x1&&x<=b.x2&&y>=b.y1&&y<=b.y2);
-const isWall = c => c==='#'||c==='b'||c==='Q';
+const isWall = c => c==='#'||c==='b'||c==='Q'||c==='|';
 const POND = {x:96*TS, y:0, w:4*TS, h:47*TS};   // 東邊的小溪
 
 /* ---------------- 預先繪製地圖（靜態層） ---------------- */
@@ -789,21 +921,35 @@ const miniCv = document.createElement('canvas'); miniCv.width = MW*MS; miniCv.he
   for(let y=0;y<MH;y++) for(let x=0;x<MW;x++) drawStatic(g, map[y][x], x, y);
   drawShadows(g);
   g.fillStyle='rgba(255,255,255,.88)'; g.font='bold 12px "Microsoft JhengHei",sans-serif'; g.textAlign='center'; g.textBaseline='middle';
-  g.fillText('今日目標：做個校園守護者！', 38*TS, 16*TS+20);
-  plaque(g,'教　室', 35*TS, 23*TS+20);
+  g.fillText('今日目標：做個校園守護者！', 32*TS, 16*TS+20);
+  plaque(g,'活動室', 29*TS, 23*TS+20);
   plaque(g,'校長室', 31*TS+4, 8*TS+20);
-  plaque(g,'輔導室', 27*TS, 23*TS+20);
-  plaque(g,'防災教育中心', 13.5*TS, 16*TS+20);
-  plaque(g,'圖書館', 72*TS, 9*TS+20);
-  plaque(g,'健康中心', 64*TS, 2*TS+20);
-  plaque(g,'性別友善廁所', 50*TS, 20*TS+20);
-  plaque(g,'性別友善廁所', 5*TS, 2*TS+20);
-  plaque(g,'英語教室', 55.5*TS, 9*TS+20);
-  plaque(g,'音樂教室', 14*TS, 2*TS+20);
+  plaque(g,'輔導處', 17*TS, 88*TS+20);
+  plaque(g,'防災教育中心', 89.5*TS, 30*TS+20);
+  plaque(g,'圖書館', 44*TS, 76*TS+20);
+  plaque(g,'保健室', 64*TS, 2*TS+20);
+  plaque(g,'⑤ 性別友善廁所', 50*TS, 20*TS+20);
+  plaque(g,'② 性別友善廁所', 5*TS, 2*TS+20);
+  plaque(g,'① 性別友善廁所', 84.5*TS, 2*TS+20);
+  plaque(g,'⑥ 廁所', 15*TS, 20*TS+20);
+  plaque(g,'④ 性別友善廁所', 4.5*TS, 61*TS+20);
+  plaque(g,'③ 性別友善廁所', 60.5*TS, 61*TS+20);
+  plaque(g,'⑨ 廁所', 5.5*TS, 85*TS+20);
+  plaque(g,'⑦⑧ 廁所', 43.5*TS, 85*TS+20);
+  plaque(g,'⑫ 廁所', 55.5*TS, 85*TS+20);
+  plaque(g,'⑩⑪ 廁所', 82.5*TS, 85*TS+20);
+  plaque(g,'英語專科 A', 34.5*TS, 76*TS+20);
+  plaque(g,'音樂教室', 19*TS, 71*TS+20);
   plaque(g,'電腦教室', 45.5*TS, 6*TS+20);
-  plaque(g,'美術教室', 86.5*TS, 9*TS+20);
-  plaque(g,'總務處', 24*TS, 2*TS+20);
+  plaque(g,'藝術教室', 54.5*TS, 64*TS+20);
+  plaque(g,'自然專科教室', 44.5*TS, 57*TS+20);
+  plaque(g,'處室（教務・學務・總務）', 24*TS, 2*TS+20);
+  plaque(g,'安萃樓玄關', 29*TS, 2*TS+20);
   plaque(g,'幼兒園', 6*TS, 23*TS+20);
+  plaque(g,'安萃樓 2F', 33*TS, 66*TS+16, true);
+  plaque(g,'安萃樓 3F', 26*TS, 78*TS+16, true);
+  plaque(g,'南耘樓 2F', 25*TS, 90*TS+16, true);
+  plaque(g,'南耘樓 3F', 69.5*TS, 90*TS+16, true);
   drawElephant(g);
   drawKitchen(g);
   plaque(g,'廚　房', 92*TS, 6*TS+12);
@@ -812,13 +958,13 @@ const miniCv = document.createElement('canvas'); miniCv.width = MW*MS; miniCv.he
   drawTemple(g);
   plaque(g,'小孔廟', 12.5*TS, 34*TS+18);
   plaque(g,'安萃樓', 59*TS, 11*TS+16, true);   // 牌子放在安萃樓下面的走廊
-  plaque(g,'南耘樓', 18.5*TS, 15*TS+14, true);
+  plaque(g,'南耘樓', 20*TS, 15*TS+14, true);
   // 健康中心紅十字
   g.lineWidth=1.5; g.strokeStyle=OL; rr(g, 66*TS+6, 2*TS+12, 18, 18, 3, '#fff'); g.fillStyle='#d62d2d'; g.fillRect(66*TS+13, 2*TS+15, 4, 12); g.fillRect(66*TS+9, 2*TS+19, 12, 4);
   plaque(g, SCHOOL_NAME, 14.5*TS, 47*TS+16, true);
   // 小地圖
   const m = miniCv.getContext('2d');
-  const MC = {'y':'#9aa3ad','x':'#c8553d','l':'#e8e2d4','r':'#8a7a68','i':'#d8362e','o':'#5f9e6e','v':'#8a5a34','m':'#3d8a43','n':'#2f7a3a','.':'#86c96e','_':'#e6d6b0','g':'#e6d6b0','=':'#4f525a','z':'#d8d8d8','t':'#c9573f','W':'#3f97d6','T':'#3d8a43','F':'#f29ab5','f':'#f4f4f4','S':'#a8733e','P':'#bbb','L':'#666'};
+  const MC = {'%':'#1d1824','s':'#c9ced3','y':'#9aa3ad','x':'#c8553d','l':'#e8e2d4','r':'#8a7a68','i':'#d8362e','o':'#5f9e6e','v':'#8a5a34','m':'#3d8a43','n':'#2f7a3a','.':'#86c96e','_':'#e6d6b0','g':'#e6d6b0','=':'#4f525a','z':'#d8d8d8','t':'#c9573f','W':'#3f97d6','T':'#3d8a43','F':'#f29ab5','f':'#f4f4f4','S':'#a8733e','P':'#bbb','L':'#666'};
   for(let y=0;y<MH;y++) for(let x=0;x<MW;x++){
     const c = map[y][x], b = bldAt(x,y);
     m.fillStyle = b ? (isWall(c) ? b.roof : lighten(b.roof,.72)) : (y>=48 && c==='_' ? '#c9c6bf' : (MC[c]||'#86c96e'));
@@ -847,6 +993,7 @@ function drawGrass(g,X,Y,tx,ty){
 }
 function drawGround(g,tx,ty){
   const X=tx*TS, Y=ty*TS, c=map[ty][tx];
+  if(c==='%'){ g.fillStyle='#1d1824'; g.fillRect(X,Y,TS,TS); return; }   // 樓層外面（看不到的地方）
   let b = BG[c]||c;
   const B = bldAt(tx,ty);
   if(b==='.' || b==='t' || b==='W'){ drawGrass(g,X,Y,tx,ty); return; }
@@ -935,6 +1082,9 @@ function drawFloor(g,X,Y,tx,ty,B){
     g.fillStyle=['#ffd6a0','#bfe6ff','#ffc6d9','#d4f5c4'][((tx%2)+(ty%2)*2)]; g.fillRect(X,Y,TS,TS);
     g.fillStyle='rgba(0,0,0,.08)'; g.fillRect(X,Y,TS,1); g.fillRect(X,Y,1,TS);
     g.fillStyle='rgba(255,255,255,.35)'; g.beginPath(); g.arc(X+16,Y,4,0,Math.PI); g.fill();
+  } else if(k==='sci'){ // 自然專科教室：淺綠色防滑地板
+    g.fillStyle=((tx+ty)%2)?'#e2f3e8':'#d4ecdc'; g.fillRect(X,Y,TS,TS);
+    g.fillStyle='rgba(36,107,74,.15)'; g.fillRect(X,Y,TS,1); g.fillRect(X,Y,1,TS);
   } else if(k==='shop'){ // 廁所：小方磁磚
     g.fillStyle='#e3f1f6'; g.fillRect(X,Y,TS,TS);
     g.fillStyle='#c9dfe8'; for(let i=1;i<4;i++){ g.fillRect(X, Y+i*8, TS, 1); g.fillRect(X+i*8, Y, 1, TS); }
@@ -947,19 +1097,26 @@ function drawInteriors(g){
   g.lineWidth=2; g.strokeStyle=OL;
   // 校長室金邊
   g.strokeStyle='#e0b44a'; g.lineWidth=2; g.strokeRect(31*TS+6, 3*TS+6, 6*TS-12, 5*TS-12);
+  const mvT = (x,y)=>{ const [nx,ny] = MV(x,y); g.save(); g.translate((nx-x)*TS, (ny-y)*TS); };   // 搬家的教室：裝飾跟著移動
   // 輔導室地毯
+  mvT(24,20);
   g.fillStyle='#f6c9a8'; g.strokeStyle='#d9906a'; g.lineWidth=3;
   g.beginPath(); g.ellipse(24.5*TS, 20.5*TS, 3.2*TS, 1.6*TS, 0, 0, 7); g.fill(); g.stroke();
   g.strokeStyle='#fff3e6'; g.lineWidth=2; g.beginPath(); g.ellipse(24.5*TS, 20.5*TS, 2.7*TS, 1.2*TS, 0, 0, 7); g.stroke();
+  g.restore();
   // 防災中心安全線
-  g.strokeStyle='#f2c230'; g.lineWidth=4; g.setLineDash([10,6]); g.strokeRect(11*TS+6, 17*TS+6, 6*TS-12, 6*TS-12); g.setLineDash([]);
-  // 教室講台
-  g.fillStyle='#b98448'; g.strokeStyle=OL; g.lineWidth=2; rr(g, 36*TS+4, 17*TS+18, 5*TS-8, 12, 3, '#b98448');
-  rr(g, 52*TS+8, 3*TS+18, 4*TS-16, 12, 3, '#8fb8d8'); // 英語教室講台
+  mvT(12,18); g.strokeStyle='#f2c230'; g.lineWidth=4; g.setLineDash([10,6]); g.strokeRect(11*TS+6, 17*TS+6, 6*TS-12, 6*TS-12); g.setLineDash([]); g.restore();
+  // 活動室講台
+  mvT(37,18); g.fillStyle='#b98448'; g.strokeStyle=OL; g.lineWidth=2; rr(g, 36*TS+4, 17*TS+18, 5*TS-8, 12, 3, '#b98448'); g.restore();
+  mvT(53,4); g.strokeStyle=OL; g.lineWidth=2; rr(g, 52*TS+8, 3*TS+18, 4*TS-16, 12, 3, '#8fb8d8'); g.restore(); // 英語教室講台
   // 音樂教室：五線譜地毯
+  mvT(13,5);
   g.fillStyle='#f6e2c0'; g.strokeStyle='#c98a3a'; g.lineWidth=3; rr(g, 12*TS, 4.5*TS+4, 4*TS, 2*TS-8, 10, '#f6e2c0');
   g.strokeStyle='rgba(138,82,20,.45)'; g.lineWidth=1; for(let i=0;i<5;i++){ g.beginPath(); g.moveTo(12*TS+12, 4.5*TS+14+i*8); g.lineTo(16*TS-12, 4.5*TS+14+i*8); g.stroke(); }
   g.fillStyle='#8a5214'; for(const [nx,ny] of [[12.8,5.7],[13.6,5.4],[14.5,5.95],[15.3,5.55]]){ g.beginPath(); g.ellipse(nx*TS, ny*TS, 4.5, 3.2, -.4, 0, 7); g.fill(); g.fillRect(nx*TS+3.3, ny*TS-16, 1.6, 16); }
+  g.restore();
+  // 自然專科教室：黃色安全線
+  g.strokeStyle='#f2c230'; g.lineWidth=3; g.setLineDash([8,6]); g.strokeRect(42*TS+4, 60*TS+4, 6*TS-8, 3*TS-8); g.setLineDash([]);
 }
 function drawPlayground(g){
   const x1=40*TS, y1=27*TS, w=26*TS, h=10*TS;
@@ -1225,8 +1382,38 @@ function drawPondBase(g){
 function drawStatic(g,c,tx,ty){
   const X=tx*TS, Y=ty*TS;
   g.lineWidth=1.5; g.strokeStyle=OL;
-  if(c==='#'||c==='b'||c==='Q'){ drawWall(g,c,tx,ty); return; }
+  if(c==='#'||c==='b'||c==='Q'||c==='|'){ drawWall(g,c,tx,ty); return; }
   switch(c){
+    case 's': { // 樓梯：一階一階往上，旁邊有扶手
+      const hit = stairAt(tx,ty), top = tileAt(tx,ty-1)!=='s', left = tileAt(tx-1,ty)!=='s';
+      g.fillStyle='#cfc9bb'; g.fillRect(X,Y,TS,TS);
+      for(let i=0;i<4;i++){ const yy=Y+i*8; g.fillStyle = i%2 ? '#e4dfd2' : '#d6d0c2'; g.fillRect(X,yy,TS,8); g.fillStyle='rgba(0,0,0,.18)'; g.fillRect(X,yy+7,TS,1); }
+      if(top){ g.fillStyle='rgba(0,0,0,.22)'; g.fillRect(X,Y,TS,5); }
+      g.fillStyle='#8b939c'; if(left) g.fillRect(X+1,Y,3,TS); else g.fillRect(X+TS-4,Y,3,TS);
+      if(top && left && hit){ g.lineWidth=1.5; circ(g, X+14, Y+13, 9, '#fff'); g.fillStyle='#2b2233'; g.font='bold 12px sans-serif'; g.textAlign='center'; g.textBaseline='middle'; g.fillText(hit.st.id, X+14, Y+13.5); }
+      if(!top && !left){ g.fillStyle='#2e9d5b'; g.beginPath(); g.moveTo(X+8,Y+14); g.lineTo(X+16,Y+5); g.lineTo(X+24,Y+14); g.closePath(); g.fill(); }
+      break; }
+    case '1': { // 實驗桌（兩格合成一張）
+      g.fillStyle='rgba(0,0,0,.15)'; g.fillRect(X+3,Y+26,28,4);
+      const L = tileAt(tx-1,ty)==='1', Rr = tileAt(tx+1,ty)==='1';
+      const x0 = X+(L?0:2), x1 = X+TS-(Rr?0:2);
+      g.fillStyle='#2f3b4a'; g.fillRect(x0,Y+8,x1-x0,18); g.fillStyle='#46566b'; g.fillRect(x0,Y+8,x1-x0,4);
+      g.beginPath(); g.moveTo(x0,Y+8); g.lineTo(x1,Y+8); g.moveTo(x0,Y+26); g.lineTo(x1,Y+26); if(!L){ g.moveTo(x0,Y+8); g.lineTo(x0,Y+26); } if(!Rr){ g.moveTo(x1,Y+8); g.lineTo(x1,Y+26); } g.stroke();
+      if(!L){ rr(g, X+7, Y-1, 9, 11, 1.5, 'rgba(200,235,255,.95)'); g.fillStyle='#5fc3ff'; g.fillRect(X+8, Y+4, 7, 5); }
+      else { g.fillStyle='rgba(200,255,215,.95)'; g.beginPath(); g.moveTo(X+7,Y-1); g.lineTo(X+11,Y-1); g.lineTo(X+15,Y+10); g.lineTo(X+3,Y+10); g.closePath(); g.fill(); g.stroke();
+             rr(g, X+19, Y+3, 8, 7, 2, '#e8e2d4'); g.fillStyle='#8b939c'; g.fillRect(X+22, Y, 2, 3); }
+      break; }
+    case '2': { // 藥品櫃
+      g.fillStyle='rgba(0,0,0,.18)'; g.fillRect(X+3,Y+26,28,4);
+      rr(g, X+2, Y-6, 28, 33, 2, '#e8e2d4'); g.fillStyle='rgba(190,230,255,.55)'; g.fillRect(X+4,Y-4,24,29);
+      for(let r=0;r<3;r++){ g.fillStyle='#b8b0a0'; g.fillRect(X+4, Y+4+r*9, 24, 1.5); for(let j=0;j<3;j++){ g.fillStyle=['#e25555','#3c8de0','#f0a030','#3cb371','#9b6bd6'][(r*3+j+tx)%5]; g.fillRect(X+6+j*8, Y-1+r*9, 4, 5); } }
+      g.fillStyle='#f4c542'; g.fillRect(X+14, Y+11, 4, 3);
+      break; }
+    case '3': { // 洗眼器
+      g.fillStyle='rgba(0,0,0,.18)'; g.fillRect(X+5,Y+26,22,4);
+      g.fillStyle='#8b939c'; g.fillRect(X+14,Y+8,4,19); rr(g, X+6, Y+4, 20, 7, 3, '#cfd6dc'); circ(g, X+11, Y+5, 2, '#5fc3ff'); circ(g, X+21, Y+5, 2, '#5fc3ff');
+      rr(g, X+3, Y-8, 26, 10, 2, '#2e9d5b'); g.fillStyle='#fff'; g.font='bold 7px "Microsoft JhengHei",sans-serif'; g.textAlign='center'; g.textBaseline='middle'; g.fillText('洗眼器', X+16, Y-3);
+      break; }
     case 'F':
       for(let i=0;i<5;i++){
         const fx=X+5+hash(tx,ty,i)*22, fy=Y+6+hash(ty,tx,i)*20;
@@ -1438,7 +1625,7 @@ function drawStatic(g,c,tx,ty){
   }
 }
 function drawDesk(g,X,Y,tx,ty){
-  const B = bldAt(tx,ty);
+  const B = bldAt(tx,ty), otx = B ? tx-(B.dx||0) : tx;
   if(B && (B.k==='class'||B.k==='eng')){
     g.fillStyle='rgba(0,0,0,.15)'; g.fillRect(X+5,Y+22,24,4);
     rr(g, X+8, Y+19, 16, 8, 2, B.k==='eng'?'#e8913c':'#3c7fd0'); // 椅子
@@ -1455,13 +1642,14 @@ function drawDesk(g,X,Y,tx,ty){
   g.fillStyle = B && B.k==='principal' ? '#94602f' : '#efd0a0'; g.fillRect(x0, Y+6, x1-x0, 5);
   g.beginPath(); g.moveTo(x0,Y+6); g.lineTo(x1,Y+6); g.moveTo(x0,Y+26); g.lineTo(x1,Y+26);
   if(!L){ g.moveTo(x0,Y+6); g.lineTo(x0,Y+26); } if(!Rr){ g.moveTo(x1,Y+6); g.lineTo(x1,Y+26); } g.stroke();
-  if(B && B.k==='principal' && tx===33){ rr(g, X+6, Y+14, 20, 7, 1, '#f4c542'); }
+  if(B && B.k==='principal' && otx===33){ rr(g, X+6, Y+14, 20, 7, 1, '#f4c542'); }
   if(B && B.k==='art'){ g.lineWidth=1; for(const [dx,dy,c] of [[8,13,'#e23b3b'],[13,17,'#ffd447'],[20,12,'#2f9ec4']]){ g.fillStyle=c; g.beginPath(); g.arc(X+dx+(tx%2)*3,Y+dy,2.2,0,7); g.fill(); } }
-  if(B && B.k==='office' && tx===24){ g.lineWidth=1; rr(g, X+5, Y+9, 11, 13, 1, '#fff'); g.fillStyle='#9aa0a6'; for(const yy of [12,15,18]) g.fillRect(X+7, Y+yy, 7, 1); rr(g, X+19, Y+11, 8, 9, 2, '#3a3f4a'); g.fillStyle='#7fd0f5'; g.fillRect(X+20.5, Y+12.5, 5, 3); }
-  if(B && B.k==='counsel' && tx===24){ circ(g, X+16, Y+14, 4, '#fff'); g.fillStyle='#8b5a2b'; g.beginPath(); g.arc(X+16,Y+14,2.5,0,7); g.fill(); }
+  if(B && B.k==='office' && otx===24){ g.lineWidth=1; rr(g, X+5, Y+9, 11, 13, 1, '#fff'); g.fillStyle='#9aa0a6'; for(const yy of [12,15,18]) g.fillRect(X+7, Y+yy, 7, 1); rr(g, X+19, Y+11, 8, 9, 2, '#3a3f4a'); g.fillStyle='#7fd0f5'; g.fillRect(X+20.5, Y+12.5, 5, 3); }
+  if(B && B.k==='counsel' && otx===24){ circ(g, X+16, Y+14, 4, '#fff'); g.fillStyle='#8b5a2b'; g.beginPath(); g.arc(X+16,Y+14,2.5,0,7); g.fill(); }
 }
 function drawWall(g,c,tx,ty){
   const X=tx*TS, Y=ty*TS, B=bldAt(tx,ty);
+  const otx = tx-(B.dx||0), oty = ty-(B.dy||0);   // 搬家前的座標（牆上裝飾用）
   const s = tileAt(tx,ty+1);
   const face = !isWall(s) && s!=='D';
   const outdoor = face && !bldAt(tx,ty+1);
@@ -1486,6 +1674,14 @@ function drawWall(g,c,tx,ty){
     g.fillStyle='#f4c542'; g.beginPath(); g.arc(X+14,FY+11,1.8,0,7); g.arc(X+18,FY+11,1.8,0,7); g.fill();
     return;
   }
+  if(c==='|'){   // 上鎖的門＋門牌
+    g.strokeStyle=OL; g.lineWidth=1.5;
+    rr(g, X+5, FY+1, 22, FH-1, 1, '#8a5a2c'); g.fillStyle='#a87040'; g.fillRect(X+8, FY+4, 16, FH-6);
+    circ(g, X+21, FY+FH/2+2, 1.5, '#f4c542');
+    const d = DOORS[tx+','+ty];
+    if(d){ g.font='bold 8px "Microsoft JhengHei",sans-serif'; const w = Math.max(20, g.measureText(d.s).width+6); rr(g, X+16-w/2, Y+1, w, 10, 2, '#fffaf0'); g.fillStyle=OL; g.textAlign='center'; g.textBaseline='middle'; g.fillText(d.s, X+16, Y+6.5); }
+    return;
+  }
   if(c==='b'){
     g.strokeStyle='#7a4a24'; g.lineWidth=3; g.fillStyle='#2e5d45'; g.fillRect(X,FY+2,TS,FH-6); g.beginPath(); g.moveTo(X,FY+FH-3); g.lineTo(X+TS,FY+FH-3); g.stroke();
     return;
@@ -1501,17 +1697,17 @@ function drawWall(g,c,tx,ty){
     g.fillStyle=darken(B.wall,.1); g.fillRect(X,Y+TS-8,TS,8);
     g.fillStyle=B.trim; g.fillRect(X,Y+TS-9,TS,1.5);
     // 牆上裝飾
-    if(B.k==='disaster' && tx===14){ g.strokeStyle=OL; g.lineWidth=1; rr(g,X+5,FY+1,22,12,1,'#fff'); g.fillStyle='#d62d2d'; g.font='bold 9px sans-serif'; g.textAlign='center'; g.textBaseline='middle'; g.fillText('119',X+16,FY+7); }
-    if(B.k==='disaster' && tx===11){ g.strokeStyle=OL; g.lineWidth=1; rr(g,X+6,FY+1,20,12,1,'#2e9d5b'); g.fillStyle='#fff'; g.fillRect(X+9,FY+6,8,2); g.beginPath(); g.moveTo(X+17,FY+3); g.lineTo(X+22,FY+7); g.lineTo(X+17,FY+11); g.fill(); }
-    if(B.k==='counsel' && (tx===23||tx===25)){ g.strokeStyle=OL; g.lineWidth=1; rr(g,X+7,FY+1,18,12,1,tx===23?'#ffd6e0':'#d6ecff'); g.fillStyle=tx===23?'#ff6b8a':'#3c7fd0'; g.beginPath(); g.arc(X+14,FY+6,2,0,7); g.arc(X+18,FY+6,2,0,7); g.moveTo(X+12,FY+7); g.lineTo(X+16,FY+11); g.lineTo(X+20,FY+7); g.fill(); }
-    if(B.k==='principal' && (tx===32||tx===33||tx===34)){ g.strokeStyle=OL; g.lineWidth=1; rr(g,X+2,FY,28,FH-9,1,'#7a4a24'); for(let i=0;i<5;i++){ g.fillStyle=['#d62d2d','#3c7fd0','#f4c542','#2e9d5b','#9b6bd6'][(i+tx)%5]; g.fillRect(X+4+i*5,FY+2,4,FH-13); } }
-    if(B.k==='comp' && (tx===41||tx===46)){ g.strokeStyle=OL; g.lineWidth=1; rr(g,X+4,FY+1,24,12,1,tx===41?'#fff4c2':'#e0f2ff'); g.font='bold 8px "Microsoft JhengHei",sans-serif'; g.textAlign='center'; g.textBaseline='middle'; g.fillStyle=tx===41?'#d62d2d':'#2f7fb8'; g.fillText(tx===41?'資安':'登出',X+16,FY+7.5); }
-    if(B.k==='eng' && (tx===51||tx===56)){ g.strokeStyle=OL; g.lineWidth=1; rr(g,X+4,FY+1,24,12,1,'#fff'); g.font='bold 8px sans-serif'; g.textAlign='center'; g.textBaseline='middle'; g.fillStyle=tx===51?'#d62d2d':'#2f7fb8'; g.fillText(tx===51?'ABC':'Hi!',X+16,FY+7.5); }
-    if(B.k==='music' && (tx>=12 && tx<=16) && ty===2 && tx!==14){ g.fillStyle=['#d62d2d','#2f7fb8','','#2e9d5b','#9b6bd6'][tx-12]; g.font='bold 12px sans-serif'; g.textAlign='center'; g.textBaseline='middle'; g.fillText(tx%2?'♪':'♫',X+16,FY+6); }
-    if(B.k==='art' && ty===2 && (tx===83||tx===85||tx===87)){ g.strokeStyle=OL; g.lineWidth=1; rr(g,X+5,FY,22,FH-9,1,'#fff'); g.fillStyle=['#ff8fb8','#ffd447','#5fc3ff'][(tx-83)/2]; g.beginPath(); g.arc(X+16,FY+4.5,3,0,7); g.fill(); g.fillStyle='#3cb371'; g.fillRect(X+7,FY+7.5,18,2); }
-    if(B.k==='office' && ty===2 && tx===22){ g.strokeStyle=OL; g.lineWidth=1; rr(g,X+4,FY+1,24,12,1,'#fff4c2'); g.font='bold 8px "Microsoft JhengHei",sans-serif'; g.textAlign='center'; g.textBaseline='middle'; g.fillStyle='#d62d2d'; g.fillText('報修',X+16,FY+7.5); }
-    if(B.k==='office' && ty===2 && tx===25){ g.strokeStyle=OL; g.lineWidth=1; circ(g,X+16,FY+5,5,'#fff'); g.beginPath(); g.moveTo(X+16,FY+5); g.lineTo(X+16,FY+2); g.moveTo(X+16,FY+5); g.lineTo(X+18,FY+6); g.stroke(); }
-    if(B.k==='class' && tx===42){ g.strokeStyle=OL; g.lineWidth=1; circ(g,X+16,FY+5,5,'#fff'); g.beginPath(); g.moveTo(X+16,FY+5); g.lineTo(X+16,FY+2); g.moveTo(X+16,FY+5); g.lineTo(X+18,FY+6); g.stroke(); }
+    if(B.k==='disaster' && otx===14){ g.strokeStyle=OL; g.lineWidth=1; rr(g,X+5,FY+1,22,12,1,'#fff'); g.fillStyle='#d62d2d'; g.font='bold 9px sans-serif'; g.textAlign='center'; g.textBaseline='middle'; g.fillText('119',X+16,FY+7); }
+    if(B.k==='disaster' && otx===11){ g.strokeStyle=OL; g.lineWidth=1; rr(g,X+6,FY+1,20,12,1,'#2e9d5b'); g.fillStyle='#fff'; g.fillRect(X+9,FY+6,8,2); g.beginPath(); g.moveTo(X+17,FY+3); g.lineTo(X+22,FY+7); g.lineTo(X+17,FY+11); g.fill(); }
+    if(B.k==='counsel' && (otx===23||otx===25)){ g.strokeStyle=OL; g.lineWidth=1; rr(g,X+7,FY+1,18,12,1,otx===23?'#ffd6e0':'#d6ecff'); g.fillStyle=otx===23?'#ff6b8a':'#3c7fd0'; g.beginPath(); g.arc(X+14,FY+6,2,0,7); g.arc(X+18,FY+6,2,0,7); g.moveTo(X+12,FY+7); g.lineTo(X+16,FY+11); g.lineTo(X+20,FY+7); g.fill(); }
+    if(B.k==='principal' && (otx===32||otx===33||otx===34)){ g.strokeStyle=OL; g.lineWidth=1; rr(g,X+2,FY,28,FH-9,1,'#7a4a24'); for(let i=0;i<5;i++){ g.fillStyle=['#d62d2d','#3c7fd0','#f4c542','#2e9d5b','#9b6bd6'][(i+otx)%5]; g.fillRect(X+4+i*5,FY+2,4,FH-13); } }
+    if(B.k==='comp' && (otx===41||otx===46)){ g.strokeStyle=OL; g.lineWidth=1; rr(g,X+4,FY+1,24,12,1,otx===41?'#fff4c2':'#e0f2ff'); g.font='bold 8px "Microsoft JhengHei",sans-serif'; g.textAlign='center'; g.textBaseline='middle'; g.fillStyle=otx===41?'#d62d2d':'#2f7fb8'; g.fillText(otx===41?'資安':'登出',X+16,FY+7.5); }
+    if(B.k==='eng' && (otx===51||otx===56)){ g.strokeStyle=OL; g.lineWidth=1; rr(g,X+4,FY+1,24,12,1,'#fff'); g.font='bold 8px sans-serif'; g.textAlign='center'; g.textBaseline='middle'; g.fillStyle=otx===51?'#d62d2d':'#2f7fb8'; g.fillText(otx===51?'ABC':'Hi!',X+16,FY+7.5); }
+    if(B.k==='music' && (otx>=12 && otx<=16) && oty===2 && otx!==14){ g.fillStyle=['#d62d2d','#2f7fb8','','#2e9d5b','#9b6bd6'][otx-12]; g.font='bold 12px sans-serif'; g.textAlign='center'; g.textBaseline='middle'; g.fillText(otx%2?'♪':'♫',X+16,FY+6); }
+    if(B.k==='art' && oty===2 && (otx===83||otx===85||otx===87)){ g.strokeStyle=OL; g.lineWidth=1; rr(g,X+5,FY,22,FH-9,1,'#fff'); g.fillStyle=['#ff8fb8','#ffd447','#5fc3ff'][(otx-83)/2]; g.beginPath(); g.arc(X+16,FY+4.5,3,0,7); g.fill(); g.fillStyle='#3cb371'; g.fillRect(X+7,FY+7.5,18,2); }
+    if(B.k==='office' && oty===2 && otx===22){ g.strokeStyle=OL; g.lineWidth=1; rr(g,X+4,FY+1,24,12,1,'#fff4c2'); g.font='bold 8px "Microsoft JhengHei",sans-serif'; g.textAlign='center'; g.textBaseline='middle'; g.fillStyle='#d62d2d'; g.fillText('報修',X+16,FY+7.5); }
+    if(B.k==='office' && oty===2 && otx===25){ g.strokeStyle=OL; g.lineWidth=1; circ(g,X+16,FY+5,5,'#fff'); g.beginPath(); g.moveTo(X+16,FY+5); g.lineTo(X+16,FY+2); g.moveTo(X+16,FY+5); g.lineTo(X+18,FY+6); g.stroke(); }
+    if(B.k==='class' && otx===42){ g.strokeStyle=OL; g.lineWidth=1; circ(g,X+16,FY+5,5,'#fff'); g.beginPath(); g.moveTo(X+16,FY+5); g.lineTo(X+16,FY+2); g.moveTo(X+16,FY+5); g.lineTo(X+18,FY+6); g.stroke(); }
   }
 }
 function drawShadows(g){
@@ -1531,7 +1727,7 @@ for(let y=0;y<MH;y++) for(let x=0;x<MW;x++){
   if(c==='T'||c==='S'||c==='P'||c==='L'||c==='C'||c==='m') PROPS.push({c,x,y,py:y*TS});
   if(c==='n' && map[y][x-1]!=='n' && map[y-1][x]!=='n') PROPS.push({c,x,y,py:(y+1)*TS});
 }
-PROPS.push({c:'beacon',x:12,y:16,py:16*TS}); // 防災中心警示燈
+{ const [bx,by] = MV(12,16); PROPS.push({c:'beacon',x:bx,y:by,py:by*TS}); } // 防災中心警示燈
 PROPS.push({c:'pillar',x:17,y:47,py:47*TS}); PROPS.push({c:'pillar',x:21,y:47,py:47*TS});
 function drawProp(g,p,t){
   const X=p.x*TS, Y=p.y*TS;
@@ -1949,7 +2145,7 @@ function badgeCount(){ return S ? TOPIC_KEYS.filter(k=>S.badges[k]).length : 0; 
 function level(){ return Math.floor((S.exp||0)/60)+1; }
 
 function newSid(){ let s=''; const c='abcdefghijklmnopqrstuvwxyz0123456789'; for(let i=0;i<16;i++) s+=c[Math.random()*36|0]; return s; }
-function newSave(name, lookIdx, cls){ return {name, cls, sid:newSid(), look:lookIdx, badges:{}, exp:0, x:19, y:54, mapV:3, dir:'up', crossed:false, done:false, ts:{}, tries:{}, playT:0}; }
+function newSave(name, lookIdx, cls){ return {name, cls, sid:newSid(), look:lookIdx, badges:{}, exp:0, x:19, y:54, mapV:4, dir:'up', crossed:false, done:false, ts:{}, tries:{}, playT:0}; }
 /* 守護積分：每個主題取「過關那一場」答對×10、答錯×−5，第一次挑戰就過關 +30（每主題最高 80）；
    大魔王：答對×10、答錯×−5、打倒 +100、第一次就打倒再 +50（最高 250）；
    每完成一個隱藏任務 +20（最高 100）。滿分 750。練習模式與隨機事件不計分。 */
@@ -1967,7 +2163,10 @@ function loadSave(){
 
 /* ---------------- NPC ---------------- */
 const NPCS = [];
-function addNPC(o){ o.px=o.x*TS; o.py=o.y*TS; o.dir=o.dir||'down'; o.moving=false; o.wt=1+Math.random()*2; o.step=0; o.anim=0; NPCS.push(o); return o; }
+function addNPC(o){
+  [o.x,o.y] = MV(o.x,o.y);   // 教室搬家：裡面的人跟著搬
+  if(o.wander){ const [a,b] = MV(o.wander[0],o.wander[1]), [c,d] = MV(o.wander[2],o.wander[3]); o.wander = [a,b,c,d]; }
+  o.px=o.x*TS; o.py=o.y*TS; o.dir=o.dir||'down'; o.moving=false; o.wt=1+Math.random()*2; o.step=0; o.anim=0; NPCS.push(o); return o; }
 function questTalk(topic, intro, after){
   return function(npc){
     if(!S.badges[topic]){
@@ -2000,7 +2199,7 @@ addNPC({id:'bully', x:64, y:25, name:'學務主任 陳主任', quest:'bully',
 addNPC({id:'gender', x:24, y:19, name:'輔導主任 蘇主任', quest:'gender',
   look:{skin:'#f6d2b0',hair:'#7a4a2a',shirt:'#f08080',pants:'#555',long:true,item:'heart'},
   talk:questTalk('gender',
-    ['歡迎來到輔導室，我是蘇主任。','「偏見怪」會讓人覺得「男生一定要怎樣、女生一定要怎樣」，還會讓人不懂得尊重別人的身體界線。','我們一起來打敗它吧！'],
+    ['歡迎來到輔導處，我是蘇主任。','「偏見怪」會讓人覺得「男生一定要怎樣、女生一定要怎樣」，還會讓人不懂得尊重別人的身體界線。','我們一起來打敗它吧！'],
     ['每個人都很特別，都值得被尊重。','我的身體我作主，不舒服就說「不」，並告訴信任的大人！'])});
 addNPC({id:'principal', x:33, y:4, name:'呂校長',
   look:{skin:'#f3c9a2',hair:'#4a3a3a',shirt:'#2c3e60',pants:'#2c3e60',glasses:true,hstyle:'bun'},
@@ -2060,7 +2259,7 @@ addNPC({id:'yu', x:61, y:32, name:'小宇', dir:'down',
     say(['（小宇低著頭，眼眶紅紅的……）','……謝謝你過來陪我。'],{name:n.name});
   }});
 // 新地點的角色
-addNPC({id:'librarian', x:74, y:3, name:'圖書館 劉阿姨',
+addNPC({id:'librarian', x:77, y:6, name:'圖書館 劉阿姨',
   look:{skin:'#f6d2b0',hair:'#5a3a2a',shirt:'#6b8e4e',pants:'#444',glasses:true,long:true},
   talk(n){
     if(!S.gift.lib){ say(['歡迎來到圖書館！在這裡要輕聲細語喔。','書架上有很多安全知識的書，面向書架按空白鍵就可以翻翻看。','看完的書記得放回原位，愛惜書本，下一位同學才能看到乾淨的書。','這兩張「提示卡」送給你，答題卡住的時候可以用喔！'],{name:n.name, onEnd:()=>giveItem('hint',2,'lib')}); return; }
@@ -2212,7 +2411,10 @@ addNPC({id:'clean', x:6, y:26, name:'衛生組長 許組長',
         [['在衣服上擦一擦就好','衣服上也有細菌喔！要用肥皂洗手才乾淨。'],['不用洗，手看起來很乾淨','細菌用眼睛看不到，還是要用肥皂洗手喔！']],
         '答對了！勤洗手，病菌不上手！', 'heal', 'clean', '辛苦了！這個「愛心飯糰」給你補充體力！')});
   }});
-addNPC({id:'build', x:28, y:9, name:'總務主任 林主任', dir:'down',
+addNPC({id:'sci', x:45, y:59, name:'自然老師 張老師', dir:'down',
+  look:{skin:'#f3c9a2',hair:'#3a2a22',shirt:'#f4f4f4',pants:'#3a5a8a',glasses:true,item:'clip'},
+  talk(n){ say(['歡迎來到自然專科教室！做實驗很有趣，但一定要注意安全。','進實驗室要戴護目鏡、綁好長頭髮；藥品不能聞、不能嚐，酒精燈要用燈蓋蓋熄。','要不要挑戰「實驗室安全」，找出危險的行為？'], {name:n.name, choices:[{t:'🧪 來挑戰', f:()=>startMini('lab')},{t:'先不用了'}]}); }});
+addNPC({id:'build', x:26, y:9, name:'總務主任 林主任', dir:'down',
   look:{skin:'#e8b98f',hair:'#2a2a2a',shirt:'#6b7f96',pants:'#3a3f55',vest:'#ff8a2a',hat:'cap',hatColor:'#f4c542',item:'hammer'},
   talk(n){
     say(['我是總務主任林主任，學校的教室、桌椅、水電，都是總務處負責建設和維修的。','新的英語教室、音樂教室、電腦教室和美術教室，就是我們剛剛蓋好的喔！壞掉的東西，事務組的陳老師會請廠商來修。','看到桌椅搖晃、燈不亮、水龍頭漏水，要馬上告訴老師或總務處。看到三角錐圍起來的施工區域，千萬不要進去玩！'],
@@ -2239,7 +2441,7 @@ addNPC({id:'info', x:44, y:3, name:'資訊組長 蕭組長', dir:'down',
   }});
 // 美術教室：邱老師
 const ART_TALKS = [
-  ['歡迎來到美術教室，我是美術老師邱老師！','畫架上有白紙和畫筆，面向畫架按對話鍵，就可以畫畫喔。'],
+  ['歡迎來到藝術教室，我是美術老師邱老師！','畫架上有白紙和畫筆，面向畫架按對話鍵，就可以畫畫喔。'],
   ['拿剪刀走路時，先把剪刀合起來，握住刀身、刀尖朝下；拿給別人時，把刀柄朝向對方。','用美工刀一定要有老師在旁邊，不用的時候要把刀片推回去。'],
   ['顏料、膠水用完要蓋好蓋子，也不可以放進嘴巴。','畫完要把水桶和畫筆洗乾淨、桌面擦乾淨，再離開教室。'],
   ['每個人畫的都不一樣，沒有誰畫得比較「醜」。','欣賞同學的作品時，說說你喜歡哪裡，不要取笑別人喔！']];
@@ -2339,7 +2541,7 @@ function drawCar(g,c){
 const FX = {petals:[], flies:[], dust:[], clouds:[], birds:[], motes:[]};
 let windT = 0, windK = 0, rainbowT = 0;
 const indoor = {a:0, b:null};
-for(let i=0;i<16;i++) FX.motes.push({x:71*TS+Math.random()*7*TS, y:3*TS+Math.random()*6*TS, p:Math.random()*7});
+for(let i=0;i<16;i++) FX.motes.push({x:43*TS+Math.random()*7*TS, y:70*TS+Math.random()*6*TS, p:Math.random()*7});
 // 操場跑步的同學（裝飾用，不能對話）
 const RUNNERS = [
   {s:0,   look:{skin:'#f6d2b0',hair:'#222',shirt:'#ff7a59',pants:'#2c3e60'}},
@@ -2381,7 +2583,7 @@ function updateFX(dt){
   }
   windK = windT>0 ? Math.min(1, windT/4, (40-windT)/3) : 0;
   for(const r of RUNNERS) r.s += dt*.028*(scene==='celebrate'?0:1);
-  for(const m of FX.motes){ m.p += dt; m.y -= dt*5; m.x += Math.sin(m.p*.8)*dt*6; if(m.y < 3*TS){ m.y = 9*TS; m.x = 71*TS+Math.random()*7*TS; } }
+  for(const m of FX.motes){ m.p += dt; m.y -= dt*5; m.x += Math.sin(m.p*.8)*dt*6; if(m.y < 70*TS){ m.y = 76*TS; m.x = 43*TS+Math.random()*7*TS; } }
   // 室內／室外光線
   const ib = (S && scene!=='title') ? bldAt(P.x,P.y) : null;
   if(ib) indoor.b = ib;
@@ -2464,21 +2666,19 @@ function onArrive(){
 }
 const ZONES = [
   {n:'🚸 校門口',x1:0,y1:47,x2:MW-1,y2:55},
-  {n:'📚 教室',x1:32,y1:16,x2:43,y2:23},
+  {n:'🎯 活動室',x1:26,y1:16,x2:37,y2:23},
   {n:'🏫 校長室',x1:30,y1:2,x2:37,y2:8},
-  {n:'🤝 輔導室',x1:19,y1:16,x2:30,y2:23},
-  {n:'🧯 防災教育中心',x1:10,y1:16,x2:17,y2:23},
+  {n:'🧯 防災教育中心',x1:86,y1:30,x2:93,y2:37},
   {n:'🧸 幼兒園',x1:1,y1:16,x2:7,y2:23},
   {n:'🏃 操場',x1:40,y1:27,x2:65,y2:36},
-  {n:'📖 圖書館',x1:70,y1:2,x2:78,y2:9},
-  {n:'🏥 健康中心',x1:60,y1:2,x2:67,y2:7},
-  {n:'🚻 性別友善廁所',x1:46,y1:20,x2:53,y2:23},
-  {n:'🚻 性別友善廁所',x1:1,y1:2,x2:8,y2:5},
-  {n:'🔤 英語教室',x1:50,y1:2,x2:57,y2:9},
-  {n:'🎵 音樂教室',x1:10,y1:2,x2:17,y2:7},
+  {n:'🏥 保健室',x1:60,y1:2,x2:67,y2:7},
+  {n:'🚻 ⑤ 性別友善廁所',x1:46,y1:20,x2:53,y2:23},
+  {n:'🚻 ② 性別友善廁所',x1:1,y1:2,x2:8,y2:5},
+  {n:'🚻 ① 性別友善廁所',x1:81,y1:2,x2:88,y2:5},
+  {n:'🚻 ⑥ 廁所',x1:12,y1:20,x2:17,y2:23},
   {n:'💻 電腦教室',x1:40,y1:2,x2:47,y2:6},
-  {n:'🎨 美術教室',x1:81,y1:2,x2:88,y2:9},
-  {n:'🔧 總務處',x1:20,y1:2,x2:27,y2:7},
+  {n:'🗂️ 處室（教務・學務・總務）',x1:20,y1:2,x2:27,y2:7},
+  {n:'🚪 南耘樓玄關',x1:18,y1:16,x2:21,y2:23},
   {n:'☀️ 北面光電球場',x1:66,y1:15,x2:79,y2:29},
   {n:'☀️ 南面光電球場',x1:57,y1:37,x2:64,y2:46},
   {n:'🌳 榕樹區',x1:76,y1:35,x2:92,y2:45},
@@ -2486,6 +2686,22 @@ const ZONES = [
   {n:'🥬 菜圃',x1:2,y1:34,x2:9,y2:37},
   {n:'🐘 大象藝術裝置',x1:22,y1:43,x2:27,y2:46},
   {n:'🏞️ 溪畔步道',x1:94,y1:0,x2:95,y2:46},
+  {n:'🔬 自然專科教室',x1:41,y1:57,x2:48,y2:64},
+  {n:'🎨 藝術教室',x1:49,y1:57,x2:56,y2:64},
+  {n:'🚻 ④ 性別友善廁所',x1:1,y1:61,x2:8,y2:64},
+  {n:'🚻 ③ 性別友善廁所',x1:57,y1:61,x2:64,y2:64},
+  {n:'🏫 安萃樓 2F',x1:0,y1:56,x2:65,y2:67},
+  {n:'🎵 音樂教室',x1:15,y1:71,x2:22,y2:76},
+  {n:'🔤 英語專科教室 A',x1:29,y1:69,x2:36,y2:76},
+  {n:'📖 圖書館',x1:42,y1:69,x2:50,y2:76},
+  {n:'🏫 安萃樓 3F',x1:0,y1:68,x2:51,y2:79},
+  {n:'🤝 輔導處',x1:9,y1:81,x2:20,y2:88},
+  {n:'🚻 ⑨ 廁所',x1:3,y1:85,x2:8,y2:88},
+  {n:'🚻 ⑦⑧ 廁所',x1:41,y1:85,x2:46,y2:88},
+  {n:'🏫 南耘樓 2F',x1:0,y1:80,x2:49,y2:91},
+  {n:'🚻 ⑫ 廁所',x1:53,y1:85,x2:58,y2:88},
+  {n:'🚻 ⑩⑪ 廁所',x1:80,y1:85,x2:85,y2:88},
+  {n:'🏫 南耘樓 3F',x1:50,y1:80,x2:88,y2:91},
 ];
 let curZone = '';
 function checkZone(){
@@ -2584,7 +2800,7 @@ window.addEventListener('keydown', e=>{
   if(scene==='mini'){
     if(!e.ctrlKey && !e.metaKey && !e.altKey && e.key.length===1) e.preventDefault();
     // 打地鼠用數字鍵盤時，789 在上排：換成跟畫面一樣的位置
-    if(e.repeat && MG && ['piano','art','drum','recorder','cloze','match'].includes(MG.kind)) return;   // 按住不放不算多次
+    if(e.repeat && MG && ['piano','art','drum','recorder','cloze','match','lab'].includes(MG.kind)) return;   // 按住不放不算多次
     let key = e.key; if(MG && MG.kind==='whack' && /^Numpad[1-9]$/.test(e.code)) key = '789456123'[+e.code.slice(6)-1];
     mgKey(key, true); return; }   // 擋掉 Firefox 按 ' 或 / 開「快速尋找」
   if(scene!=='play') return;
@@ -2656,6 +2872,9 @@ function facingTarget(){
   if(P.dir==='up' && EXITS.some(([x,y])=>x===ax&&y===ay)) return {exit:key, x:ax, y:ay};
   if(SIGNS[key]) return {text:SIGNS[key], x:ax, y:ay};
   const c = tileAt(ax,ay);
+  if(c==='s'){ const hit = stairAt(ax,ay); if(hit) return {stair:hit, x:ax, y:ay}; }
+  if(c==='|') return {door:DOORS[ax+','+ay] || {s:'教室', t:'（門關著。）'}, x:ax, y:ay};
+  if(c==='1') return {lab:true, x:ax, y:ay};
   if(c==='B') return {book:true, x:ax, y:ay};
   if(c==='G') return {toilet:true, x:ax, y:ay};
   if(c==='U') return {stall:true, x:ax, y:ay};
@@ -2695,6 +2914,9 @@ function interact(){
   else if(t.toilet) toiletSign();
   else if(t.stall) useToilet();
   else if(t.sink) washHands();
+  else if(t.stair) stairDialog(t.stair);
+  else if(t.door) say([t.door.t], {name:'🚪 '+t.door.s});
+  else if(t.lab) say(['實驗桌上放著燒杯、錐形瓶和酒精燈。要挑戰「實驗室安全」嗎？'], {name:'🧪 實驗桌', choices:[{t:'🧪 來挑戰', f:()=>startMini('lab')},{t:'先不用了'}]});
   // 小遊戲入口：一句話＋選項，不要讓孩子先讀好幾頁
   else if(t.piano) say(['鋼琴（彈琴前要先洗手）。要彈彈看嗎？可以跟著發亮的琴鍵彈〈小星星〉喔！'], {name:'🎹 鋼琴', choices:[{t:'🎹 來彈鋼琴', f:()=>startMini('piano')},{t:'先不用了'}]});
   else if(t.drum) say(['鼓（敲鼓要用鼓棒，不可以用手用力拍或站上去玩）。要跟著節奏打打看嗎？'], {name:'🥁 鼓', choices:[{t:'🥁 玩打鼓節奏', f:()=>startMini('drum')},{t:'先不用了'}]});
@@ -2799,7 +3021,7 @@ function togglePanel(){
   for(const k of CT_KEYS){ const q=CT[k], d=S.ct.done[k]; h += `<div class="qrow"><span style="font-size:22px">${d?'✅':'⬜'}</span><b>${q.name}</b><small>📍${q.where}｜${q.desc}（${ctProgress(k)}）</small></div>`; }
   h += `<div class="qrow"><span style="font-size:22px">${S.perfect?'🌟':'⬜'}</span><b>🌟 完美守護者</b><small>${S.perfect ? '你完成了全部任務！' : '五大任務、大魔王、隱藏任務、校園任務全部完成，會有特別的典禮（小遊戲和金徽章不用）'}</small></div>`;
   // 小遊戲：列出在哪裡玩、玩過了沒（不計分）
-  const MG_LIST = [['mg_piano','🎹 彈鋼琴','音樂教室的鋼琴'],['mg_whack','📂 檔案打地鼠','電腦教室的電腦'],['mg_fire','🧯 滅火練習','防災教育中心的滅火器'],['mg_quake','🌏 地震模擬','防災教育中心的器材櫃'],['mg_firesim','🔥 火災模擬','防災教育中心的器材櫃'],['mg_art','🎨 畫畫','美術教室的畫架'],['mg_calm','🌱 心情小花園','輔導室的沙發'],['mg_pot','🏺 投壺','小孔廟']];
+  const MG_LIST = [['mg_piano','🎹 彈鋼琴','安萃樓 3F 音樂教室的鋼琴'],['mg_drum','🥁 打鼓節奏','音樂教室的鼓'],['mg_recorder','🎶 吹直笛','音樂教室的直笛架'],['mg_cloze','🔤 英語填空','安萃樓 3F 英語教室的白板'],['mg_match','🃏 單字配對','英語教室的單字圖卡'],['mg_lab','🧪 實驗室安全','安萃樓 2F 自然專科教室'],['mg_art','🎨 畫畫','安萃樓 2F 藝術教室的畫架'],['mg_whack','📂 檔案打地鼠','1F 電腦教室的電腦'],['mg_fire','🧯 滅火練習','防災教育中心（榕樹區旁）的滅火器'],['mg_quake','🌏 地震模擬','防災教育中心的器材櫃'],['mg_firesim','🔥 火災模擬','防災教育中心的器材櫃'],['mg_calm','🌱 心情小花園','南耘樓 2F 輔導處的沙發'],['mg_pot','🏺 投壺','小孔廟']];
   h += `<h3>🎮 小遊戲（${MG_LIST.filter(g=>S.gift[g[0]]).length}/${MG_LIST.length}，不計分，第一次完成有小禮物）</h3>`;
   for(const [k,n,w] of MG_LIST) h += `<div class="qrow"><span style="font-size:22px">${S.gift[k]?'✅':'⬜'}</span><b>${n}</b><small>📍面向${w}，按${TOUCH?'「對話」鍵':'空白鍵'}</small></div>`;
   const owned = Object.keys(ACC).filter(a=>HQ_KEYS.some(k=>S.hq.done[k] && HQ[k].reward===a) || (a==='gold' && S.perfect));
@@ -2832,17 +3054,23 @@ setMuteBtn();
 const miniCtx = $('#mini').getContext('2d');
 function renderMini(){
   if(!showMini || scene==='title') return;
-  const g = miniCtx;
-  g.drawImage(miniCv,0,0);
-  const f = MS/TS;
-  g.strokeStyle='rgba(255,255,255,.9)'; g.lineWidth=1; g.strokeRect(cam.x*f+.5, cam.y*f+.5, VW*f, VH*f);
+  const g = miniCtx, A = areaOf(P.x,P.y), W = 200, H = 112;   // 只畫現在這一層
+  const sx = A.x0*MS, sy = A.y0*MS, sw = (A.x1-A.x0+1)*MS, sh = (A.y1-A.y0+1)*MS;
+  const k = Math.min(W/sw, H/sh), ox = (W-sw*k)/2, oy = (H-sh*k)/2;
+  const M = (x,y)=>[ox+(x*MS-sx)*k, oy+(y*MS-sy)*k], d = MS*k;
+  g.fillStyle='#1d1824'; g.fillRect(0,0,W,H);
+  g.imageSmoothingEnabled = false; g.drawImage(miniCv, sx, sy, sw, sh, ox, oy, sw*k, sh*k);
+  const [cx,cy] = M(cam.x/TS, cam.y/TS);
+  g.strokeStyle='rgba(255,255,255,.9)'; g.lineWidth=1; g.strokeRect(cx+.5, cy+.5, VW/TS*d, VH/TS*d);
   for(const n of NPCS){
+    if(areaOf(n.x,n.y)!==A) continue;
     let col = null;
     if(n.quest && !S.badges[n.quest]) col='#f6c445';
     if(n.id==='principal' && badgeCount()>=5 && !S.done) col='#f6c445';
-    if(col){ g.fillStyle=OL; g.fillRect(n.x*MS-2,n.y*MS-2,MS+4,MS+4); g.fillStyle=col; g.fillRect(n.x*MS-1,n.y*MS-1,MS+2,MS+2); }
+    if(col){ const [x,y] = M(n.x,n.y); g.fillStyle=OL; g.fillRect(x-2,y-2,d+4,d+4); g.fillStyle=col; g.fillRect(x-1,y-1,d+2,d+2); }
   }
-  if(Math.floor(T*3)%2===0){ g.fillStyle='#fff'; g.fillRect(P.x*MS-2,P.y*MS-2,MS+4,MS+4); g.fillStyle='#e8433c'; g.fillRect(P.x*MS-1,P.y*MS-1,MS+2,MS+2); }
+  if(Math.floor(T*3)%2===0){ const [x,y] = M(P.x,P.y); g.fillStyle='#fff'; g.fillRect(x-2,y-2,d+4,d+4); g.fillStyle='#e8433c'; g.fillRect(x-1,y-1,d+2,d+2); }
+  if(A!==AREAS[0]){ g.font='bold 12px "Microsoft JhengHei",sans-serif'; g.textAlign='left'; g.textBaseline='top'; g.fillStyle='#ffd447'; g.fillText('🏫 '+A.n, 6, 6); }
 }
 
 /* ---------------- HUD ---------------- */
@@ -3081,7 +3309,7 @@ function nextQ(){
     BT.picked = [];
     const pk = document.createElement('div'); pk.className='picked'; pk.id='picked';
     body.appendChild(pk);
-    const box = document.createElement('div'); box.className='bopts'; box.style.marginTop='8px';
+    const box = document.createElement('div'); box.className = q.items.length>4 ? 'bopts small' : 'bopts'; box.style.marginTop='8px';
     shuffle(q.items.slice()).forEach((it,i)=>{
       const b=document.createElement('button'); b.className='obtn'; b.innerHTML=`<span class="k">${i+1}</span>`; b.appendChild(document.createTextNode(it)); b.dataset.v=it;
       b.onclick=()=>pickOrder(b); box.appendChild(b);
@@ -3106,7 +3334,7 @@ function renderPicked(){
   const pk=$('#picked'); if(!pk) return;
   pk.innerHTML = '';
   if(!BT.picked.length){ pk.innerHTML='<span style="color:#b3a07a">← 依序點選下面的選項</span>'; return; }
-  BT.picked.forEach((v,i)=>{ const s=document.createElement('span'); s.className='chip'; s.textContent=`${i+1}. ${v}`; pk.appendChild(s); });
+  BT.picked.forEach((v,i)=>{ const s=document.createElement('span'); s.className='chip'; s.textContent=`${i+1}. ${v.split('：')[0]}`; s.title=v; pk.appendChild(s); });   // 「濕：把手淋濕」只顯示「濕」，避免把選項擠出答題框
 }
 function pickOrder(b){
   if(BT.answered || b.disabled) return;
@@ -3412,8 +3640,8 @@ const ACC = {
   crown:  {name:'👑 交友皇冠', look:{crown:true}},
   gold:   {name:'✨ 完美守護者金披風', look:{cape:'#f6c445'}},
 };
-const TRASH = [[1,1],[38,1],[31,20],[47,33],[64,37],[58,9],[1,43],[30,43]];
-const EXITS = [[33,16],[28,16],[16,16],[74,2],[62,2]];
+const TRASH = [[1,1],[38,1],[33,13],[47,33],[64,37],[58,9],[1,43],[30,43]];
+const EXITS = [[62,2],[36,16],[45,57],[46,69],[14,81]];   // 保健室、活動室（1F）、自然教室（安萃 2F）、圖書館（安萃 3F）、輔導處（南耘 2F）
 const BOTTLE = [91,13];   // 東北角、溪畔步道旁的草地（榕樹區留給大榕樹任務）
 /* ---------------- 校園任務：菜圃、籃球場、大榕樹（不計分，完成送道具） ---------------- */
 const CT = {
@@ -3424,8 +3652,8 @@ const CT = {
 const CT_KEYS = Object.keys(CT);
 const TREE_SPOTS = [
   {k:'root', x:82, y:40, name:'🌿 氣根', t:'從樹枝垂下來的是「氣根」，碰到地面會長成新的樹幹。不要拉扯，也不要拿來盪鞦韆！'},
-  {k:'nest', x:85, y:38, name:'🪺 鳥巢', t:'樹上有鳥媽媽在孵蛋。只能遠遠看，不可以丟石頭，也不可以爬上去摸。'},
-  {k:'fig',  x:86, y:41, name:'🫐 榕果', t:'這是榕樹的果實，小鳥很愛吃。掉在地上踩到會很滑，走路要小心。'},
+  {k:'nest', x:85, y:38, name:'🐣 鳥巢', t:'樹上有鳥媽媽在孵蛋。只能遠遠看，不可以丟石頭，也不可以爬上去摸。'},
+  {k:'fig',  x:86, y:41, name:'🍇 榕果', t:'這是榕樹的果實，小鳥很愛吃。掉在地上踩到會很滑，走路要小心。'},
   {k:'bug',  x:80, y:40, name:'🐛 毛毛蟲', t:'有些毛毛蟲的毛會讓皮膚又紅又癢，只能看、不能摸！不小心碰到，要用清水沖洗，再告訴大人。'},
 ];
 function ctInit(){ S.ct = Object.assign({veg:0, vegW:{}, water:false, ball:0, waited:{}, tree:0, seen:{}, kid:false, done:{}}, S.ct||{}); ctApply(); }
@@ -3656,7 +3884,8 @@ function compassTarget(){
 }
 function drawCompass(g){
   if(compassT<=0 || scene!=='play') return;
-  const t = compassTarget(); if(!t){ compassT=0; return; }
+  const t0 = compassTarget(); if(!t0){ compassT=0; return; }
+  const t = compassPoint(t0);   // 目標在別的樓層：先指向樓梯
   const px=P.px+16, py=P.py+14, dx=t.px+16-px, dy=t.py+16-py, d=Math.hypot(dx,dy);
   if(d<40) return;
   const a=Math.atan2(dy,dx), r=34+Math.sin(T*6)*4, fade=Math.min(1, compassT/2);
@@ -4030,7 +4259,7 @@ function sendHome(t){
   for(const [x,y] of spots){ if(!occupied(x,y,t)){ puff(t.px,t.py); t.x=x; t.y=y; t.px=x*TS; t.py=y*TS; return; } }
 }
 // 在廁所裡（或剛好站在門口）：老師不會跑來搭話、也不會跳出隨機事件
-function inToilet(){ return (P.x>=46 && P.x<=53 && P.y>=20 && P.y<=23) || (P.x>=1 && P.x<=8 && P.y>=2 && P.y<=5); }
+function inToilet(){ const b = bldAt(P.x,P.y); return !!(b && b.k==='shop'); }
 // 站在室內的地板上（教室、圖書館、健康中心……）
 function indoorNow(){ const c = tileAt(P.x,P.y); return c===',' || c==='D'; }
 function updateCare(dt, free){
@@ -4049,6 +4278,56 @@ function rainCheck(dt, free){
   if(!free) return;
   rainOut += dt;
   if(rainOut>12 && !rainWarned){ rainWarned = true; teacherCare('rain'); }
+}
+/* ---------------- 樓層與樓梯 ---------------- */
+const AREAS = [
+  {x0:0, y0:0,  x1:MW-1, y1:55, n:'1F'},
+  {x0:0, y0:56, x1:65, y1:67, n:'安萃樓 2F', b:'安萃', f:2},
+  {x0:0, y0:68, x1:51, y1:79, n:'安萃樓 3F', b:'安萃', f:3},
+  {x0:0, y0:80, x1:49, y1:91, n:'南耘樓 2F', b:'南耘', f:2},
+  {x0:50,y0:80, x1:88, y1:91, n:'南耘樓 3F', b:'南耘', f:3},
+];
+function areaOf(x,y){ return AREAS.find(a=>x>=a.x0&&x<=a.x1&&y>=a.y0&&y<=a.y1) || AREAS[0]; }
+function stairAt(x,y){
+  for(const st of STAIRS) for(const f in st.fl){ const [ax,ay]=st.fl[f]; if((x===ax||x===ax+1) && (y===ay-1||y===ay-2)) return {st, f:+f}; }
+  return null;
+}
+let stairFade = 0;
+function stairDialog(hit){
+  const {st, f:cur} = hit;
+  const floors = Object.keys(st.fl).map(Number).filter(f=>f!==cur);
+  const lines = [];
+  if(!S.stairTip) lines.push('上下樓梯要靠右走、一階一階慢慢走：不奔跑、不推擠、不跳階，也不可以坐在扶手上溜下來喔！');
+  lines.push(`${st.b}樓 ${st.id} 號樓梯（現在在 ${cur} 樓）：要去幾樓？`);
+  say(lines, {name:'🔼 樓梯', choices:[...floors.map(f=>({t:`${f>cur?'⬆️':'⬇️'} ${f} 樓`, f:()=>goFloor(st, f)})), {t:'先不要'}]});
+}
+function goFloor(st, f){
+  const [x,y] = st.fl[f];
+  S.stairTip = true;
+  for(const n of NPCS) if(n.x===x && n.y===y){   // 有人站在樓梯口：請他往旁邊讓一下
+    for(const [dx,dy] of [[1,0],[-1,0],[2,0],[-2,0],[0,1],[1,1],[-1,1]]){ const ax=x+dx, ay=y+dy;
+      if(NPC_WALK.has(tileAt(ax,ay)) && !occupied(ax,ay,n)){ n.x=ax; n.y=ay; n.px=ax*TS; n.py=ay*TS; n.moving=false; break; } }
+  }
+  P.x=x; P.y=y; P.px=x*TS; P.py=y*TS; P.dir='down'; P.moving=false; clearHeld();
+  stairFade = .45; sfx('talk');
+  if(mgAudio()) for(let i=0;i<4;i++) tone(f>1 ? 440+i*90 : 760-i*90, .07, 'triangle', i*.08, .04);
+  checkZone(); save();
+  toast(`🔼 到了${f===1 ? '一樓' : st.b+'樓 '+f+' 樓'}`, true, 1800);
+}
+// 指南針：目標在別的樓層時，先指向最近的樓梯
+function compassPoint(n){
+  const A = areaOf(P.x,P.y), B = areaOf(n.x,n.y);
+  if(A===B) return n;
+  let best = null, bd = 1e9;
+  for(const st of STAIRS){
+    let pt = null;
+    if(A===AREAS[0]){ if(st.b===B.b && st.fl[1]) pt = st.fl[1]; }
+    else if(st.b===A.b && st.fl[A.f]) pt = st.fl[A.f];
+    if(!pt) continue;
+    const d = Math.abs(pt[0]-P.x) + Math.abs(pt[1]-P.y);
+    if(d<bd){ bd = d; best = pt; }
+  }
+  return best ? {px:best[0]*TS, py:(best[1]-1)*TS} : n;
 }
 /* ---------------- 排行榜 ---------------- */
 let boardScope = 'class', boardReq = 0;   // 預設先看本班排行（沒有班級時自動改成全校）
@@ -4268,7 +4547,7 @@ function startGame(data, isNew){
   if(S.hq.friend>=3){ const yu = NPCS.find(n=>n.id==='yu'); if(yu) yu.wander=[42,29,63,34]; }
   evT = 70; careT = 150; stuckT = 0; evBusy = false;
   if(new Date().getDay()===3) setTimeout(()=>toast('📢 今天是星期三，早上全校要到司令台前集合開朝會喔！', true, 4000), 3200);
-  if(S.mapV!==3){ S.mapV=3; S.x=19; S.y=S.crossed?45:54; S.dir='up'; }   // 換成新校園地圖：舊存檔的位置放回校門口
+  if(S.mapV!==4){ S.mapV=4; S.x=19; S.y=S.crossed?45:54; S.dir='up'; if(S.hq && !S.hq.done.exits) S.hq.exits = {}; }   // 換成新校園地圖（有 2F／3F）：舊存檔放回校門口，逃生指示牌重新找
   P.x = Number.isInteger(S.x) ? S.x : 19; P.y = Number.isInteger(S.y) ? S.y : 54;
   if(SOLID.has(tileAt(P.x,P.y)) || tileAt(P.x,P.y)==='='){ P.x=19; P.y=54; }
   // 讀檔時若有 NPC 站在玩家位置，把 NPC 移回原位
@@ -5225,6 +5504,82 @@ function shopAct(id){
   refreshLook(); save(); updateHUD(); showShop();
 }
 
+/* ---- 🔬 自然專科教室：實驗室安全（找出危險的行為） ---- */
+const LAB_CARDS = [
+  {e:'👅🧪', t:'用舌頭嚐嚐看藥品的味道', bad:true, r:'實驗室的藥品都不能嚐！很多藥品有毒或會傷害身體。'},
+  {e:'💨🔥', t:'用嘴巴吹熄酒精燈', bad:true, r:'吹氣可能讓火焰竄進燈裡！要用燈蓋從側面蓋熄。'},
+  {e:'🔥🔥', t:'拿點著的酒精燈去點另一盞', bad:true, r:'酒精可能灑出來起火！要用火柴或點火器一盞一盞點。'},
+  {e:'👃🧪', t:'把鼻子湊到瓶口直接聞', bad:true, r:'刺激性的氣體會傷害鼻子和喉嚨！要用手輕輕搧，聞飄過來的氣味。'},
+  {e:'🏃🏃', t:'在實驗室裡追逐奔跑', bad:true, r:'容易撞倒器材、打翻藥品！在實驗室要慢慢走。'},
+  {e:'🧪📏', t:'把燒杯放在桌子邊邊', bad:true, r:'很容易被碰掉、打破！器材要放在桌子中間。'},
+  {e:'👀🧪', t:'做實驗時沒有戴護目鏡', bad:true, r:'藥品噴濺會傷到眼睛！做實驗一定要戴護目鏡。'},
+  {e:'🍪🥤', t:'在實驗桌上吃零食、喝飲料', bad:true, r:'食物可能沾到藥品！實驗室裡不能飲食。'},
+  {e:'🥽🧪', t:'戴好護目鏡再做實驗', bad:false, r:'護目鏡可以保護眼睛。'},
+  {e:'✋💨', t:'用手輕輕搧，聞飄過來的氣味', bad:false, r:'這就是安全的「搧聞法」。'},
+  {e:'🧯🚿', t:'先找到滅火器和洗眼器的位置', bad:false, r:'知道安全設備在哪裡，發生意外才不會慌張。'},
+  {e:'🙋', t:'不懂的步驟先問老師', bad:false, r:'不確定的時候先問老師，最安全。'},
+];
+const LAB_BAD = LAB_CARDS.filter(c=>c.bad).length;
+const LC_W = 176, LC_H = 118, LC_G = 12, LC_X0 = (800-4*176-3*12)/2, LC_Y0 = 66;
+function labPick(m, i){
+  if(m.phase!=='play') return;
+  const c = m.cards[i]; if(!c || c.st) return;
+  if(c.bad){
+    c.st = 'bad'; m.found++; sfx('ok'); m.msg = '⚠️ 找到危險行為！' + c.r; m.msgOk = false;
+    if(m.found >= LAB_BAD){
+      m.phase = 'over'; m.reward = '';
+      if(mgReward('mg_lab', 'shield')) m.reward = '🎁 第一次找出全部危險行為：經驗 +10、🔰 守護盾！';
+      sfx('win'); save();
+    }
+  } else { c.st = 'ok'; m.mist++; sfx('bad'); m.msg = '👍 這是正確的做法，不是危險行為喔！' + c.r; m.msgOk = true; }
+}
+MINI.lab = {
+  init(m){ m.phase = 'ready'; m.cards = shuffle(LAB_CARDS.map(c=>Object.assign({st:''}, c))); m.found = 0; m.mist = 0; m.cur = 0; m.msg = ''; m.msgOk = true; m.reward = ''; },
+  btn(m, id){ if(id==='start'){ m.phase = 'play'; m.msg = `找一找：哪些是實驗室裡危險的行為？一共有 ${LAB_BAD} 個！`; } else if(/^k\d+$/.test(id)) labPick(m, +id.slice(1)); },
+  key(m, k, down){
+    if(!down) return;
+    if(m.phase==='over'){ if(k===' '||k==='Enter') mgAgain(); return; }
+    if(m.phase==='ready'){ if(k===' '||k==='Enter') this.btn(m, 'start'); return; }
+    const d = KEYMAP[k];
+    if(d==='left') m.cur = (m.cur+11)%12; else if(d==='right') m.cur = (m.cur+1)%12;
+    else if(d==='up') m.cur = (m.cur+8)%12; else if(d==='down') m.cur = (m.cur+4)%12;
+    else if(k===' '||k==='Enter') labPick(m, m.cur);
+  },
+  pointer(){},
+  update(m, dt){ m.t += dt; },
+  draw(m){
+    m.btns = [];
+    const g = mgx.createLinearGradient(0,0,0,576); g.addColorStop(0,'#e3f4e8'); g.addColorStop(1,'#b9e0c4'); mgx.fillStyle = g; mgx.fillRect(0,0,800,576);
+    mgHeader('🔬 自然專科教室・實驗室安全', TOUCH ? '點出危險的行為｜✖ 離開' : '點卡片，或用方向鍵選、空白鍵確定｜Esc 離開');
+    if(m.phase==='ready'){
+      mgPanel(150, 96, 500, 390);
+      mgT('🔬 實驗室安全', 400, 132, 26, MG_INK);
+      let y = 176;
+      for(const l of [`桌上有 12 張卡片，其中 ${LAB_BAD} 張是實驗室裡「危險的行為」。`, '把危險的行為全部找出來！點到正確的做法不扣分，但會記一次「誤判」。', '每找到一個，都會告訴你正確的做法是什麼。', `全部找到就過關${S.gift.mg_lab ? '' : '，第一次過關有獎勵'}。`])
+        y = mgWrap(l, 400, y, 440, 17, '#4a3a5a', 26, 'center') + 34;
+      mgButton(m, 'start', '▶ 開始' + (TOUCH ? '' : '（空白鍵）'), 300, 410, 200, 52, true);
+      return;
+    }
+    m.cards.forEach((c,i)=>{
+      const x = LC_X0 + (i%4)*(LC_W+LC_G), y = LC_Y0 + Math.floor(i/4)*(LC_H+LC_G);
+      mgx.strokeStyle = MG_INK; mgx.lineWidth = 3;
+      rr(mgx, x, y, LC_W, LC_H, 12, c.st==='bad' ? '#fde3e3' : c.st==='ok' ? '#e3f7e7' : '#fffdf6');
+      mgx.font = '34px "Segoe UI Emoji","Apple Color Emoji",sans-serif'; mgx.textAlign = 'center'; mgx.textBaseline = 'middle'; mgx.fillStyle = MG_INK; mgx.fillText(c.e, x+LC_W/2, y+34);
+      mgWrap(c.t, x+LC_W/2, y+72, LC_W-20, 15, '#3a2f48', 21, 'center');
+      if(c.st){ const bad = c.st==='bad'; mgx.strokeStyle = MG_INK; mgx.lineWidth = 2; circ(mgx, x+LC_W-18, y+18, 13, bad ? '#e25555' : '#3cb371'); mgT(bad ? '✕' : '✓', x+LC_W-18, y+19, 16, '#fff'); }
+      if(!TOUCH && m.phase==='play' && m.cur===i){ mgx.strokeStyle = '#ff8a00'; mgx.lineWidth = 5; mgx.beginPath(); mgx.roundRect(x-4, y-4, LC_W+8, LC_H+8, 14); mgx.stroke(); }
+      m.btns.push({id:'k'+i, x, y, w:LC_W, h:LC_H});
+    });
+    mgPanel(30, 466, 740, 74, m.msgOk ? '#fffdf6' : '#fff1f1');
+    mgWrap(m.msg, 400, 490, 700, 16, m.msgOk ? '#2a5a3a' : '#a02a2a', 22, 'center');
+    mgT(`找到 ${m.found} / ${LAB_BAD} 個危險行為　　誤判 ${m.mist} 次`, 400, 556, 15, '#2a4a3a', 'center', false);
+    if(m.phase==='over'){
+      const stars = m.mist===0 ? '⭐⭐⭐' : m.mist<=2 ? '⭐⭐' : '⭐';
+      mgResult(m, `🎉 實驗室安全小專家！${stars}`, [`找出全部 ${LAB_BAD} 個危險行為，誤判 ${m.mist} 次`, '做實驗前：戴護目鏡、綁好長頭髮、聽清楚老師的說明；做完要收拾乾淨、把手洗乾淨。'], m.reward);
+    }
+  }
+};
+
 /* ---- 🎹 鋼琴 ---- */
 const PIANO_W = ['Do','Re','Mi','Fa','Sol','La','Si','高Do','高Re','高Mi','高Fa','高Sol'];
 const PIANO_F = [261.63,293.66,329.63,349.23,392,440,493.88,523.25,587.33,659.25,698.46,783.99];
@@ -5965,13 +6320,13 @@ function update(dt){
   P.target = t;
   const hint = $('#hint');
   const key = TOUCH ? '「對話」鍵' : '空白鍵';
-  const txt = t ? (t.npc ? `💬 ${key}：和「${t.npc.name}」說話` : t.stall ? `🚽 ${key}：上廁所` : t.sink ? `🚰 ${key}：洗手` : t.piano ? `🎹 ${key}：彈鋼琴` : t.drum ? `🥁 ${key}：打鼓節奏` : t.recorder ? `🎶 ${key}：吹直笛` : t.cloze ? `🔤 ${key}：英語填空` : t.match ? `🃏 ${key}：單字配對` : t.pc ? `📂 ${key}：檔案打地鼠` : t.sofa ? `🌱 ${key}：心情小花園` : t.fire ? `🧯 ${key}：滅火練習` : t.easel ? `🎨 ${key}：畫畫` : t.pot ? `🏺 ${key}：投壺` : t.drill ? `🚨 ${key}：防災演練` :`📋 ${key}：查看`) : (TOUCH ? '左下角搖桿走路｜右上角 📋 任務、🎒 道具' : '方向鍵移動｜Q 任務｜B 道具｜C 商店｜M 地圖｜R 排行榜');
+  const txt = t ? (t.npc ? `💬 ${key}：和「${t.npc.name}」說話` : t.stall ? `🚽 ${key}：上廁所` : t.sink ? `🚰 ${key}：洗手` : t.stair ? `🔼 ${key}：上下樓梯` : t.door ? `🚪 ${key}：看門牌` : t.lab ? `🧪 ${key}：實驗室安全` : t.piano ? `🎹 ${key}：彈鋼琴` : t.drum ? `🥁 ${key}：打鼓節奏` : t.recorder ? `🎶 ${key}：吹直笛` : t.cloze ? `🔤 ${key}：英語填空` : t.match ? `🃏 ${key}：單字配對` : t.pc ? `📂 ${key}：檔案打地鼠` : t.sofa ? `🌱 ${key}：心情小花園` : t.fire ? `🧯 ${key}：滅火練習` : t.easel ? `🎨 ${key}：畫畫` : t.pot ? `🏺 ${key}：投壺` : t.drill ? `🚨 ${key}：防災演練` :`📋 ${key}：查看`) : (TOUCH ? '左下角搖桿走路｜右上角 📋 任務、🎒 道具' : '方向鍵移動｜Q 任務｜B 道具｜C 商店｜M 地圖｜R 排行榜');
   if(hint.textContent!==txt) hint.textContent = txt;
   // 觸控的「對話」鍵：依面前的東西換字；有東西可以互動時輕輕跳動，沒有時變淡
   if(TOUCH){
     const ab = $('#abtn'); let lab, st = '';
     if(DLG) lab = choicesShowing() ? '👆\n點選項' : '▶\n下一句';
-    else if(t){ st = 'go'; lab = t.npc ? '💬\n說話' : t.stall ? '🚽\n上廁所' : t.sink ? '🚰\n洗手' : t.piano ? '🎹\n彈琴' : t.drum ? '🥁\n打鼓' : t.recorder ? '🎶\n直笛' : t.cloze ? '🔤\n填空' : t.match ? '🃏\n配對' : t.pc ? '📂\n打地鼠' : t.sofa ? '🌱\n放鬆' : t.fire ? '🧯\n滅火' : t.easel ? '🎨\n畫畫' : t.pot ? '🏺\n投壺' : t.drill ? '🚨\n演練' : t.book ? '📖\n看書' : '📋\n查看'; }
+    else if(t){ st = 'go'; lab = t.npc ? '💬\n說話' : t.stall ? '🚽\n上廁所' : t.sink ? '🚰\n洗手' : t.stair ? '🔼\n樓梯' : t.door ? '🚪\n門牌' : t.lab ? '🧪\n實驗' : t.piano ? '🎹\n彈琴' : t.drum ? '🥁\n打鼓' : t.recorder ? '🎶\n直笛' : t.cloze ? '🔤\n填空' : t.match ? '🃏\n配對' : t.pc ? '📂\n打地鼠' : t.sofa ? '🌱\n放鬆' : t.fire ? '🧯\n滅火' : t.easel ? '🎨\n畫畫' : t.pot ? '🏺\n投壺' : t.drill ? '🚨\n演練' : t.book ? '📖\n看書' : '📋\n查看'; }
     else { lab = '對話'; st = 'idle'; }
     if(ab.textContent!==lab) ab.textContent = lab;
     if(ab.dataset.st!==st){ ab.dataset.st = st; ab.classList.toggle('go', st==='go'); ab.classList.toggle('idle', st==='idle'); }
@@ -6000,9 +6355,10 @@ function render(){
   if(scene==='title'){
     cam.x = Math.round((Math.sin(T*0.07)+1)/2*(MW*TS-VW));
     cam.y = Math.round(clamp(22*TS + Math.sin(T*0.05)*420 - VH/2, 0, MH*TS-VH));
-  } else {
-    cam.x = Math.round(clamp(P.px+16-VW/2, 0, MW*TS-VW));
-    cam.y = Math.round(clamp(P.py+16-VH/2, 0, MH*TS-VH));
+  } else {   // 鏡頭只在現在這一層的範圍裡移動
+    const A = areaOf(P.x,P.y), ax=A.x0*TS, ay=A.y0*TS, aw=(A.x1-A.x0+1)*TS, ah=(A.y1-A.y0+1)*TS;
+    cam.x = Math.round(aw<=VW ? ax+(aw-VW)/2 : clamp(P.px+16-VW/2, ax, ax+aw-VW));
+    cam.y = Math.round(ah<=VH ? ay+(ah-VH)/2 : clamp(P.py+16-VH/2, ay, ay+ah-VH));
   }
   fadeHud();
   ctx.imageSmoothingEnabled = false;
@@ -6043,7 +6399,7 @@ function render(){
   }
   drawNestTop(ctx, T);
   // 圖書館裡飄浮的金色微塵
-  if(cam.x+VW > 70*TS && cam.x < 79*TS && cam.y < 10*TS){
+  if(cam.x+VW > 42*TS && cam.x < 51*TS && cam.y < 77*TS && cam.y+VH > 69*TS){
     for(const m of FX.motes){ ctx.globalAlpha = .35+.35*Math.sin(m.p*2); ctx.fillStyle='#fff1b8'; ctx.beginPath(); ctx.arc(m.x, m.y, 1.4, 0, 7); ctx.fill(); }
     ctx.globalAlpha=1;
   }
@@ -6089,11 +6445,12 @@ function render(){
       ctx.beginPath(); ctx.moveTo(ax-7,ay-6); ctx.lineTo(ax+7,ay-6); ctx.lineTo(ax,ay+3); ctx.closePath(); ctx.fill(); ctx.stroke();
     }
   }
-  // 雲影、花瓣
-  for(const c of FX.clouds){ const gr=ctx.createRadialGradient(c.x,c.y,0,c.x,c.y,c.r); gr.addColorStop(0,'rgba(30,30,60,.10)'); gr.addColorStop(1,'rgba(30,30,60,0)'); ctx.fillStyle=gr; ctx.fillRect(c.x-c.r,c.y-c.r,c.r*2,c.r*2); }
-  for(const p of FX.petals){ ctx.fillStyle=p.c; ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.s); ctx.beginPath(); ctx.ellipse(0,0,3,1.8,0,0,7); ctx.fill(); ctx.restore(); }
+  const AR = (S && scene!=='title') ? areaOf(P.x,P.y) : AREAS[0], upNow = AR!==AREAS[0];
+  // 雲影、花瓣（在樓上看不到）
+  if(!upNow) for(const c of FX.clouds){ const gr=ctx.createRadialGradient(c.x,c.y,0,c.x,c.y,c.r); gr.addColorStop(0,'rgba(30,30,60,.10)'); gr.addColorStop(1,'rgba(30,30,60,0)'); ctx.fillStyle=gr; ctx.fillRect(c.x-c.r,c.y-c.r,c.r*2,c.r*2); }
+  if(!upNow) for(const p of FX.petals){ ctx.fillStyle=p.c; ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.s); ctx.beginPath(); ctx.ellipse(0,0,3,1.8,0,0,7); ctx.fill(); ctx.restore(); }
   // 飛鳥與地面影子
-  for(const b of FX.birds){
+  if(!upNow) for(const b of FX.birds){
     ctx.fillStyle='rgba(30,20,50,.18)'; ctx.beginPath(); ctx.ellipse(b.x+50, b.y+90, 4, 1.6, 0, 0, 7); ctx.fill();
     const f = Math.sin(b.p)*4;
     ctx.strokeStyle='#3a3248'; ctx.lineWidth=1.8; ctx.lineCap='round';
@@ -6108,12 +6465,22 @@ function render(){
     gr.addColorStop(0,`rgba(${b.glow},${.22*indoor.a})`); gr.addColorStop(1,`rgba(${b.glow},0)`);
     ctx.fillStyle=gr; ctx.fillRect(x, y, w, h); ctx.restore();
   }
+  if(upNow){   // 樓上：這一層以外的地方塗暗，並寫上樓層名稱
+    const ax=AR.x0*TS, ay=AR.y0*TS, aw=(AR.x1-AR.x0+1)*TS, ah=(AR.y1-AR.y0+1)*TS;
+    ctx.fillStyle='#1d1824';
+    ctx.fillRect(cam.x-10, cam.y-10, VW+20, Math.max(0, ay-cam.y+10));
+    ctx.fillRect(cam.x-10, ay+ah, VW+20, Math.max(0, cam.y+VH-ay-ah+10));
+    ctx.fillRect(cam.x-10, ay, Math.max(0, ax-cam.x+10), ah);
+    ctx.fillRect(ax+aw, ay, Math.max(0, cam.x+VW-ax-aw+10), ah);
+    ctx.font='bold 20px "Microsoft JhengHei",sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillStyle='rgba(255,212,71,.9)';
+  }
   ctx.restore();
-  drawWind();
+  if(!upNow) drawWind();
   drawDaylight();
-  drawRain();
+  if(!upNow) drawRain();
   drawCelebrate();
   ctx.drawImage(vignette,0,0);
+  if(stairFade>0){ ctx.fillStyle=`rgba(15,12,28,${Math.min(1, stairFade*2.2)})`; ctx.fillRect(0,0,VW,VH); stairFade -= 1/60; }
   renderMini();
 }
 function loop(now){
