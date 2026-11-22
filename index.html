@@ -670,11 +670,11 @@ function relayout(){
   stairs(18,2,9,'安萃','③',{1:[18,10],2:[17,65],3:[7,77]});
   stairs(28,2,9,'安萃','②',{1:[28,10],2:[28,65]});
   facade(38,2,39,8,38,'書庫','【愛的書庫 214】整理書籍中，暫時不開放。想看書可以到 3 樓的圖書館喔！','book');
-  facade(48,2,49,9,48,'消防','【消防設備室】放著消防栓和滅火器，只有大人可以進去。','fire');
-  stairs(50,2,9,'安萃','①',{1:[50,10],2:[39,65],3:[40,77]});
-  map[4][54]='T'; map[7][57]='T';
-  facade(70,2,74,9,72,'器材室','【體育器材室 211】體育課的球和器材放在這裡，借用要登記、用完要歸還。','store');
-  facade(75,2,78,9,76,'掃具室','【掃具室】掃把、拖把放在這裡，打掃完要排整齊。','store');
+  moveBlock(60,2,67,7,-12,0); map[4][48]='#'; map[7][49]='D';   // 保健室搬到電腦教室右邊（門改到下面）
+  stairs(56,2,9,'安萃','①',{1:[56,10],2:[39,65],3:[40,77]});
+  facade(58,2,61,9,59,'掃具室','【掃具室】掃把、拖把放在這裡，打掃完要排整齊。','store');
+  facade(62,2,68,9,65,'器材室','【體育器材室 211】體育課的球和器材放在這裡，借用要登記、用完要歸還。','store');
+  map[4][71]='T'; map[7][75]='T'; map[4][79]='T';
   toiletRoom(81,2,88,'①'); map[6][84]='G';
   map[5][20]='#'; map[7][21]='D';   // 處室：門改到下面（左邊是 ③ 樓梯）
   map[3][40]='#'; map[6][41]='D';   // 電腦教室：門改到下面（左邊是愛的書庫）
@@ -688,7 +688,12 @@ function relayout(){
   facade(40,16,41,23,40,'一丙','一年丙班（113）上課中，經過時請放輕腳步。');
   facade(42,16,43,23,42,'一乙','一年乙班（112）上課中，經過時請放輕腳步。');
   facade(44,16,45,23,44,'一甲','一年甲班（111）是林老師的班級。上課中，經過時請放輕腳步。');
-  map[19][50]='G'; map[22][46]='#'; map[23][47]='D';   // ⑤ 廁所：門改到下面（左邊是一甲）
+  map[19][50]='G';
+  // ---- 椰林大道最上面的圓環：榕樹、紅磚花台、「天下為公」石碑 ----
+  R('_',17,26,22,31); R('+',18,27,21,30); R('n',19,28,20,29); map[30][18]='!';
+  // ---- 安定三寶田（菜圃旁）：胡麻田＋曬胡麻竹架、蘆筍田、無患子樹 ----
+  R('.',1,38,16,46); R('(',3,39,7,40); map[39][8]='{'; map[40][8]='{'; R(')',3,43,7,44); map[40][13]='^';
+  map[45][1]='T'; map[39][1]='T'; map[44][14]='T'; map[22][46]='#'; map[23][47]='D';   // ⑤ 廁所：門改到下面（左邊是一甲）
   stairs(54,16,23,'南耘','④',{1:[54,24],2:[47,89],3:[86,89]});
   // ---- 安萃樓 2F ----
   toiletRoom(1,61,8,'④');
@@ -829,7 +834,8 @@ function relayout(){
 /* 告示牌內容（座標 'x,y'：文字） */
 const SIGNS = {
   '22,46':'【校園公告】上下學請走斑馬線，並遵守導護志工的指揮。',
-  '22,26':'【校園地圖】安萃樓 1F：廁所、特教班、處室、校長室、電腦教室、保健室、器材室；2F：三、四年級、自然專科教室、藝術教室；3F：音樂教室、英語教室、圖書館｜南耘樓 1F：一年級、五甲、活動室；2F：輔導處、二年級；3F：五、六年級｜榕樹區旁：防災教育中心｜樓梯：安萃樓 ①②③、南耘樓 ④⑤⑥（走到樓梯前按空白鍵）',
+  '23,26':'【校園地圖】安萃樓 1F：廁所、特教班、處室、校長室、電腦教室、保健室、器材室；2F：三、四年級、自然專科教室、藝術教室；3F：音樂教室、英語教室、圖書館｜南耘樓 1F：一年級、五甲、活動室；2F：輔導處、二年級；3F：五、六年級｜榕樹區旁：防災教育中心｜樓梯：安萃樓 ①②③、南耘樓 ④⑤⑥（走到樓梯前按空白鍵）',
+  '9,38':'【安定三寶】胡麻（芝麻）、蘆筍、無患子是臺南安定的三樣寶貝！臺南是全台最大的胡麻產地，安定是主要產區之一；安定也是綠蘆筍的重要產地；無患子的果皮含有皂素，可以搓出泡泡，我們學校也種了無患子。',
   '7,26':'【防災小叮嚀】地震：趴下、掩護、穩住。火災：小火快逃、濃煙關門。報案請撥 119。',
   '31,15':'【生活常規】走廊不奔跑，上下樓梯靠右走，見到師長要問好。',
   '39,27':'【友善校園】反霸凌三步驟：不旁觀、要求助、多關心。',
@@ -850,6 +856,10 @@ const EXTRA_TALK = {
   E:'（大象溜滑梯：這是校園裡的藝術裝置，只能欣賞、拍照，不能爬上去或溜滑梯喔！）',
   q:'（積木：大家一起玩要輪流、分享，玩完要收回籃子裡喔！）',
   j:'（搖搖馬：一次只能坐一個人，要坐穩、抓好把手，旁邊的人不要推！）',
+  '+':'（紅磚花台：圍著榕樹種了一圈綠籬和小花。不要踩進花台，也不要爬上去喔！）',
+  '!':'【石碑】上面刻著「天下為公」，出自《禮記・禮運大同篇》，意思是天下是大家共有的。愛護公物、凡事為大家著想，就是「天下為公」的精神。',
+  '(':'（胡麻田：胡麻開著白色、淡紫色的小花，花謝後會結出一個個果莢，裡面就是芝麻。）',
+  ')':'（蘆筍田：沙地裡冒出一根根綠綠的蘆筍尖，長到剛好的長度就要趕快採。）',
   r:'（假山：大石頭一顆一顆疊得高高的，石頭又滑又不穩，不可以爬上去玩喔！）',
   v:'（菜圃：同學們種的青菜。吃多少拿多少，不浪費食物！）',
   h:'【防災器材櫃】裡面有急救箱、手電筒、哨子和防災頭套。',
@@ -876,9 +886,9 @@ const EXTRA_TALK = {
   '3':'【洗眼器】藥品不小心噴到眼睛時，馬上到洗眼器用清水沖洗至少 15 分鐘，並告訴老師！'
 };
 
-const SOLID = new Set(['0','4','6','7','8','9','%','s','|','1','2','3','I','a','d','y','w','u','x','#','T','W','v','m','n','r','i','q','j','E','f','k','b','c','e','h','p','S','P','L','B','Y','C','U','V','G','O','N','J','X','R','K','M','A','H','Z']);
+const SOLID = new Set(['+','!','(',')','{','^','0','4','6','7','8','9','%','s','|','1','2','3','I','a','d','y','w','u','x','#','T','W','v','m','n','r','i','q','j','E','f','k','b','c','e','h','p','S','P','L','B','Y','C','U','V','G','O','N','J','X','R','K','M','A','H','Z']);
 const NPC_WALK = new Set(['.','_','t',',','F','o']);
-const BG = {'0':',','4':'#','5':',','6':',','7':',','8':',','9':',',s:',','|':',','1':',','2':',','3':',',I:',',a:',',d:',',T:'.',F:'.',f:'.',S:'.',P:'.',L:'_',k:',',c:',',e:',',h:',',p:',',b:'#',Q:'#',D:',',g:'_',B:',',Y:',',C:',',U:',',V:',',G:'.',O:',',m:'.',n:'.',r:'.',i:'_',x:'.',l:'.',y:'.',w:'.',u:'.',q:',',j:',',E:'.',N:',',J:',',X:',',R:'.',K:'.',M:',',A:',',H:',',Z:','};
+const BG = {'+':'.','!':'.','{':'.','^':'.','0':',','4':'#','5':',','6':',','7':',','8':',','9':',',s:',','|':',','1':',','2':',','3':',',I:',',a:',',d:',',T:'.',F:'.',f:'.',S:'.',P:'.',L:'_',k:',',c:',',e:',',h:',',p:',',b:'#',Q:'#',D:',',g:'_',B:',',Y:',',C:',',U:',',V:',',G:'.',O:',',m:'.',n:'.',r:'.',i:'_',x:'.',l:'.',y:'.',w:'.',u:'.',q:',',j:',',E:'.',N:',',J:',',X:',',R:'.',K:'.',M:',',A:',',H:',',Z:','};
 const BOOK_TIPS = [
   '📕《小心！陌生人》：不跟陌生人走、不吃陌生人給的東西、不告訴陌生人個人資料。',
   '📗《地震來了怎麼辦》：趴下、掩護、穩住！主震結束後，聽到「1 長 4 短」的哨音再疏散。',
@@ -939,7 +949,7 @@ const miniCv = document.createElement('canvas'); miniCv.width = MW*MS; miniCv.he
   plaque(g,'輔導處', 17*TS, 88*TS+20);
   plaque(g,'防災教育中心', 86.5*TS, 37*TS+20);
   plaque(g,'圖書館', 44*TS, 76*TS+20);
-  plaque(g,'保健室', 64*TS, 2*TS+20);
+  plaque(g,'保健室', 52*TS, 2*TS+20);
   plaque(g,'⑤ 性別友善廁所', 50*TS, 20*TS+20);
   plaque(g,'② 性別友善廁所', 5*TS, 2*TS+20);
   plaque(g,'① 性別友善廁所', 84.5*TS, 2*TS+20);
@@ -972,11 +982,11 @@ const miniCv = document.createElement('canvas'); miniCv.width = MW*MS; miniCv.he
   plaque(g,'安萃樓', 59*TS, 11*TS+16, true);   // 牌子放在安萃樓下面的走廊
   plaque(g,'南耘樓', 20*TS, 15*TS+14, true);
   // 健康中心紅十字
-  g.lineWidth=1.5; g.strokeStyle=OL; rr(g, 66*TS+6, 2*TS+12, 18, 18, 3, '#fff'); g.fillStyle='#d62d2d'; g.fillRect(66*TS+13, 2*TS+15, 4, 12); g.fillRect(66*TS+9, 2*TS+19, 12, 4);
+  g.lineWidth=1.5; g.strokeStyle=OL; rr(g, 54*TS+6, 2*TS+12, 18, 18, 3, '#fff'); g.fillStyle='#d62d2d'; g.fillRect(54*TS+13, 2*TS+15, 4, 12); g.fillRect(54*TS+9, 2*TS+19, 12, 4);
   plaque(g, SCHOOL_NAME, 14.5*TS, 47*TS+16, true);
   // 小地圖
   const m = miniCv.getContext('2d');
-  const MC = {'0':'#c8553d','5':'#c9ced3','7':'#55555f','%':'#1d1824','s':'#c9ced3','y':'#9aa3ad','x':'#c8553d','l':'#e8e2d4','r':'#8a7a68','i':'#d8362e','o':'#5f9e6e','v':'#8a5a34','m':'#3d8a43','n':'#2f7a3a','.':'#86c96e','_':'#e6d6b0','g':'#e6d6b0','=':'#4f525a','z':'#d8d8d8','t':'#c9573f','W':'#3f97d6','T':'#3d8a43','F':'#f29ab5','f':'#f4f4f4','S':'#a8733e','P':'#bbb','L':'#666'};
+  const MC = {'+':'#3d8a43','!':'#9a978f','(':'#8a5a34',')':'#c9a868','{':'#c9a24a','^':'#6aa84f','0':'#c8553d','5':'#c9ced3','7':'#55555f','%':'#1d1824','s':'#c9ced3','y':'#9aa3ad','x':'#c8553d','l':'#e8e2d4','r':'#8a7a68','i':'#d8362e','o':'#5f9e6e','v':'#8a5a34','m':'#3d8a43','n':'#2f7a3a','.':'#86c96e','_':'#e6d6b0','g':'#e6d6b0','=':'#4f525a','z':'#d8d8d8','t':'#c9573f','W':'#3f97d6','T':'#3d8a43','F':'#f29ab5','f':'#f4f4f4','S':'#a8733e','P':'#bbb','L':'#666'};
   for(let y=0;y<MH;y++) for(let x=0;x<MW;x++){
     const c = map[y][x], b = bldAt(x,y);
     m.fillStyle = b ? (isWall(c) ? b.roof : lighten(b.roof,.72)) : (y>=48 && c==='_' ? '#c9c6bf' : (MC[c]||'#86c96e'));
@@ -1006,6 +1016,16 @@ function drawGrass(g,X,Y,tx,ty){
 function drawGround(g,tx,ty){
   const X=tx*TS, Y=ty*TS, c=map[ty][tx];
   if(c==='%'){ g.fillStyle='#1d1824'; g.fillRect(X,Y,TS,TS); return; }   // 樓層外面（看不到的地方）
+  if(c==='('){   // 胡麻田：褐色土壤＋一叢叢胡麻（開小花、結果莢）
+    g.fillStyle='#8a5a34'; g.fillRect(X,Y,TS,TS); g.fillStyle='#6f4527'; g.fillRect(X,Y+TS-3,TS,3);
+    for(let j=0;j<3;j++){ const px = X+6+j*10; g.strokeStyle='#3f8a3f'; g.lineWidth=2; g.beginPath(); g.moveTo(px,Y+28); g.lineTo(px,Y+4); g.stroke();
+      g.fillStyle='#4fae55'; g.beginPath(); g.ellipse(px-3,Y+18,3.5,1.8,-.5,0,7); g.ellipse(px+3,Y+12,3.5,1.8,.5,0,7); g.fill();
+      g.fillStyle=(j+tx)%2?'#fff':'#e6c8f0'; g.beginPath(); g.arc(px,Y+5,2.4,0,7); g.fill(); g.fillStyle='#7a9a3a'; g.fillRect(px-1.5,Y+8,3,5); }
+    return; }
+  if(c===')'){   // 蘆筍田：沙地＋冒出來的蘆筍尖
+    g.fillStyle='#d9c088'; g.fillRect(X,Y,TS,TS); g.fillStyle='rgba(120,90,40,.25)'; for(let i=0;i<5;i++) g.fillRect(X+hash(tx,ty,i)*28, Y+hash(ty,tx,i)*28, 2, 2);
+    for(let j=0;j<3;j++){ const px = X+7+j*9, h = 6+((tx*3+ty*7+j*5)%9); g.fillStyle='#4fae55'; g.fillRect(px-1.5, Y+24-h, 3, h); g.fillStyle='#2e8b57'; g.beginPath(); g.moveTo(px-2.5,Y+26-h); g.lineTo(px,Y+21-h); g.lineTo(px+2.5,Y+26-h); g.closePath(); g.fill(); }
+    return; }
   if(c==='5'){   // 地震體驗平台：金屬地板＋黃黑邊條
     g.fillStyle='#b8bfc6'; g.fillRect(X,Y,TS,TS); g.fillStyle='#a2aab2'; for(let i=0;i<4;i++) g.fillRect(X+i*8+2, Y+2, 4, TS-4);
     const edge = (dx,dy)=>tileAt(tx+dx,ty+dy)!=='5';
@@ -1143,6 +1163,15 @@ function drawInteriors(g){
   g.strokeStyle='rgba(138,82,20,.45)'; g.lineWidth=1; for(let i=0;i<5;i++){ g.beginPath(); g.moveTo(12*TS+12, 4.5*TS+14+i*8); g.lineTo(16*TS-12, 4.5*TS+14+i*8); g.stroke(); }
   g.fillStyle='#8a5214'; for(const [nx,ny] of [[12.8,5.7],[13.6,5.4],[14.5,5.95],[15.3,5.55]]){ g.beginPath(); g.ellipse(nx*TS, ny*TS, 4.5, 3.2, -.4, 0, 7); g.fill(); g.fillRect(nx*TS+3.3, ny*TS-16, 1.6, 16); }
   g.restore();
+  // 椰林大道圓環：紅磚圓形花台＋綠籬＋橘色小花
+  { const cx = 20*TS, cy = 29*TS, R0 = 2*TS-3;
+    g.strokeStyle=OL; g.lineWidth=2; ell(g, cx, cy+4, R0+4, R0*.82+4, 'rgba(30,20,40,.18)', false);
+    ell(g, cx, cy, R0, R0*.82, '#c8553d'); g.strokeStyle='rgba(255,255,255,.55)'; g.lineWidth=2; g.beginPath(); g.ellipse(cx, cy, R0-4, R0*.82-4, 0, 0, 7); g.stroke();
+    g.strokeStyle=OL; g.lineWidth=1.5; ell(g, cx, cy, R0-7, R0*.82-7, '#3f8a3f');
+    for(let i=0;i<22;i++){ const a = i/22*Math.PI*2; g.fillStyle = i%3 ? '#4fae55' : '#5cb85a'; g.beginPath(); g.arc(cx+Math.cos(a)*(R0-14), cy+Math.sin(a)*(R0*.82-14), 7, 0, 7); g.fill();
+      if(i%2===0){ g.fillStyle='#ff8a3d'; g.beginPath(); g.arc(cx+Math.cos(a)*(R0-14)+2, cy+Math.sin(a)*(R0*.82-14)-3, 2, 0, 7); g.fill(); } }
+    ell(g, cx, cy+2, R0-30, R0*.82-26, '#7a5a3a');
+  }
   // 自然專科教室：黃色安全線
   g.strokeStyle='#f2c230'; g.lineWidth=3; g.setLineDash([8,6]); g.strokeRect(42*TS+4, 60*TS+4, 6*TS-8, 3*TS-8); g.setLineDash([]);
 }
@@ -1420,6 +1449,21 @@ function drawStatic(g,c,tx,ty){
       g.fillStyle='#8b939c'; if(left) g.fillRect(X+1,Y,3,TS); else g.fillRect(X+TS-4,Y,3,TS);
       if(top && left && hit){ g.lineWidth=1.5; circ(g, X+14, Y+13, 9, '#fff'); g.fillStyle='#2b2233'; g.font='bold 12px sans-serif'; g.textAlign='center'; g.textBaseline='middle'; g.fillText(hit.st.id, X+14, Y+13.5); }
       if(!top && !left){ g.fillStyle='#2e9d5b'; g.beginPath(); g.moveTo(X+8,Y+14); g.lineTo(X+16,Y+5); g.lineTo(X+24,Y+14); g.closePath(); g.fill(); }
+      break; }
+    case '{': { // 曬胡麻的竹架＋倒立的胡麻稈
+      g.fillStyle='rgba(0,0,0,.15)'; g.fillRect(X+3,Y+26,26,4);
+      const top = tileAt(tx,ty-1)!=='{';
+      g.strokeStyle='#a07a3a'; g.lineWidth=3; g.beginPath(); g.moveTo(X+5,Y+30); g.lineTo(X+5,top?Y-6:Y); g.moveTo(X+27,Y+30); g.lineTo(X+27,top?Y-6:Y); g.stroke();
+      if(top){ g.strokeStyle='#c9a24a'; g.lineWidth=3; g.beginPath(); g.moveTo(X+2,Y-5); g.lineTo(X+30,Y-5); g.stroke(); }
+      for(let j=0;j<3;j++){ const px = X+9+j*7; g.strokeStyle='#7a5a2c'; g.lineWidth=2; g.beginPath(); g.moveTo(px,top?Y-4:Y); g.lineTo(px+(j-1)*2,Y+24); g.stroke(); g.fillStyle='#a07a44'; g.beginPath(); g.ellipse(px+(j-1),Y+16,2.2,5,0,0,7); g.fill(); }
+      g.strokeStyle=OL; g.lineWidth=1.5;
+      break; }
+    case '!': { // 「天下為公」石碑
+      g.fillStyle='rgba(0,0,0,.2)'; g.fillRect(X+3,Y+26,28,4);
+      g.beginPath(); g.moveTo(X+6,Y+28); g.lineTo(X+10,Y-12); g.lineTo(X+22,Y-12); g.lineTo(X+26,Y+28); g.closePath(); g.fillStyle='#a8a59c'; g.fill(); g.stroke();
+      g.fillStyle='rgba(255,255,255,.25)'; g.fillRect(X+11,Y-10,3,36);
+      g.fillStyle='#4a4a44'; g.font='bold 7px "Microsoft JhengHei",sans-serif'; g.textAlign='center'; g.textBaseline='middle';
+      ['天','下','為','公'].forEach((ch,i)=>g.fillText(ch, X+16, Y-6+i*8.5));
       break; }
     case '0': { // 火災情境體驗區：佈景牆（左：冒火的窗戶、中：門把很燙的門、右：濃煙和 119）
       const i = tx-88;
@@ -1785,7 +1829,7 @@ function drawShadows(g){
 const PROPS = [];
 for(let y=0;y<MH;y++) for(let x=0;x<MW;x++){
   const c=map[y][x];
-  if(c==='T'||c==='S'||c==='P'||c==='L'||c==='C'||c==='m') PROPS.push({c,x,y,py:y*TS});
+  if(c==='T'||c==='S'||c==='P'||c==='L'||c==='C'||c==='m'||c==='^') PROPS.push({c,x,y,py:y*TS});
   if(c==='n' && map[y][x-1]!=='n' && map[y-1][x]!=='n') PROPS.push({c,x,y,py:(y+1)*TS});
 }
 PROPS.push({c:'beacon',x:92,y:26,py:26*TS}); // 防災中心警示燈
@@ -1825,9 +1869,20 @@ function drawProp(g,p,t){
     circ(g, cx-3, cy+3, 2.8, '#7a5a2a'); circ(g, cx+3, cy+3.5, 2.8, '#8a6a32');
     return;
   }
+  if(p.c==='^'){ // 無患子樹：黃綠色樹冠＋一串串金黃色的果實
+    const sway = Math.sin(t*1.1 + p.x)*1.2*(1+windK*2);
+    ell(g, X+16, Y+30, 22, 6, 'rgba(30,20,40,.25)', false);
+    rr(g, X+12, Y+6, 9, 24, 2, '#8a6038'); g.fillStyle='#a07448'; g.fillRect(X+13.5,Y+8,2.5,20);
+    circ(g, X+16+sway, Y-6, 20, '#7cb342'); circ(g, X+4+sway, Y, 12, '#7cb342'); circ(g, X+28+sway, Y, 12, '#7cb342');
+    g.fillStyle='#9ccc65'; g.beginPath(); g.arc(X+10+sway, Y-14, 9, 0, 7); g.fill();
+    for(const [dx,dy] of [[-4,-2],[0,2],[4,-1],[16,-12],[20,-8],[26,3],[30,-2],[8,6]]){ g.fillStyle='#e0a83a'; g.beginPath(); g.arc(X+4+dx+sway, Y+dy, 2.8, 0, 7); g.fill(); g.lineWidth=.8; g.stroke(); }
+    g.lineWidth=1.5;
+    return;
+  }
   if(p.c==='n'){ // 大榕樹（2×2 格）：寬大的樹冠、粗樹幹和板根、一條條垂下來的氣根
     const sway = Math.sin(t*.9 + p.x)*1.2*(1+windK*2);
-    g.save(); g.translate(X+32, Y+62); g.scale(1.35, 1.35); g.translate(-(X+32), -(Y+62));   // 大榕樹比一般的樹大一圈
+    const big = p.y>30 ? 1.35 : 1.0;   // 榕樹區的大榕樹比較大；椰林大道圓環的榕樹正常大小
+    g.save(); g.translate(X+32, Y+62); g.scale(big, big); g.translate(-(X+32), -(Y+62));
     ell(g, X+32, Y+62, 50, 12, 'rgba(30,20,40,.28)', false);
     // 樹幹＋板根
     g.strokeStyle=OL; g.lineWidth=1.5;
@@ -2172,6 +2227,10 @@ function drawPerson(g, x, y, dir, L, step, still){
     g.beginPath(); for(let j=0;j<10;j++){ const r=j%2?1.8:4, a=-Math.PI/2+j*Math.PI/5; g.lineTo(sx+Math.cos(a)*r, sy+Math.sin(a)*r); } g.closePath();
     g.fillStyle='#ffe066'; g.fill(); g.lineWidth=1; g.stroke();
   }
+  if(L.hat==='douli'){ // 斗笠
+    g.beginPath(); g.moveTo(cx-14, by+3); g.lineTo(cx, by-9); g.lineTo(cx+14, by+3); g.quadraticCurveTo(cx, by+7, cx-14, by+3); g.closePath(); g.fillStyle='#e8c87a'; g.fill(); g.stroke();
+    g.strokeStyle='rgba(140,100,40,.55)'; g.lineWidth=1; for(const k of [-6,0,6]){ g.beginPath(); g.moveTo(cx, by-8); g.lineTo(cx+k*2, by+4); g.stroke(); } g.strokeStyle=OL; g.lineWidth=1.25;
+  }
   if(L.hat==='firefighter'){ // 小小消防員帽：紅色頭盔＋寬帽簷＋金色徽章
     g.beginPath(); g.arc(cx, by+3, 10, Math.PI, 0); g.closePath(); g.fillStyle='#d62d2d'; g.fill(); g.stroke();
     rr(g, cx-12.5, by+1.5, 25, 4, 2, '#b01f1f');
@@ -2478,6 +2537,9 @@ addNPC({id:'clean', x:6, y:26, name:'衛生組長 許組長',
         [['在衣服上擦一擦就好','衣服上也有細菌喔！要用肥皂洗手才乾淨。'],['不用洗，手看起來很乾淨','細菌用眼睛看不到，還是要用肥皂洗手喔！']],
         '答對了！勤洗手，病菌不上手！', 'heal', 'clean', '辛苦了！這個「愛心飯糰」給你補充體力！')});
   }});
+addNPC({id:'farmer2', x:10, y:41, name:'安定區農會 蔡阿伯', dir:'left',
+  look:{skin:'#c98e62',hair:'#8a8a8a',shirt:'#3cb371',pants:'#4a4a3a',hat:'douli',mustache:'#9a9a9a'},
+  talk(n){ azTalk(n); }});
 addNPC({id:'sci', x:45, y:59, name:'自然老師 張老師', dir:'down',
   look:{skin:'#f3c9a2',hair:'#3a2a22',shirt:'#f4f4f4',pants:'#3a5a8a',glasses:true,item:'clip'},
   talk(n){ say(['歡迎來到自然專科教室！做實驗很有趣，但一定要注意安全。','進實驗室要戴護目鏡、綁好長頭髮；藥品不能聞、不能嚐，酒精燈要用燈蓋蓋熄。','要不要挑戰「實驗室安全」，找出危險的行為？'], {name:n.name, choices:[{t:'🧪 來挑戰', f:()=>startMini('lab')},{t:'先不用了'}]}); }});
@@ -2740,7 +2802,7 @@ const ZONES = [
   {n:'🧯 防災教育中心',x1:80,y1:26,x2:93,y2:37},
   {n:'🧸 幼兒園',x1:1,y1:16,x2:7,y2:23},
   {n:'🏃 操場',x1:40,y1:27,x2:65,y2:36},
-  {n:'🏥 保健室',x1:60,y1:2,x2:67,y2:7},
+  {n:'🏥 保健室',x1:48,y1:2,x2:55,y2:7},
   {n:'🚻 ⑤ 性別友善廁所',x1:46,y1:20,x2:53,y2:23},
   {n:'🚻 ② 性別友善廁所',x1:1,y1:2,x2:8,y2:5},
   {n:'🚻 ① 性別友善廁所',x1:81,y1:2,x2:88,y2:5},
@@ -2753,6 +2815,8 @@ const ZONES = [
   {n:'🌳 榕樹區',x1:76,y1:38,x2:92,y2:46},
   {n:'⛩️ 小孔廟',x1:10,y1:27,x2:15,y2:35},
   {n:'🥬 菜圃',x1:2,y1:34,x2:9,y2:37},
+  {n:'🌾 安定三寶田',x1:1,y1:38,x2:16,y2:46},
+  {n:'🌳 榕樹圓環',x1:17,y1:26,x2:22,y2:31},
   {n:'🐘 大象藝術裝置',x1:22,y1:43,x2:27,y2:46},
   {n:'🏞️ 溪畔步道',x1:94,y1:0,x2:95,y2:46},
   {n:'🔬 自然專科教室',x1:41,y1:57,x2:48,y2:64},
@@ -2869,7 +2933,7 @@ window.addEventListener('keydown', e=>{
   if(scene==='mini'){
     if(!e.ctrlKey && !e.metaKey && !e.altKey && e.key.length===1) e.preventDefault();
     // 打地鼠用數字鍵盤時，789 在上排：換成跟畫面一樣的位置
-    if(e.repeat && MG && ['piano','art','drum','recorder','cloze','match','lab','smoke','call','bag'].includes(MG.kind)) return;   // 按住不放不算多次
+    if(e.repeat && MG && ['piano','art','drum','recorder','cloze','match','lab','smoke','call','bag','sesame','asp','soap'].includes(MG.kind)) return;   // 按住不放不算多次
     let key = e.key; if(MG && MG.kind==='whack' && /^Numpad[1-9]$/.test(e.code)) key = '789456123'[+e.code.slice(6)-1];
     mgKey(key, true); return; }   // 擋掉 Firefox 按 ' 或 / 開「快速尋找」
   if(scene!=='play') return;
@@ -2968,6 +3032,9 @@ function facingTarget(){
   if(c==='w') return {faucet:true, x:ax, y:ay};
   if(c==='u' && S.ct.ball>=3) return {board:true, x:ax, y:ay};
   if(c==='0') return {drill:true, x:ax, y:ay};
+  if(c==='{' || c==='(') return {az:'sesame', x:ax, y:ay};
+  if(c===')') return {az:'asp', x:ax, y:ay};
+  if(c==='^') return {az:'soap', x:ax, y:ay};
   if(c==='Q' && badgeCount()<5) return {text:`🔒 校長室：集滿 5 枚守護徽章才能進入（目前 ${badgeCount()}/5）。還沒拿到的徽章可以按「📋 任務」查看。`, x:ax, y:ay};
   if(EXTRA_TALK[c]) return {text:EXTRA_TALK[c], x:ax, y:ay};
   return null;
@@ -2990,6 +3057,7 @@ function interact(){
   else if(t.sink) washHands();
   else if(t.stair) stairDialog(t.stair);
   else if(t.dmap) dcMapWall();
+  else if(t.az) azPrompt(t.az);
   else if(t.smoke) say(['這是「濃煙逃生走廊」，裡面充滿模擬的煙霧。要進去練習逃生嗎？'], {name:'🌫️ 濃煙逃生走廊', choices:[{t:'🌫️ 進去練習', f:()=>startMini('smoke')},{t:'先不用了'}]});
   else if(t.call) say(['電話旁邊貼著：「119 消防救護專線，不可以惡作劇！」要練習打 119 報案嗎？'], {name:'☎️ 119 報案電話', choices:[{t:'☎️ 來練習報案', f:()=>startMini('call')},{t:'先不用了'}]});
   else if(t.bag) say(['桌上放著一個空的防災避難包和一堆東西。要來幫忙打包嗎？'], {name:'🎒 防災避難包', choices:[{t:'🎒 來打包', f:()=>startMini('bag')},{t:'先不用了'}]});
@@ -3098,12 +3166,13 @@ function togglePanel(){
   h += `<h3>🏫 校園任務（${ctDoneCount()}/${CT_KEYS.length}，不計分，完成有小禮物）</h3>`;
   for(const k of CT_KEYS){ const q=CT[k], d=S.ct.done[k]; h += `<div class="qrow"><span style="font-size:22px">${d?'✅':'⬜'}</span><b>${q.name}</b><small>📍${q.where}｜${q.desc}（${ctProgress(k)}）</small></div>`; }
   h += `<h3>🚒 防災闖關護照（${dpCount()}/${DPASS.length}，不計分）</h3><div class="qrow" style="flex-wrap:wrap;gap:6px">${DPASS.map(([k,n])=>`<span class="chip" style="font-size:14px;${S.dpass[k]?'':'opacity:.45;filter:grayscale(1)'}">${S.dpass[k]?'✅':'⬜'} ${n}</span>`).join('')}<small style="width:100%">📍防災教育中心（榕樹區旁）。集滿 ${DPASS.length} 個章送「🚒 小小消防員帽」造型${S.dpassDone?'（已獲得 ✔）':''}。</small></div>`;
+  h += `<h3>🌾 安定三寶小達人（${azCount()}/${AZ.length}，不計分）</h3><div class="qrow" style="flex-wrap:wrap;gap:6px">${AZ.map(([k,n])=>`<span class="chip" style="font-size:14px;${S.az[k]?'':'opacity:.45;filter:grayscale(1)'}">${S.az[k]?'✅':'⬜'} ${n}</span>`).join('')}<small style="width:100%">📍菜圃旁的安定三寶田，找農會蔡阿伯。三樣都體驗過送「🌾 安定小農斗笠」造型${S.azDone?'（已獲得 ✔）':''}。</small></div>`;
   h += `<div class="qrow"><span style="font-size:22px">${S.perfect?'🌟':'⬜'}</span><b>🌟 完美守護者</b><small>${S.perfect ? '你完成了全部任務！' : '五大任務、大魔王、隱藏任務、校園任務全部完成，會有特別的典禮（小遊戲和金徽章不用）'}</small></div>`;
   // 小遊戲：列出在哪裡玩、玩過了沒（不計分）
-  const MG_LIST = [['mg_piano','🎹 彈鋼琴','安萃樓 3F 音樂教室的鋼琴'],['mg_drum','🥁 打鼓節奏','音樂教室的鼓'],['mg_recorder','🎶 吹直笛','音樂教室的直笛架'],['mg_cloze','🔤 英語填空','安萃樓 3F 英語教室的白板'],['mg_match','🃏 單字配對','英語教室的單字圖卡'],['mg_lab','🧪 實驗室安全','安萃樓 2F 自然專科教室'],['mg_art','🎨 畫畫','安萃樓 2F 藝術教室的畫架'],['mg_whack','📂 檔案打地鼠','1F 電腦教室的電腦'],['mg_fire','🧯 滅火練習','防災教育中心（榕樹區旁）的滅火器'],['mg_quake','🌏 地震模擬','防災教育中心的地震平台'],['mg_firesim','🔥 火災模擬','防災教育中心的火災情境體驗區'],['mg_smoke','🌫️ 濃煙逃生走廊','防災教育中心的走廊入口'],['mg_call','☎️ 119 報案','防災教育中心的電話亭'],['mg_bag','🎒 防災避難包','防災教育中心的避難包桌'],['mg_calm','🌱 心情小花園','南耘樓 2F 輔導處的沙發'],['mg_pot','🏺 投壺','小孔廟']];
+  const MG_LIST = [['mg_piano','🎹 彈鋼琴','安萃樓 3F 音樂教室的鋼琴'],['mg_drum','🥁 打鼓節奏','音樂教室的鼓'],['mg_recorder','🎶 吹直笛','音樂教室的直笛架'],['mg_cloze','🔤 英語填空','安萃樓 3F 英語教室的白板'],['mg_match','🃏 單字配對','英語教室的單字圖卡'],['mg_lab','🧪 實驗室安全','安萃樓 2F 自然專科教室'],['mg_art','🎨 畫畫','安萃樓 2F 藝術教室的畫架'],['mg_whack','📂 檔案打地鼠','1F 電腦教室的電腦'],['mg_fire','🧯 滅火練習','防災教育中心（榕樹區旁）的滅火器'],['mg_quake','🌏 地震模擬','防災教育中心的地震平台'],['mg_firesim','🔥 火災模擬','防災教育中心的火災情境體驗區'],['mg_smoke','🌫️ 濃煙逃生走廊','防災教育中心的走廊入口'],['mg_call','☎️ 119 報案','防災教育中心的電話亭'],['mg_bag','🎒 防災避難包','防災教育中心的避難包桌'],['mg_calm','🌱 心情小花園','南耘樓 2F 輔導處的沙發'],['mg_pot','🏺 投壺','小孔廟'],['mg_sesame','🌾 打胡麻','安定三寶田的曬胡麻竹架'],['mg_asp','🌱 清晨採蘆筍','安定三寶田的蘆筍田'],['mg_soap','🧼 無患子搓泡泡','安定三寶田的無患子樹']];
   h += `<h3>🎮 小遊戲（${MG_LIST.filter(g=>S.gift[g[0]]).length}/${MG_LIST.length}，不計分，第一次完成有小禮物）</h3>`;
   for(const [k,n,w] of MG_LIST) h += `<div class="qrow"><span style="font-size:22px">${S.gift[k]?'✅':'⬜'}</span><b>${n}</b><small>📍面向${w}，按${TOUCH?'「對話」鍵':'空白鍵'}</small></div>`;
-  const owned = Object.keys(ACC).filter(a=>HQ_KEYS.some(k=>S.hq.done[k] && HQ[k].reward===a) || (a==='gold' && S.perfect) || (a==='firecap' && S.dpassDone));
+  const owned = Object.keys(ACC).filter(a=>HQ_KEYS.some(k=>S.hq.done[k] && HQ[k].reward===a) || (a==='gold' && S.perfect) || (a==='firecap' && S.dpassDone) || (a==='douli' && S.azDone));
   if(owned.length){
     h += `<h3>👕 我的造型</h3><div><button class="cbtn acc ${!S.acc?'on':''}" data-a="">不穿戴</button>` +
          owned.map(a=>`<button class="cbtn acc ${S.acc===a?'on':''}" data-a="${a}">${ACC[a].name}</button>`).join('') + '</div>';
@@ -3719,9 +3788,10 @@ const ACC = {
   crown:  {name:'👑 交友皇冠', look:{crown:true}},
   gold:   {name:'✨ 完美守護者金披風', look:{cape:'#f6c445'}},
   firecap:{name:'🚒 小小消防員帽', look:{hat:'firefighter'}},
+  douli:  {name:'🌾 安定小農斗笠', look:{hat:'douli'}},
 };
-const TRASH = [[1,1],[38,1],[33,13],[47,33],[64,37],[58,9],[1,43],[30,43]];
-const EXITS = [[62,2],[36,16],[45,57],[46,69],[14,81]];   // 保健室、活動室（1F）、自然教室（安萃 2F）、圖書館（安萃 3F）、輔導處（南耘 2F）
+const TRASH = [[1,1],[38,1],[33,13],[47,33],[64,37],[72,9],[1,43],[30,43]];
+const EXITS = [[50,2],[36,16],[45,57],[46,69],[14,81]];   // 保健室、活動室（1F）、自然教室（安萃 2F）、圖書館（安萃 3F）、輔導處（南耘 2F）
 const BOTTLE = [91,13];   // 東北角、溪畔步道旁的草地（榕樹區留給大榕樹任務）
 /* ---------------- 校園任務：菜圃、籃球場、大榕樹（不計分，完成送道具） ---------------- */
 const CT = {
@@ -4176,7 +4246,7 @@ const EVENTS = {
 };
 function hidePhone(){ $('#phone').classList.add('hidden'); }
 function goHealth(){
-  P.x=61; P.y=4; P.px=P.x*TS; P.py=P.y*TS; P.moving=false; P.dir='right'; checkZone();
+  [P.x,P.y] = MV(61,4); P.px=P.x*TS; P.py=P.y*TS; P.moving=false; P.dir='right'; checkZone();
   say([{n:'護理師 陳阿姨',t:'謝謝你陪同學過來！我先用清水幫他沖洗傷口，再擦藥、貼上紗布。'},{n:'護理師 陳阿姨',t:'以後看到同學受傷，也要像這樣陪他來，並告訴老師喔！'}]);
 }
 function triggerEvent(){
@@ -4621,7 +4691,7 @@ function startGame(data, isNew){
   if(!S.sid) S.sid = newSid();
   if(!S.cls) S.cls = '';
   S.seen = S.seen||{}; S.wrong = S.wrong||{}; S.acc = S.acc||'';
-  hqInit(); invInit(); coinInit(); dpInit(); refreshLook(); compassT = 0;
+  hqInit(); invInit(); coinInit(); dpInit(); azInit(); refreshLook(); compassT = 0;
   setTimeout(fixProgress, 1500);  // 進度已存、但還沒標記完成就關掉網頁的任務和道具，讀檔後補上
   setTimeout(tryPerfect, 2500);   // 更新前就已經全部完成的存檔，讀檔後補辦完美典禮
   if(S.hq.friend>=3){ const yu = NPCS.find(n=>n.id==='yu'); if(yu) yu.wander=[42,29,63,34]; }
@@ -5882,6 +5952,250 @@ MINI.bag = {
   }
 };
 
+/* ---------------- 🌾 安定三寶：胡麻、蘆筍、無患子（菜圃旁的安定三寶田） ---------------- */
+const AZ = [['sesame','🌾 打胡麻'],['asp','🌱 清晨採蘆筍'],['soap','🧼 無患子搓泡泡']];
+const AZ_INFO = {
+  sesame:['臺南是全台灣最大的胡麻產地，大約占全國的七成，安定就是主要產區之一。','胡麻從播種到收成大約 100 天，秋天採收。收割後把胡麻稈綁成一束束倒立曬乾，果莢裂開後輕輕拍打，黑色的小種子就會掉下來。','胡麻種子可以榨成香香的胡麻油（麻油），也能做成芝麻粉、芝麻醬。'],
+  asp:['安定是綠蘆筍的重要產地，蘆筍種在曾文溪旁邊透氣良好的沙地。','春天種下，清明節前後開始採收，一直可以採到七、八月。','蘆筍長得很快，要趁新鮮、長到剛好的長度採收；太晚採就會變老變硬。'],
+  soap:['無患子是台灣原生的樹，我們學校也種了無患子喔！','無患子的果皮含有「皂素」，泡水搓一搓會起泡泡，以前的人拿來代替肥皂洗衣服。','皂素在大自然裡容易分解，比較不會汙染環境。不過果實不能吃喔！'],
+};
+function azInit(){ S.az = Object.assign({}, S.az||{}); }
+function azCount(){ return S && S.az ? AZ.filter(([k])=>S.az[k]).length : 0; }
+function azStamp(k){
+  if(!S || !S.az || S.az[k]) return;
+  S.az[k] = true; const n = azCount(); save();
+  setTimeout(()=>toast(`🌾 安定三寶小達人：完成「${AZ.find(a=>a[0]===k)[1]}」（${n}/${AZ.length}）`, true, 3000), 600);
+  if(n>=AZ.length && !S.azDone){
+    S.azDone = true; S.acc = 'douli'; refreshLook(); save();
+    setTimeout(()=>{ toast('🎉 你是「安定三寶小達人」了！獲得造型「🌾 安定小農斗笠」', true, 4500); sfx('badge'); addCoins(50, '安定三寶小達人'); }, 3800);
+  }
+}
+function azPrompt(k){
+  const name = {sesame:'🌾 胡麻田', asp:'🌱 蘆筍田', soap:'🌳 無患子樹'}[k];
+  const line = {sesame:'曬胡麻的竹架上，掛著一束束曬乾的胡麻稈。要來「打胡麻」嗎？', asp:'沙地裡冒出一根根綠綠的蘆筍尖。要來「清晨採蘆筍」嗎？', soap:'無患子樹下掉了好多圓圓的果實。要來「無患子搓泡泡」嗎？'}[k];
+  say([line], {name, choices:[{t:'▶ 來玩', f:()=>startMini(k)}, {t:'📖 聽介紹', f:()=>say(AZ_INFO[k], {name})}, {t:'先不用了'}]});
+}
+function azTalk(n){
+  const lines = azCount()===0 && !S.az.met
+    ? ['你好！我是安定區農會的蔡阿伯。','你知道「安定三寶」嗎？就是胡麻（芝麻）、蘆筍和無患子！','旁邊的田裡都種了，去「打胡麻」「採蘆筍」「搓無患子泡泡」，三樣都體驗過，你就是「安定三寶小達人」，阿伯送你一頂斗笠！']
+    : S.azDone ? ['安定三寶小達人！回家可以跟家人分享：胡麻、蘆筍、無患子，都是我們安定的寶貝喔！']
+    : [`三寶體驗了 ${azCount()}/3 樣，加油！想聽哪一寶的介紹？`];
+  S.az.met = true; save();
+  say(lines, {name:n.name, choices:[...AZ.map(([k,l])=>({t:(S.az[k]?'✅ ':'')+l, f:()=>startMini(k)})), {t:'📖 聽三寶介紹', f:()=>say([...AZ_INFO.sesame.slice(0,1), ...AZ_INFO.asp.slice(0,1), ...AZ_INFO.soap.slice(0,2)], {name:n.name})}, {t:'先聊到這裡'}]});
+}
+
+/* ---- 🌾 打胡麻：力道條跑到綠色區時敲一下，把種子打下來 ---- */
+const SES_N = 10, SES_GOAL = 220;
+function sesHit(m){
+  if(m.phase!=='play') return;
+  const p = m.pw; let got, msg;
+  if(p > .9){ got = 4; msg = '太用力了！稈子打斷了，種子噴得到處都是。'; }
+  else if(Math.abs(p-.7) < .08){ got = 40; msg = '剛剛好！種子嘩啦啦掉下來！'; }
+  else if(Math.abs(p-.7) < .18){ got = 22; msg = '不錯！再抓準一點。'; }
+  else { got = 5; msg = '太輕了，種子還卡在果莢裡。'; }
+  m.seeds += got; m.hits++; m.swing = 1; m.msg = msg; sfx(got>=22 ? 'ok' : 'talk');
+  if(mgAudio()) tone(120+got*4, .08, 'triangle', 0, .08);
+  for(let i=0;i<Math.min(40,got);i++) m.parts.push({x:400+(Math.random()-.5)*60, y:250+Math.random()*30, vx:(Math.random()-.5)*80, vy:-Math.random()*60, l:2});
+  if(m.hits >= SES_N){
+    m.phase = 'over'; m.reward = '';
+    if(m.seeds >= SES_GOAL){ if(mgReward('mg_sesame', 'heal')) m.reward = '🎁 第一次收成成功：經驗 +10、🍙 愛心飯糰！'; azStamp('sesame'); }
+    sfx(m.seeds>=SES_GOAL ? 'win' : 'warn'); save();
+  }
+}
+MINI.sesame = {
+  init(m){ m.phase = 'ready'; m.hits = 0; m.seeds = 0; m.pw = 0; m.pd = 1; m.parts = []; m.swing = 0; m.msg = ''; m.reward = ''; },
+  btn(m, id){ if(id==='start'){ m.phase = 'play'; m.msg = '力道條跑到綠色的地方，按一下敲胡麻！'; } else if(id==='hit') sesHit(m); },
+  key(m, k, down){ if(!down) return; if(m.phase==='over'){ if(k===' '||k==='Enter') mgAgain(); return; } if(m.phase==='ready'){ if(k===' '||k==='Enter') this.btn(m,'start'); return; } if(k===' '||k==='Enter') sesHit(m); },
+  pointer(m, type){ if(type==='down' && m.phase==='play') sesHit(m); },
+  update(m, dt){
+    m.t += dt; if(m.swing>0) m.swing = Math.max(0, m.swing-dt*3);
+    if(m.phase==='play'){ m.pw += m.pd*dt*1.25; if(m.pw>1){ m.pw=1; m.pd=-1; } if(m.pw<0){ m.pw=0; m.pd=1; } }
+    for(const p of m.parts){ p.x += p.vx*dt; p.y += p.vy*dt; p.vy += 420*dt; if(p.y>470){ p.y=470; p.vx=0; p.vy=0; } p.l -= dt; }
+    m.parts = m.parts.filter(p=>p.l>0);
+  },
+  draw(m){
+    m.btns = [];
+    const g = mgx.createLinearGradient(0,0,0,576); g.addColorStop(0,'#bfe6ff'); g.addColorStop(1,'#f6e3b0'); mgx.fillStyle = g; mgx.fillRect(0,0,800,576);
+    mgHeader('🌾 安定三寶・打胡麻', TOUCH ? '力道條到綠色時，點一下畫面敲胡麻｜✖ 離開' : '力道條到綠色時按空白鍵（或點畫面）敲胡麻｜Esc 離開');
+    // 竹架＋倒立的胡麻稈
+    mgx.strokeStyle = MG_INK; mgx.lineWidth = 3;
+    rr(mgx, 250, 120, 12, 340, 4, '#c9a24a'); rr(mgx, 538, 120, 12, 340, 4, '#c9a24a'); rr(mgx, 240, 112, 320, 14, 5, '#d9b45a');
+    mgx.save(); mgx.translate(400, 126); mgx.rotate(Math.sin(m.t*30)*m.swing*.25);
+    for(let i=-4;i<=4;i++){ mgx.strokeStyle = '#7a5a2c'; mgx.lineWidth = 4; mgx.beginPath(); mgx.moveTo(i*4, 0); mgx.lineTo(i*9, 150); mgx.stroke();
+      for(let j=0;j<4;j++){ mgx.fillStyle = '#a07a44'; mgx.beginPath(); mgx.ellipse(i*9*(0.4+j*.18), 50+j*25, 4, 9, 0, 0, 7); mgx.fill(); } }
+    rr(mgx, -24, -4, 48, 14, 4, '#c0392b'); mgx.restore();
+    // 帆布＋收成的種子
+    mgx.strokeStyle = MG_INK; mgx.lineWidth = 3; rr(mgx, 170, 462, 460, 30, 8, '#3c7fd0');
+    const pile = Math.min(1, m.seeds/(SES_GOAL*1.6)); mgx.fillStyle = '#2b2233'; mgx.beginPath(); mgx.ellipse(400, 466, 30+pile*170, 4+pile*16, 0, Math.PI, 0); mgx.fill();
+    for(const p of m.parts){ mgx.fillStyle = '#2b2233'; mgx.beginPath(); mgx.ellipse(p.x, p.y, 2.2, 1.4, 0, 0, 7); mgx.fill(); }
+    // 力道條
+    mgx.strokeStyle = MG_INK; mgx.lineWidth = 3; rr(mgx, 640, 130, 40, 320, 8, '#fff');
+    const zy = v=>450-v*320;
+    mgx.fillStyle = '#ffe08a'; mgx.fillRect(643, zy(.88), 34, zy(.52)-zy(.88)); mgx.fillStyle = '#7bd389'; mgx.fillRect(643, zy(.78), 34, zy(.62)-zy(.78)); mgx.fillStyle = '#ff9a9a'; mgx.fillRect(643, zy(1), 34, zy(.9)-zy(1));
+    mgx.fillStyle = MG_INK; mgx.fillRect(632, zy(m.pw)-3, 56, 6);
+    mgT('力道', 660, 470, 14, MG_INK);
+    mgT(`敲了 ${m.hits} / ${SES_N} 下　收成 ${m.seeds} 粒（目標 ${SES_GOAL}）`, 400, 520, 17, MG_INK);
+    mgT(m.msg, 400, 548, 16, '#6a4a2a', 'center', false);
+    if(m.phase==='play' && TOUCH) mgButton(m, 'hit', '👋 敲！', 60, 400, 140, 60, true);
+    if(m.phase==='ready'){
+      mgx.fillStyle = 'rgba(10,12,24,.55)'; mgx.fillRect(0,52,800,524);
+      mgPanel(140, 90, 520, 400);
+      mgT('🌾 打胡麻', 400, 124, 26, MG_INK);
+      let y = 164;
+      for(const l of ['胡麻收割後，綁成一束束倒立曬乾，果莢裂開後輕輕拍打，黑色的小種子就會掉下來。', `力道條跑到綠色的地方再敲，種子掉最多；太輕打不下來，太用力會把稈子打斷。一共敲 ${SES_N} 下，收成 ${SES_GOAL} 粒就成功${S.gift.mg_sesame ? '' : '，第一次成功有獎勵'}。`, '小知識：臺南是全台灣最大的胡麻產地，安定就是主要產區之一！'])
+        y = mgWrap(l, 400, y, 460, 16, '#4a3a5a', 24, 'center') + 32;
+      mgButton(m, 'start', '▶ 開始' + (TOUCH ? '' : '（空白鍵）'), 300, 410, 200, 52, true);
+    }
+    if(m.phase==='over') mgResult(m, m.seeds>=SES_GOAL ? '🎉 胡麻大豐收！' : '🌾 再試一次！', [`敲了 ${SES_N} 下，收成 ${m.seeds} 粒胡麻`, '胡麻種子可以榨成香香的胡麻油（麻油），也能做成芝麻粉、芝麻醬。'], m.reward);
+  }
+};
+
+/* ---- 🌱 清晨採蘆筍：長到剛好的長度再採 ---- */
+const ASP_TIME = 40, ASP_GOAL = 10, ASP_LO = 18, ASP_HI = 30;
+function aspReset(s){ s.st = 'none'; s.h = 0; s.wait = .5 + Math.random()*2.5; s.rate = 7 + Math.random()*6; }
+function aspPick(m, i){
+  if(m.phase!=='play') return;
+  const s = m.slots[i]; if(!s) return;
+  if(s.st==='grow' && s.h>=ASP_LO && s.h<=ASP_HI){ m.good++; m.msg = `採到一根 ${Math.round(s.h)} 公分的好蘆筍！`; sfx('ok'); s.pop = .4; aspReset(s); }
+  else if(s.st==='grow'){ m.bad++; m.msg = s.h<ASP_LO ? '還太短了，再等一下下！' : '有點長老了……要早一點採。'; sfx('bad'); if(s.h>ASP_HI) aspReset(s); }
+  else if(s.st==='old'){ m.msg = '這根已經長成葉子，變老變硬了。'; sfx('bad'); aspReset(s); }
+}
+MINI.asp = {
+  init(m){ m.phase = 'ready'; m.slots = Array.from({length:9}, ()=>{ const s={}; aspReset(s); return s; }); m.time = ASP_TIME; m.good = 0; m.bad = 0; m.msg = ''; m.reward = ''; },
+  btn(m, id){ if(id==='start'){ m.phase = 'play'; m.msg = '蘆筍長到綠色刻度之間（18～30 公分）再採！'; } else if(/^k\d$/.test(id)) aspPick(m, +id.slice(1)); },
+  key(m, k, down){
+    if(!down) return;
+    if(m.phase==='over'){ if(k===' '||k==='Enter') mgAgain(); return; }
+    if(m.phase==='ready'){ if(k===' '||k==='Enter') this.btn(m,'start'); return; }
+    const i = '123456789'.indexOf(k); if(i>=0) aspPick(m, i);
+  },
+  pointer(){},
+  update(m, dt){
+    m.t += dt;
+    if(m.phase!=='play') return;
+    m.time -= dt;
+    for(const s of m.slots){
+      if(s.pop>0) s.pop -= dt;
+      if(s.st==='none'){ s.wait -= dt; if(s.wait<=0){ s.st = 'grow'; s.h = 2; } }
+      else if(s.st==='grow'){ s.h += s.rate*dt; if(s.h>36){ s.st = 'old'; s.oldT = 1.4; } }
+      else if(s.st==='old'){ s.oldT -= dt; if(s.oldT<=0) aspReset(s); }
+    }
+    if(m.time<=0){
+      m.phase = 'over'; m.reward = '';
+      if(m.good>=ASP_GOAL){ if(mgReward('mg_asp', 'hint')) m.reward = '🎁 第一次採收成功：經驗 +10、💡 提示卡！'; azStamp('asp'); }
+      sfx(m.good>=ASP_GOAL ? 'win' : 'warn'); save();
+    }
+  },
+  draw(m){
+    m.btns = [];
+    const k = m.phase==='play' ? 1 - m.time/ASP_TIME : 0;   // 時間過去，天越來越亮
+    const g = mgx.createLinearGradient(0,0,0,576); g.addColorStop(0, k<.5 ? '#ffc9a8' : '#9fd6ff'); g.addColorStop(.45, '#fff1d6'); g.addColorStop(.46, '#e8d4a0'); g.addColorStop(1, '#d9c088'); mgx.fillStyle = g; mgx.fillRect(0,0,800,576);
+    circ(mgx, 80+k*640, 140-Math.sin(k*Math.PI)*70, 26, '#ffd447', false);
+    mgHeader('🌱 安定三寶・清晨採蘆筍', TOUCH ? '點長度剛好的蘆筍採收｜✖ 離開' : '按 1～9 或點蘆筍採收（長到綠色刻度之間）｜Esc 離開');
+    m.slots.forEach((s,i)=>{
+      const cx = 220 + (i%3)*180, by = 250 + Math.floor(i/3)*110;
+      mgx.strokeStyle = MG_INK; mgx.lineWidth = 2.5; mgx.fillStyle = '#c9a868'; mgx.beginPath(); mgx.ellipse(cx, by, 56, 16, 0, 0, 7); mgx.fill(); mgx.stroke();
+      const px = v=>by-6-v*2.4;
+      mgx.fillStyle = '#7bd389'; mgx.fillRect(cx+44, px(ASP_HI), 8, px(ASP_LO)-px(ASP_HI)); mgx.strokeRect(cx+44, px(ASP_HI), 8, px(ASP_LO)-px(ASP_HI));
+      if(s.st==='grow'){ const top = px(s.h); const ok = s.h>=ASP_LO && s.h<=ASP_HI;
+        mgx.fillStyle = ok ? '#3cb371' : s.h>ASP_HI ? '#7a9a3a' : '#9be38d'; rr(mgx, cx-6, top, 12, by-6-top, 5, mgx.fillStyle);
+        mgx.fillStyle = '#2e8b57'; mgx.beginPath(); mgx.moveTo(cx-6, top+8); mgx.lineTo(cx, top-6); mgx.lineTo(cx+6, top+8); mgx.closePath(); mgx.fill(); mgx.stroke(); }
+      if(s.st==='old'){ mgx.strokeStyle = '#5a8a3a'; mgx.lineWidth = 2; for(let j=-3;j<=3;j++){ mgx.beginPath(); mgx.moveTo(cx, by-6); mgx.lineTo(cx+j*12, px(40)); mgx.stroke(); } }
+      if(s.pop>0) mgT('+1', cx, by-90+s.pop*40, 20, '#2e9d5b');
+      if(!TOUCH) mgT(String(i+1), cx-40, by+2, 14, '#6a4a2a');
+      m.btns.push({id:'k'+i, x:cx-60, y:by-105, w:120, h:122});
+    });
+    mgT(`採到 ${m.good} 根（目標 ${ASP_GOAL}）　剩下 ${Math.max(0, Math.ceil(m.time))} 秒`, 400, 76, 17, MG_INK);
+    mgT(m.msg, 400, 560, 16, '#6a4a2a', 'center', false);
+    if(m.phase==='ready'){
+      mgx.fillStyle = 'rgba(10,12,24,.5)'; mgx.fillRect(0,52,800,524);
+      mgPanel(140, 96, 520, 390);
+      mgT('🌱 清晨採蘆筍', 400, 130, 26, MG_INK);
+      let y = 172;
+      for(const l of ['蘆筍長得很快！農夫常常一大早就去採，趁天氣涼、蘆筍最新鮮。', `等蘆筍長到旁邊的綠色刻度（18～30 公分）再採；太短還沒長好，太晚採會長成葉子、變老變硬。${ASP_TIME} 秒內採到 ${ASP_GOAL} 根就成功${S.gift.mg_asp ? '' : '，第一次成功有獎勵'}。`, '小知識：安定是綠蘆筍的重要產地，種在曾文溪旁邊的沙地。'])
+        y = mgWrap(l, 400, y, 460, 16, '#4a3a5a', 24, 'center') + 30;
+      mgButton(m, 'start', '▶ 開始' + (TOUCH ? '' : '（空白鍵）'), 300, 414, 200, 52, true);
+    }
+    if(m.phase==='over') mgResult(m, m.good>=ASP_GOAL ? '🎉 蘆筍採收成功！' : '🌱 再試一次！', [`採到 ${m.good} 根好蘆筍`, '安定的綠蘆筍春天種下，清明節前後開始採收，一直可以採到七、八月。'], m.reward);
+  }
+};
+
+/* ---- 🧼 無患子搓泡泡：剝果皮 → 泡水搓出泡泡 → 用泡泡洗手 ---- */
+const SOAP_WASH = ['濕','搓','沖','捧','擦'];
+MINI.soap = {
+  init(m){ m.phase = 'ready'; m.step = 0; m.peeled = [false,false,false]; m.foam = 0; m.lastDir = ''; m.pd = false; m.lx = 0; m.order = shuffle(SOAP_WASH.slice()); m.got = []; m.msg = ''; m.shake = 0; m.reward = ''; },
+  btn(m, id){
+    if(id==='start'){ m.phase = 'play'; m.msg = '先把 3 顆無患子剝開，取下果皮。'; return; }
+    if(/^f\d$/.test(id) && m.step===0){ const i = +id.slice(1); if(!m.peeled[i]){ m.peeled[i] = true; sfx('ok'); m.msg = '剝開了！裡面是黑黑硬硬的種子，果皮才有皂素。'; if(m.peeled.every(Boolean)){ m.step = 1; m.msg = '把果皮泡進水裡，左右來回搓一搓！'; } } return; }
+    if(id==='rubL' || id==='rubR') soapRub(m, id==='rubL' ? 'L' : 'R');
+    if(/^w\d$/.test(id) && m.step===2){ const w = m.order[+id.slice(1)]; if(m.got.includes(w)) return;
+      if(w===SOAP_WASH[m.got.length]){ m.got.push(w); sfx('ok'); m.msg = `「${w}」✔`;
+        if(m.got.length===SOAP_WASH.length){ m.phase = 'over'; m.reward = ''; if(mgReward('mg_soap', 'heal')) m.reward = '🎁 第一次完成：經驗 +10、🍙 愛心飯糰！'; azStamp('soap'); sfx('win'); save(); } }
+      else { sfx('bad'); m.shake = .3; m.msg = `順序不對喔！洗手口訣是「濕、搓、沖、捧、擦」，下一步是「${SOAP_WASH[m.got.length]}」。`; } }
+  },
+  key(m, k, down){
+    if(!down) return;
+    if(m.phase==='over'){ if(k===' '||k==='Enter') mgAgain(); return; }
+    if(m.phase==='ready'){ if(k===' '||k==='Enter') this.btn(m,'start'); return; }
+    const d = KEYMAP[k];
+    if(m.step===0 && (k===' '||k==='Enter')){ const i = m.peeled.indexOf(false); if(i>=0) this.btn(m, 'f'+i); return; }
+    if(m.step===1 && (d==='left'||d==='right')){ soapRub(m, d==='left' ? 'L' : 'R'); return; }
+    if(m.step===2){ const i = '12345'.indexOf(k); if(i>=0) this.btn(m, 'w'+i); }
+  },
+  pointer(m, type, x){
+    if(m.step!==1 || m.phase!=='play') return;
+    if(type==='down'){ m.pd = true; m.lx = x; } else if(type==='up') m.pd = false;
+    else if(type==='move' && m.pd){ if(Math.abs(x-m.lx)>40){ soapRub(m, x<m.lx ? 'L' : 'R'); m.lx = x; } }
+  },
+  update(m, dt){ m.t += dt; if(m.shake>0) m.shake -= dt; },
+  draw(m){
+    m.btns = [];
+    const g = mgx.createLinearGradient(0,0,0,576); g.addColorStop(0,'#e8f6ec'); g.addColorStop(1,'#bfe3c9'); mgx.fillStyle = g; mgx.fillRect(0,0,800,576);
+    mgHeader('🧼 安定三寶・無患子搓泡泡', TOUCH ? '照著說明點一點、左右滑動搓泡泡｜✖ 離開' : '空白鍵剝果皮｜← → 來回搓｜1～5 選洗手步驟｜Esc 離開');
+    mgT(['① 剝開果實，取下果皮', '② 泡水搓一搓，搓出泡泡', '③ 用泡泡洗手：濕、搓、沖、捧、擦'][m.step], 400, 84, 20, MG_INK);
+    if(m.step===0){
+      for(let i=0;i<3;i++){ const x = 250+i*150, y = 260;
+        mgx.strokeStyle = MG_INK; mgx.lineWidth = 3;
+        if(!m.peeled[i]){ circ(mgx, x, y, 44, '#d9a84a'); mgx.fillStyle = 'rgba(255,255,255,.4)'; mgx.beginPath(); mgx.ellipse(x-14, y-16, 12, 7, -.5, 0, 7); mgx.fill(); mgT(TOUCH?'點我':'空白鍵', x, y+70, 14, '#6a4a2a', 'center', false); }
+        else { mgx.fillStyle = '#c9902a'; mgx.beginPath(); mgx.arc(x-12, y, 40, Math.PI*.6, Math.PI*1.4); mgx.fill(); mgx.stroke(); mgx.beginPath(); mgx.arc(x+12, y, 40, -Math.PI*.4, Math.PI*.4); mgx.fill(); mgx.stroke(); circ(mgx, x, y, 14, '#1d1824'); }
+        m.btns.push({id:'f'+i, x:x-50, y:y-50, w:100, h:100});
+      }
+    }
+    if(m.step===1){
+      mgx.strokeStyle = MG_INK; mgx.lineWidth = 3; rr(mgx, 220, 220, 360, 170, 30, '#9fd3f0');
+      for(let i=0;i<3;i++){ mgx.fillStyle = '#c9902a'; mgx.beginPath(); mgx.ellipse(330+i*70, 320, 26, 12, i*.6, 0, 7); mgx.fill(); }
+      const n = Math.floor(m.foam/3);
+      for(let i=0;i<n;i++){ const bx = 240 + (i*53 % 320), byy = 230 + (i*37 % 120) - Math.sin(m.t*2+i)*4, r = 8 + (i%4)*4; mgx.strokeStyle = 'rgba(120,170,220,.8)'; mgx.lineWidth = 1.5; circ(mgx, bx, byy, r, 'rgba(255,255,255,.75)'); }
+      mgx.strokeStyle = MG_INK; mgx.lineWidth = 3; rr(mgx, 250, 420, 300, 22, 8, '#fff'); mgx.fillStyle = '#7bd389'; mgx.fillRect(253, 423, 294*m.foam/100, 16);
+      mgT(`泡泡 ${Math.round(m.foam)}%`, 400, 460, 15, MG_INK);
+      mgButton(m, 'rubL', '⬅ 搓', 110, 290, 90, 60, false); mgButton(m, 'rubR', '搓 ➡', 600, 290, 90, 60, false);
+    }
+    if(m.step===2){
+      const ox = m.shake>0 ? Math.sin(m.t*60)*5 : 0;
+      mgPanel(150, 130, 500, 90); mgT('已完成：' + (m.got.join(' → ') || '（還沒開始）'), 400, 175, 20, '#2e9d5b');
+      m.order.forEach((w,i)=>{ const done = m.got.includes(w); mgButton(m, 'w'+i, (TOUCH?'':(i+1)+' ') + w, 130+i*112+ox, 270, 96, 70, done); });
+      mgT('想一想：用無患子泡泡洗手，步驟跟用肥皂一樣喔！', 400, 380, 16, '#4a3a5a', 'center', false);
+    }
+    mgWrap(m.msg, 400, 510, 640, 16, '#3a5a3a', 22, 'center');
+    if(m.phase==='ready'){
+      mgx.fillStyle = 'rgba(10,12,24,.5)'; mgx.fillRect(0,52,800,524);
+      mgPanel(140, 90, 520, 400);
+      mgT('🧼 無患子搓泡泡', 400, 124, 26, MG_INK);
+      let y = 166;
+      for(const l of ['無患子的果皮含有「皂素」，泡水搓一搓就會起泡泡，以前的人拿來代替肥皂洗衣服。', `① 剝開果實取下果皮　② 泡水搓出泡泡　③ 用泡泡照「濕、搓、沖、捧、擦」洗手${S.gift.mg_soap ? '' : '。第一次完成有獎勵'}。`, '小知識：無患子是台灣原生的樹，我們學校也種了無患子！果實不能吃喔。'])
+        y = mgWrap(l, 400, y, 460, 16, '#4a3a5a', 24, 'center') + 32;
+      mgButton(m, 'start', '▶ 開始' + (TOUCH ? '' : '（空白鍵）'), 300, 410, 200, 52, true);
+    }
+    if(m.phase==='over') mgResult(m, '🎉 手洗得好乾淨！', ['用無患子的天然泡泡，照「濕、搓、沖、捧、擦」把手洗乾淨。', '皂素在大自然裡容易分解，比較不會汙染環境。'], m.reward);
+  }
+};
+function soapRub(m, dir){
+  if(m.step!==1 || dir===m.lastDir) return;
+  m.lastDir = dir; m.foam = Math.min(100, m.foam + 6); if(mgAudio()) tone(500+m.foam*3, .05, 'sine', 0, .03);
+  if(m.foam>=100){ m.step = 2; sfx('ok'); m.msg = '泡泡好多！現在用泡泡洗手，照順序點：濕、搓、沖、捧、擦。'; }
+  else m.msg = '來回搓，泡泡越來越多了！';
+}
+
 /* ---- 🔬 自然專科教室：實驗室安全（找出危險的行為） ---- */
 const LAB_CARDS = [
   {e:'👅🧪', t:'用舌頭嚐嚐看藥品的味道', bad:true, r:'實驗室的藥品都不能嚐！很多藥品有毒或會傷害身體。'},
@@ -6699,13 +7013,13 @@ function update(dt){
   P.target = t;
   const hint = $('#hint');
   const key = TOUCH ? '「對話」鍵' : '空白鍵';
-  const txt = t ? (t.npc ? `💬 ${key}：和「${t.npc.name}」說話` : t.stall ? `🚽 ${key}：上廁所` : t.sink ? `🚰 ${key}：洗手` : t.stair ? `🔼 ${key}：上下樓梯` : t.dmap ? `🗺️ ${key}：看防災地圖` : t.smoke ? `🌫️ ${key}：濃煙逃生走廊` : t.call ? `☎️ ${key}：119 報案練習` : t.bag ? `🎒 ${key}：防災避難包` : t.door ? `🚪 ${key}：看門牌` : t.lab ? `🧪 ${key}：實驗室安全` : t.piano ? `🎹 ${key}：彈鋼琴` : t.drum ? `🥁 ${key}：打鼓節奏` : t.recorder ? `🎶 ${key}：吹直笛` : t.cloze ? `🔤 ${key}：英語填空` : t.match ? `🃏 ${key}：單字配對` : t.pc ? `📂 ${key}：檔案打地鼠` : t.sofa ? `🌱 ${key}：心情小花園` : t.fire ? `🧯 ${key}：滅火練習` : t.easel ? `🎨 ${key}：畫畫` : t.pot ? `🏺 ${key}：投壺` : t.drill ? `🔥 ${key}：火災模擬` :`📋 ${key}：查看`) : (TOUCH ? '左下角搖桿走路｜右上角 📋 任務、🎒 道具' : '方向鍵移動｜Q 任務｜B 道具｜C 商店｜M 地圖｜R 排行榜');
+  const txt = t ? (t.npc ? `💬 ${key}：和「${t.npc.name}」說話` : t.stall ? `🚽 ${key}：上廁所` : t.sink ? `🚰 ${key}：洗手` : t.stair ? `🔼 ${key}：上下樓梯` : t.az ? `🌾 ${key}：安定三寶` : t.dmap ? `🗺️ ${key}：看防災地圖` : t.smoke ? `🌫️ ${key}：濃煙逃生走廊` : t.call ? `☎️ ${key}：119 報案練習` : t.bag ? `🎒 ${key}：防災避難包` : t.door ? `🚪 ${key}：看門牌` : t.lab ? `🧪 ${key}：實驗室安全` : t.piano ? `🎹 ${key}：彈鋼琴` : t.drum ? `🥁 ${key}：打鼓節奏` : t.recorder ? `🎶 ${key}：吹直笛` : t.cloze ? `🔤 ${key}：英語填空` : t.match ? `🃏 ${key}：單字配對` : t.pc ? `📂 ${key}：檔案打地鼠` : t.sofa ? `🌱 ${key}：心情小花園` : t.fire ? `🧯 ${key}：滅火練習` : t.easel ? `🎨 ${key}：畫畫` : t.pot ? `🏺 ${key}：投壺` : t.drill ? `🔥 ${key}：火災模擬` :`📋 ${key}：查看`) : (TOUCH ? '左下角搖桿走路｜右上角 📋 任務、🎒 道具' : '方向鍵移動｜Q 任務｜B 道具｜C 商店｜M 地圖｜R 排行榜');
   if(hint.textContent!==txt) hint.textContent = txt;
   // 觸控的「對話」鍵：依面前的東西換字；有東西可以互動時輕輕跳動，沒有時變淡
   if(TOUCH){
     const ab = $('#abtn'); let lab, st = '';
     if(DLG) lab = choicesShowing() ? '👆\n點選項' : '▶\n下一句';
-    else if(t){ st = 'go'; lab = t.npc ? '💬\n說話' : t.stall ? '🚽\n上廁所' : t.sink ? '🚰\n洗手' : t.stair ? '🔼\n樓梯' : t.dmap ? '🗺️\n地圖' : t.smoke ? '🌫️\n逃生' : t.call ? '☎️\n報案' : t.bag ? '🎒\n打包' : t.door ? '🚪\n門牌' : t.lab ? '🧪\n實驗' : t.piano ? '🎹\n彈琴' : t.drum ? '🥁\n打鼓' : t.recorder ? '🎶\n直笛' : t.cloze ? '🔤\n填空' : t.match ? '🃏\n配對' : t.pc ? '📂\n打地鼠' : t.sofa ? '🌱\n放鬆' : t.fire ? '🧯\n滅火' : t.easel ? '🎨\n畫畫' : t.pot ? '🏺\n投壺' : t.drill ? '🔥\n火災' : t.book ? '📖\n看書' : '📋\n查看'; }
+    else if(t){ st = 'go'; lab = t.npc ? '💬\n說話' : t.stall ? '🚽\n上廁所' : t.sink ? '🚰\n洗手' : t.stair ? '🔼\n樓梯' : t.az ? '🌾\n三寶' : t.dmap ? '🗺️\n地圖' : t.smoke ? '🌫️\n逃生' : t.call ? '☎️\n報案' : t.bag ? '🎒\n打包' : t.door ? '🚪\n門牌' : t.lab ? '🧪\n實驗' : t.piano ? '🎹\n彈琴' : t.drum ? '🥁\n打鼓' : t.recorder ? '🎶\n直笛' : t.cloze ? '🔤\n填空' : t.match ? '🃏\n配對' : t.pc ? '📂\n打地鼠' : t.sofa ? '🌱\n放鬆' : t.fire ? '🧯\n滅火' : t.easel ? '🎨\n畫畫' : t.pot ? '🏺\n投壺' : t.drill ? '🔥\n火災' : t.book ? '📖\n看書' : '📋\n查看'; }
     else { lab = '對話'; st = 'idle'; }
     if(ab.textContent!==lab) ab.textContent = lab;
     if(ab.dataset.st!==st){ ab.dataset.st = st; ab.classList.toggle('go', st==='go'); ab.classList.toggle('idle', st==='idle'); }
