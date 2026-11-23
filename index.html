@@ -69,6 +69,7 @@
   #dFace{position:absolute;left:14px;top:16px;width:104px;height:104px;border:3px solid var(--ink);border-radius:10px;
     background:radial-gradient(circle at 50% 35%,#fff,#dcefff)}
   #dlg.noface #dFace{display:none}
+  #dRead{position:absolute;right:10px;top:-16px;font:inherit;font-size:15px;font-weight:bold;background:#e8f4ff;border:3px solid var(--ink);border-radius:10px;cursor:pointer;padding:0 8px;color:var(--ink)}
   #dName{position:absolute;top:-18px;left:18px;background:linear-gradient(#ffe48f,var(--gold));border:3px solid var(--ink);border-radius:8px;padding:0 12px;font-size:17px;font-weight:bold}
   #dNext{position:absolute;right:16px;bottom:8px;font-size:16px;animation:bob .8s infinite}
   @keyframes bob{50%{transform:translateY(4px)}}
@@ -364,7 +365,7 @@
   <div id="pad" class="hidden"><div class="jbase"><span class="ja u">▲</span><span class="ja d">▼</span><span class="ja l">◀</span><span class="ja r">▶</span><div class="jknob"></div></div></div>
   <button id="abtn" class="hidden">對話</button>
 
-  <div id="dlg" class="frame hidden"><canvas id="dFace" width="104" height="104"></canvas><div id="dName"></div><div id="dText"></div><div id="dChoices"></div><div id="dNext">▼</div></div>
+  <div id="dlg" class="frame hidden"><canvas id="dFace" width="104" height="104"></canvas><div id="dName"></div><div id="dText"></div><div id="dChoices"></div><div id="dNext">▼</div><button id="dRead" title="唸給我聽">🔈</button></div>
 
   <div id="panel" class="frame hidden"></div>
 
@@ -398,9 +399,10 @@
     <div class="tcard frame">
       <div class="trow">
         <label>班級：<input id="inCls" maxlength="4" inputmode="numeric" placeholder="301"></label>
+        <label>座號：<input id="inSeat" maxlength="2" inputmode="numeric" placeholder="5" style="width:64px"></label>
         <label>暱稱：<input id="inName" maxlength="8" placeholder="例如：閃電小勇士"></label>
       </div>
-      <div class="tnote">🏆 排行榜會公開顯示「班級＋暱稱」，請不要使用真實姓名。</div>
+      <div class="tnote">🏆 排行榜會公開顯示「班級＋暱稱」，請不要使用真實姓名。💾 用「班級＋座號」分開存檔，同一台電腦可以給很多人玩。</div>
       <div class="terr" id="tErr"></div>
       <div style="margin-top:10px;font-weight:bold;font-size:18px">選擇造型：</div>
       <div id="looks"></div>
@@ -409,7 +411,7 @@
         <button class="big alt hidden" id="btnLoad">📂 繼續遊戲</button>
         <button class="big alt" id="btnBoardT">🏆 排行榜</button>
       </div>
-      <div class="topt"><button id="tMute">🔊 音效：開</button><button id="tSlow">🐢 地震反應時間：3 秒</button></div>
+      <div class="topt"><button id="tMute">🔊 音效：開</button><button id="tSlow">🐢 地震反應時間：3 秒</button><button id="tRead">🔈 自動朗讀：關</button><button id="tLite">🔋 省電模式：關</button><button id="tReport">📊 老師報表</button></div>
       <div class="help" id="tHelpKey">⌨️ 方向鍵 / WASD：移動　空白鍵 / Enter：對話、確定　Q：任務　B：道具　M：小地圖　R：排行榜<br>
         題目可按數字鍵 1～4 作答。</div>
       <div class="help hidden" id="tHelpTouch">👆 按住左下角的搖桿往想去的方向推就能走路，按右下角的「對話」鍵和人說話。<br>
@@ -2389,7 +2391,7 @@ function save(){
   if(!S) return;
   const pp = CEL ? CEL.p : P;   // 慶典時玩家被移到操場：存原本的位置
   S.x=pp.x; S.y=pp.y; S.dir=pp.dir;
-  try{ localStorage.setItem('campusGuardianSave', JSON.stringify(S)); }catch(e){}
+  try{ localStorage.setItem(S.seat ? seatKey(S.cls, S.seat) : 'campusGuardianSave', JSON.stringify(S)); }catch(e){}
 }
 function loadSave(){
   try{ const t = localStorage.getItem('campusGuardianSave'); const d = t ? JSON.parse(t) : null; return (d && typeof d==='object' && d.name) ? d : null; }catch(e){ return null; }
@@ -3031,7 +3033,7 @@ function clearHeld(){ for(const k in held) held[k]=false; order.length=0; }
 window.addEventListener('keydown', e=>{
   if(e.target.tagName==='INPUT'){
     // 只有標題畫面的「班級／暱稱」欄位按 Enter 才開新遊戲（避免在獎狀等其他輸入框誤觸、覆蓋進度）
-    if(e.key==='Enter' && scene==='title' && (e.target.id==='inCls'||e.target.id==='inName')){ e.preventDefault(); $('#btnNew').click(); }
+    if(e.key==='Enter' && scene==='title' && (e.target.id==='inCls'||e.target.id==='inName'||e.target.id==='inSeat')){ e.preventDefault(); $('#btnNew').click(); }
     return; }
   const k = KEYMAP[e.key];
   // 阻止空白鍵／Enter 觸發「目前聚焦的按鈕」，避免一次按鍵被執行兩次
@@ -3230,6 +3232,7 @@ function renderDlg(){
     }
     $('#dNext').style.display='none';
   } else { if(ch.childElementCount) ch.innerHTML=''; $('#dNext').style.display = done ? '' : 'none'; }
+  if(autoRead && DLG.spoken!==DLG.i){ DLG.spoken = DLG.i; speakZh(dlgSpeakText()); }   // 自動朗讀
 }
 // 接續的對話（選項或 onEnd 開的新對話）沿用同一位 NPC，避免會走動的老師講到一半走掉
 function keepNpc(npc){ if(npc && DLG && !DLG.npc) DLG.npc = npc; }
@@ -3244,7 +3247,7 @@ function advanceDlg(){
   }
   DLG.i++; DLG.shown=0; renderDlg(); sfx('talk');
 }
-function closeDlg(){ DLG=null; $('#dlg').classList.add('hidden'); $('#dChoices').innerHTML=''; }
+function closeDlg(){ if(autoRead){ try{ speechSynthesis.cancel(); }catch(e){} } DLG=null; $('#dlg').classList.add('hidden'); $('#dChoices').innerHTML=''; }
 function dialogKey(k){
   const last = DLG.i===DLG.lines.length-1 && DLG.shown>=DLG.lines[DLG.i].t.length;
   if(last && DLG.choices){
@@ -3258,6 +3261,7 @@ function dialogKey(k){
   if(k===' '||k==='Enter'||k==='e'||k==='E') advanceDlg();
 }
 $('#dlg').addEventListener('click', ()=>advanceDlg());
+$('#dRead').addEventListener('click', e=>{ e.stopPropagation(); speakZh(dlgSpeakText()); });
 
 /* ---------------- 任務面板 / 小地圖 ---------------- */
 function togglePanel(){
@@ -3265,7 +3269,7 @@ function togglePanel(){
   if(!p.classList.contains('hidden')){ const was=p.dataset.mode; p.classList.add('hidden'); p.dataset.mode=''; if(was==='quest') return; }
   clearHeld();
   p.dataset.mode = 'quest';
-  let h = `<h2>📋 守護者任務（${badgeCount()}/5）</h2>`;
+  let h = todayHTML() + `<h2>📋 守護者任務（${badgeCount()}/5）</h2>`;
   for(const k of TOPIC_KEYS){
     const T=TOPICS[k];
     h += `<div class="qrow"><span style="font-size:22px">${S.badges[k]?'✅':'⬜'}</span><b>${T.icon} ${T.name}</b><small>找 ${T.npc}｜📍${T.place}</small></div>`;
@@ -3298,7 +3302,7 @@ function togglePanel(){
   if($('#pCert')) $('#pCert').onclick = ()=>{ togglePanel(); showCert(); };
   if($('#pPerfect')) $('#pPerfect').onclick = ()=>{ togglePanel(); perfectCeremony(true); };
   $('#pDress').onclick = ()=>{ togglePanel(); openDresser(true); };
-  $('#pReset').onclick = ()=>{ if(confirm('確定要清除進度、回到標題畫面嗎？')){ try{ localStorage.removeItem('campusGuardianSave'); }catch(e){} location.reload(); } };
+  $('#pReset').onclick = ()=>{ if(confirm('確定要清除進度、回到標題畫面嗎？')){ try{ localStorage.removeItem(S.seat ? seatKey(S.cls, S.seat) : 'campusGuardianSave'); }catch(e){} location.reload(); } };
 }
 function toggleMini(){ showMini=!showMini; try{ localStorage.setItem('cgMini', showMini?'1':'0'); }catch(e){} $('#mini').classList.toggle('hidden', !showMini || scene==='title'); }
 $('#btnQuest').onclick = ()=>{ if(scene==='play' && !DLG && !QTE && !ESC) togglePanel(); };
@@ -3391,6 +3395,7 @@ const monCv = $('#moncv'), mctx = monCv.getContext('2d');
 const fxCv = $('#fxcv'), fctx = fxCv.getContext('2d');
 function battleTopic(topic, npc, practice){
   const T = TOPICS[topic];
+  if(todayLocked(topic)){ say([`老師今天指定的任務是：${TODAY.map(goalName).join('、')}。`, `先完成今天的任務，「${T.icon} ${T.name}」下次上課再來挑戰吧！`], {name:npc.name}); return; }
   const scored = !practice && !S.badges[topic];
   // 答了第一題才算「挑戰一次」，並立刻存檔（撤退不扣機會；重新整理也不能重來）
   startBattle({monster:T.monster, hp:5, hearts:3, pool:QUIZ[topic], tag:T.icon+' '+T.name, bg:T.bg, practice:!scored,
@@ -3625,7 +3630,7 @@ function resolveAnswer(ok, rightText){
     const heal = crit && combo%3===0 && BT.h < BT.hearts;
     if(heal){ BT.h++; setTimeout(()=>toast('💖 會心一擊！回復 1 顆愛心', true, 1800), 300); }
     const dmg = 1;
-    BT.mhp = Math.max(0, BT.mhp - dmg); BT.correct++; BT.hurt=0.5; sfx('ok'); if(!BT.practice) gainExp(10); delete S.wrong[BT.q.id];
+    BT.mhp = Math.max(0, BT.mhp - dmg); BT.correct++; qlog(BT.q.id, true); BT.hurt=0.5; sfx('ok'); if(!BT.practice) gainExp(10); delete S.wrong[BT.q.id];
     BT.shots.push({t:0, d:.28, crit}); // 從玩家飛向怪獸的能量星
     setTimeout(()=>{
       if(!BT || BT.id!==id) return;
@@ -3639,7 +3644,7 @@ function resolveAnswer(ok, rightText){
       sfx(crit?'crit':'hit');
     }, 280);
   } else {
-    BT.wrong++; BT.lastWrong = BT.q; S.wrong[BT.q.id] = true; sfx('bad'); BT.combo = 0;
+    BT.wrong++; qlog(BT.q.id, false); BT.lastWrong = BT.q; S.wrong[BT.q.id] = true; sfx('bad'); BT.combo = 0;
     if(BT.shield){ BT.shield = false; setTimeout(()=>toast('🔰 守護盾擋下了這次攻擊！', true, 1800), 250); } else BT.h--;
     const mb=$('#monBox'); mb.classList.remove('shake','enter','lunge'); void mb.offsetWidth; mb.classList.add('lunge');
     const id = BT.id;
@@ -3682,6 +3687,7 @@ function contBattle(){
 }
 function finishBattle(fled){
   try{ window.speechSynthesis && speechSynthesis.cancel(); }catch(e){}
+  setTimeout(sendStats, 1500);   // 上傳這場的答對、答錯紀錄（老師報表用）
   const b = BT; BT=null; scene='play'; clearHeld();
   $('#battle').classList.add('hidden');
   fctx.clearRect(0,0,800,576);
@@ -4134,6 +4140,7 @@ function useItem(k){
 }
 // 指南針指向：還沒拿到的徽章關主 → 校長
 function compassTarget(){
+  const tg = TODAY.find(k=>!goalDone(k)); if(tg){ const n = goalNpc(tg); if(n) return n; }   // 老師指定的今日任務優先
   for(const k of TOPIC_KEYS) if(!S.badges[k]){ const n=NPCS.find(o=>o.quest===k); if(n) return n; }
   if(!S.done) return NPCS.find(o=>o.id==='principal');
   // 破關後：指向還沒完成的校園任務
@@ -4758,6 +4765,127 @@ function cultOuter(g, L, cx, by, dir, side, bwx){   // 身體以外的部分：�
   if(id==='thai'){ g.fillStyle='#f4c542'; g.fillRect(cx-w0, by+20.6, w0*2, 1.4); }
 }
 
+/* ---------------- 🔈 朗讀：對話、告示牌、介紹卡 ---------------- */
+let autoRead = false; try{ autoRead = localStorage.getItem('cgAutoRead')==='1'; }catch(e){}
+function speakZh(text){
+  if(!window.speechSynthesis){ toast('這個瀏覽器不支援朗讀功能'); return; }
+  try{
+    speechSynthesis.cancel();
+    const t = String(text).replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}\u{200D}]/gu, '').replace(/[【】「」]/g, '，');
+    const u = new SpeechSynthesisUtterance(t); u.lang = 'zh-TW'; u.rate = .9;
+    const vs = speechSynthesis.getVoices(); const v = vs.find(v=>/zh[-_]TW/i.test(v.lang)) || vs.find(v=>/^zh/i.test(v.lang)); if(v) u.voice = v;
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+function dlgSpeakText(){
+  if(!DLG) return '';
+  const L = DLG.lines[DLG.i];
+  let t = (L.n ? L.n + '：' : '') + L.t;
+  if(DLG.i===DLG.lines.length-1 && DLG.choices) t += '。選項：' + DLG.choices.map((c,i)=>`第${i+1}個，${c.t}`).join('。');
+  return t;
+}
+
+/* ---------------- 📌 今日任務（老師可以用網址指定範圍，例如 ?today=disaster,traffic） ---------------- */
+const TODAY_OK = {disaster:1, traffic:1, gender:1, bully:1, rules:1, boss:1, dc:1, az:1, ct:1};
+const TODAY = (()=>{ try{ const p = new URLSearchParams(location.search).get('today'); return p ? [...new Set(p.split(/[,，\s]+/).filter(k=>TODAY_OK[k]))] : []; }catch(e){ return []; } })();
+const TODAY_NAME = {boss:'👑 打倒大魔王', dc:'🚒 防災闖關護照', az:'🌾 安定三寶小達人', ct:'🏫 3 個校園任務'};
+function todayGoals(){   // 老師有指定就照老師的；沒有就自動挑「接下來要做的 2 件事」
+  if(TODAY.length) return TODAY;
+  const g = TOPIC_KEYS.filter(k=>!S.badges[k]).slice(0, 2);
+  if(!g.length && !S.done) g.push('boss');
+  return g;
+}
+function goalName(k){ return TOPICS[k] ? `${TOPICS[k].icon} ${TOPICS[k].name}` : TODAY_NAME[k]; }
+function goalDone(k){
+  if(TOPICS[k]) return !!S.badges[k];
+  if(k==='boss') return !!S.done; if(k==='dc') return !!S.dpassDone; if(k==='az') return !!S.azDone;
+  if(k==='ct') return CT_KEYS.every(c=>S.ct.done[c]);
+  return true;
+}
+function goalNpc(k){
+  if(TOPICS[k]) return NPCS.find(n=>n.quest===k);
+  if(k==='boss') return NPCS.find(n=>n.id==='principal');
+  if(k==='dc') return NPCS.find(n=>n.id==='disaster');
+  if(k==='az') return NPCS.find(n=>n.id==='farmer2');
+  if(k==='ct'){ const m = {veg:'farmer', ball:'senior', tree:'nature'}, c = CT_KEYS.find(c=>!S.ct.done[c]); return c ? NPCS.find(n=>n.id===m[c]) : null; }
+  return null;
+}
+function todayLocked(topic){ return !!S && TODAY.length>0 && !TODAY.includes(topic) && !S.badges[topic] && !TODAY.every(goalDone); }
+function todayHTML(){
+  const g = todayGoals(); if(!g.length) return '';
+  return `<h3 style="margin-top:0">📌 今日任務${TODAY.length ? '（老師指定）' : ''}</h3><div class="qrow" style="flex-wrap:wrap;gap:6px">` +
+    g.map(k=>`<span class="chip" style="font-size:14px;${goalDone(k)?'':'background:#fff'}">${goalDone(k)?'✅':'⬜'} ${goalName(k)}</span>`).join('') +
+    `<small style="width:100%">${TODAY.length && !TODAY.every(goalDone) ? '先完成老師指定的任務，指南針會帶你去。' : '完成今日任務後，可以自由探索校園！'}</small></div>`;
+}
+function todayIntro(){
+  if(!S) return;
+  if(scene!=='play' || DLG || MG || QTE){ setTimeout(todayIntro, 1000); return; }
+  const g = todayGoals(); if(!g.length) return;
+  say([`📌 今日任務${TODAY.length ? '（老師指定）' : ''}：${g.map(k=>(goalDone(k)?'✅ ':'⬜ ')+goalName(k)).join('、')}`,
+       '用指南針（🎒 道具）或按 Q 看任務清單，就知道要去哪裡。完成今日任務後，可以自由探索校園！'], {name:'📌 今日任務'});
+}
+let todayWasDone = null;
+function todayCheck(){
+  if(!S || !TODAY.length) return;
+  const d = TODAY.every(goalDone);
+  if(todayWasDone===false && d){ toast('🎉 今日任務全部完成！現在可以自由探索校園了', true, 4500); sfx('badge'); }
+  todayWasDone = d;
+}
+setInterval(todayCheck, 1500);
+
+/* ---------------- 📊 老師報表：錯題統計（上傳到排行榜試算表的「錯題統計」） ---------------- */
+function qlog(id, ok){ if(!S || !id) return; S.qpend = S.qpend||{}; const a = S.qpend[id] = S.qpend[id]||[0,0]; a[ok?0:1]++; }
+function sendStats(){
+  if(!SCRIPT_URL || !S || !S.cls || !S.sid || !S.qpend || !Object.keys(S.qpend).length) return;
+  const send = S.qpend; S.qpend = {};
+  const back = ()=>{ S.qpend = S.qpend||{}; for(const k in send){ const a = S.qpend[k] = S.qpend[k]||[0,0]; a[0] += send[k][0]; a[1] += send[k][1]; } save(); };
+  const q = new URLSearchParams({action:'stats', pid:S.sid, cls:S.cls, ql:JSON.stringify(send)});
+  fetch(SCRIPT_URL, {method:'POST', body:q}).then(r=>r.json()).then(d=>{ if(d && d.ok && d.stats) save(); else back(); }).catch(back);
+}
+setInterval(sendStats, 90000);
+function showReport(){
+  const p = $('#panel'); p.dataset.mode = 'report'; p.classList.remove('hidden');
+  p.innerHTML = `<h2>📊 老師報表：錯題統計</h2>
+    <div class="btabs"><input id="rCls" maxlength="4" inputmode="numeric" placeholder="班級，例如 301（空白＝全校）" style="font:inherit;font-size:16px;padding:4px 8px;border:2px solid var(--ink);border-radius:8px;width:270px"><button class="cbtn" id="rGo">查詢</button></div>
+    <div id="rList" class="bmsg">輸入班級後按「查詢」，會列出學生最常答錯的題目，方便下一堂課複習。</div>
+    <div style="margin-top:10px"><button class="cbtn" id="rClose">關閉</button></div>`;
+  $('#rClose').onclick = ()=>{ p.classList.add('hidden'); p.dataset.mode=''; };
+  $('#rGo').onclick = ()=>{
+    const cls = ($('#rCls').value||'').replace(/\D/g,''), list = $('#rList');
+    if(!SCRIPT_URL){ list.textContent = '排行榜還沒有設定，請先依照「排行榜設定說明」完成設定。'; return; }
+    list.textContent = '查詢中……';
+    fetch(SCRIPT_URL + '?' + new URLSearchParams({action:'report', cls})).then(r=>r.json()).then(d=>{
+      if(!d || !d.report){ list.innerHTML = '排行榜後端還是舊版，還沒有錯題統計。<br>請老師依照「排行榜設定說明」的「更新後端」步驟，貼上新的 Code.gs 並重新部署。'; return; }
+      if(!d.report.length){ list.textContent = '還沒有足夠的作答紀錄（每題至少要有 3 次作答才會列出）。'; return; }
+      const byId = {}; for(const k of TOPIC_KEYS) for(const q of QUIZ[k]) byId[q.id] = q;
+      list.innerHTML = '<table class="btable"><tr><th>主題</th><th>題目</th><th>答錯</th><th>作答</th><th>答錯率</th></tr>' + d.report.map(r=>{
+        const q = byId[r.id]; if(!q) return ''; const T = TOPICS[r.id.split('_')[0]], n = r.r + r.w;
+        return `<tr><td>${T ? T.icon : ''}</td><td style="white-space:normal">${q.q}</td><td><b>${r.w}</b></td><td>${n}</td><td>${n ? Math.round(r.w/n*100) : 0}%</td></tr>`;
+      }).join('') + '</table><div class="bmsg" style="font-size:13px">依答錯次數排序（每題至少 3 次作答）。完整資料在排行榜試算表的「錯題統計」工作表。</div>';
+    }).catch(()=>{ list.textContent = '連線失敗，請稍後再試。'; });
+  };
+}
+
+/* ---------------- 🔋 省電模式（舊平板：每秒 30 張畫面、關掉雲、花瓣、飛鳥等裝飾） ---------------- */
+let lite = false; try{ lite = localStorage.getItem('cgLite')==='1'; }catch(e){}
+let liteSkip = false;
+
+/* ---------------- 💾 用「班級＋座號」分開存檔（共用電腦不會玩到別人的進度） ---------------- */
+function seatKey(cls, seat){ return `cgSave_${cls}_${seat}`; }
+function readSlot(key){ try{ const t = localStorage.getItem(key); const d = t ? JSON.parse(t) : null; return (d && typeof d==='object' && d.name) ? d : null; }catch(e){ return null; } }
+function titleSlot(){
+  const cls = ($('#inCls').value||'').replace(/\D/g,''), n = parseInt(($('#inSeat').value||'').replace(/\D/g,''), 10);
+  const seat = n>=1 && n<=99 ? String(n) : '';
+  const ok = /^\d{3,4}$/.test(cls) && !!seat;
+  return {cls, seat, ok, data: ok ? readSlot(seatKey(cls, seat)) : null};
+}
+function updateLoadBtn(){
+  const t = titleSlot(), b = $('#btnLoad'), old = loadSave();
+  if(t.data){ b.textContent = `📂 繼續遊戲（${t.data.name}）`; b.classList.remove('hidden'); }
+  else if(old){ b.textContent = `📂 繼續舊進度（${old.name}）`; b.classList.remove('hidden'); }
+  else b.classList.add('hidden');
+}
+
 /* ---------------- 標題畫面 ---------------- */
 /* 紙娃娃：快速造型 4 款＋自己打扮 */
 let lookSel = 0, custom = null;
@@ -4849,13 +4977,10 @@ function paintAvatar(cv, L, dir, scale, oy, step){
   window.__refreshMyTile = ()=>{ paintAvatar(my.querySelector('canvas'), composeLook(custom, custom.wear||{}), 'down', 2, 15); };
   window.__selectTile = select;
   custom = Object.assign({}, PRESETS[0]); select(0); __refreshMyTile();
-  const sv = loadSave();
-  if(sv){
-    $('#btnLoad').classList.remove('hidden'); if(sv.cls) $('#inCls').value = sv.cls; $('#inName').value = sv.name||'';
-    if(sv.custom){ custom = Object.assign({}, sv.custom); select(4); }
-    else { const i = PRESETS[sv.look] ? sv.look : 0; custom = Object.assign({}, PRESETS[i]); select(i); }
-    __refreshMyTile();
-  }
+  const sv = loadSave();   // 這台電腦上舊版（沒有座號）的進度
+  if(sv){ if(sv.cls) $('#inCls').value = sv.cls; $('#inName').value = sv.name||''; }
+  for(const id of ['#inCls','#inSeat']) $(id).addEventListener('input', updateLoadBtn);
+  updateLoadBtn();
 })();
 let dressDir = 0, dressBackup = null, dwBackup = null, dw = {}, dressTab = 'look', dressBg = 0, dressStep = 0, dressTimer = null;
 const DIRS4 = ['down','right','up','left'];
@@ -4888,7 +5013,7 @@ function renderDresser(){
     h += '<div class="dchips">' + `<button class="chip2${!custom.cult?' on':''}" data-cult="">不穿</button>` + CULT.map(c=>`<button class="chip2${custom.cult===c.id?' on':''}" data-cult="${c.id}">${c.flag} ${c.name}</button>`).join('') + '</div>';
     const cu = CULT_BY[custom.cult];
     if(cu && cu.colors) h += dLine('顏色', cu.colors.map(v=>`<button class="sw${(custom.cc||cu.shirt)===v?' on':''}" data-cc="${v}" style="background:${v}" aria-label="顏色"></button>`).join(''));
-    h += cu ? `<div class="cultcard"><b>${cu.flag} ${cu.name}</b>　<small>來自：${cu.from}</small><div>${cu.info}</div>${cu.hi ? `<div class="hi">👋 ${cu.hi}</div>` : ''}${cu.note ? `<small>${cu.note}</small>` : ''}</div>`
+    h += cu ? `<div class="cultcard"><b>${cu.flag} ${cu.name}</b>　<small>來自：${cu.from}</small><div>${cu.info}</div>${cu.hi ? `<div class="hi">👋 ${cu.hi}</div>` : ''}${cu.note ? `<small>${cu.note}</small>` : ''}<div><button class="chip2" data-say="1">🔈 唸給我聽</button></div></div>`
             : '<div class="dnote">選一套文化服裝，認識臺灣不同的族群和來自各國的新住民文化！所有服裝都免費，誰都可以穿。帽子、頭巾、花布包在「🎩 配件」裡可以另外穿脫。</div>';
   } else {
     if(!dressInGame) h += '<div class="dnote">開始遊戲後，就可以把喜歡的造型存起來，之後一鍵換裝！</div>';
@@ -4901,6 +5026,7 @@ function renderDresser(){
   box.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{ dressTab = b.dataset.tab; sfx('talk'); renderDresser(); box.querySelector('.dbody').scrollTop = 0; });
   box.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{ custom[b.dataset.k] = b.dataset.v; if(DRESS[b.dataset.k].tab==='wear') custom.cult = ''; sfx('talk'); renderDresser(); });
   box.querySelectorAll('[data-cult]').forEach(b=>b.onclick=()=>{ const id = b.dataset.cult; custom.cult = id; custom.cc = ''; const cu = CULT_BY[id]; if(cu && cu.acc){ const it = catItem(cu.acc); if(it) dw[it.slot] = cu.acc; } sfx('talk'); renderDresser(); });
+  box.querySelectorAll('[data-say]').forEach(b=>b.onclick=()=>{ const cu = CULT_BY[custom.cult]; if(cu) speakZh(`${cu.name}。來自${cu.from}。${cu.info}`); });
   box.querySelectorAll('[data-cc]').forEach(b=>b.onclick=()=>{ custom.cc = b.dataset.cc; sfx('talk'); renderDresser(); });
   box.querySelectorAll('[data-slot]').forEach(b=>b.onclick=()=>{ if(b.dataset.hint){ toast('🔒 ' + b.dataset.hint); sfx('warn'); return; } dw[b.dataset.slot] = b.dataset.id; sfx('talk'); renderDresser(); });
   box.querySelectorAll('canvas[data-o]').forEach(c=>{ const o = S.outfits[+c.dataset.o]; if(o) paintAvatar(c, composeLook(o.c, o.w), 'down', 2, 15); });
@@ -4947,6 +5073,7 @@ function startGame(data, isNew){
   if(S.hq.friend>=3){ const yu = NPCS.find(n=>n.id==='yu'); if(yu) yu.wander=[42,29,63,34]; }
   evT = 70; careT = 150; stuckT = 0; evBusy = false;
   if(new Date().getDay()===3) setTimeout(()=>toast('📢 今天是星期三，早上全校要到司令台前集合開朝會喔！', true, 4000), 3200);
+  todayWasDone = null; setTimeout(todayIntro, 2600);
   if(S.mapV!==4){ S.mapV=4; S.x=19; S.y=S.crossed?45:54; S.dir='up'; if(S.hq && !S.hq.done.exits) S.hq.exits = {}; }   // 換成新校園地圖（有 2F／3F）：舊存檔放回校門口，逃生指示牌重新找
   P.x = Number.isInteger(S.x) ? S.x : 19; P.y = Number.isInteger(S.y) ? S.y : 54;
   if(SOLID.has(tileAt(P.x,P.y)) || tileAt(P.x,P.y)==='='){ P.x=19; P.y=54; }
@@ -5001,21 +5128,25 @@ $('#btnNew').onclick = ()=>{
   const bad = nickProblem(name);
   if(bad){ err.textContent=bad; $('#inName').focus(); sfx('warn'); return; }
   err.textContent='';
-  const old = loadSave();
-  if(old && !confirm('開始新遊戲會覆蓋這台裝置上原本的進度，確定嗎？')) return;
+  const t = titleSlot();
+  if(!t.seat){ err.textContent='請輸入座號（1～99），用來分開存檔'; $('#inSeat').focus(); sfx('warn'); return; }
+  if(t.data && !confirm(`${cls} 班 ${t.seat} 號已經有進度（${t.data.name}），開始新遊戲會覆蓋它，確定嗎？`)) return;
   sfx('ok');
-  const ns = newSave(name, lookSel<4 ? lookSel : 0, cls); ns.custom = Object.assign({}, custom);
+  const ns = newSave(name, lookSel<4 ? lookSel : 0, cls); ns.seat = t.seat; ns.custom = Object.assign({}, custom);
   startGame(ns, true);
 };
 $('#btnLoad').onclick = ()=>{
-  const d=loadSave(); if(!d) return;
-  // 舊存檔沒有班級：用畫面上填的班級補上，才能上傳排行榜
-  if(!d.cls){
-    const cls = ($('#inCls').value||'').replace(/\D/g,'');
-    if(!/^\d{3,4}$/.test(cls)){ $('#tErr').textContent='這份進度還沒有班級，請先填好班級（例如 301）再按「讀取」'; $('#inCls').focus(); sfx('warn'); return; }
-    d.cls = cls; d.pendUp = true;
+  const t = titleSlot();
+  let d = t.data;
+  if(!d){   // 舊版存檔（沒有座號）：先填好班級和座號，搬到自己的存檔位置
+    d = loadSave(); if(!d) return;
+    if(!t.ok){ $('#tErr').textContent='請先填好班級和座號，再繼續舊進度'; (t.cls ? $('#inSeat') : $('#inCls')).focus(); sfx('warn'); return; }
+    if(!confirm(`要把這台電腦上的舊進度（${d.name}）存到 ${t.cls} 班 ${t.seat} 號嗎？`)) return;
+    if(!d.cls){ d.cls = t.cls; d.pendUp = true; }
+    d.seat = t.seat;
+    try{ localStorage.removeItem('campusGuardianSave'); }catch(e){}
   }
-  sfx('ok'); startGame(d,false); };
+  sfx('ok'); startGame(d,false); save(); };
 
 /* ---------------- 小遊戲：音樂教室鋼琴、電腦教室檔案打地鼠、防災中心滅火、美術教室畫畫、輔導室心情小花園 ----------------
    每個小遊戲第一次完成時給經驗 +10 和一個道具（只送一次，不計入守護積分）。 */
@@ -7348,7 +7479,7 @@ function render(){
     ctx.globalAlpha=1;
   }
   // 蝴蝶
-  for(const f of FX.flies){
+  if(!lite) for(const f of FX.flies){
     const fx = f.hx + Math.sin(f.p*.9)*40 + Math.sin(f.p*2.3)*10, fy = f.hy + Math.cos(f.p*.7)*24 - 6;
     const w = Math.abs(Math.sin(f.p*14))*4+1;
     ctx.fillStyle=f.c; ctx.strokeStyle=OL; ctx.lineWidth=1;
@@ -7369,7 +7500,7 @@ function render(){
     ctx.font='10px sans-serif'; ctx.fillText(ic, n.px+16-tw/2+9, n.py+41.5);
     ctx.font='bold 12px "Microsoft JhengHei",sans-serif'; ctx.fillStyle='#fff'; ctx.fillText(short, n.px+16+6, n.py+41.5);
     let mark = null;
-    if(S && n.quest && !S.badges[n.quest]) mark='!';
+    if(S && n.quest && !S.badges[n.quest] && !todayLocked(n.quest)) mark='!';
     if(S && n.id==='principal' && badgeCount()>=5 && !S.done) mark='★';
     if(mark){
       const by = n.py - 22 + Math.sin(T*5)*3;
@@ -7391,17 +7522,17 @@ function render(){
   }
   const AR = (S && scene!=='title') ? areaOf(P.x,P.y) : AREAS[0], upNow = AR!==AREAS[0];
   // 雲影、花瓣（在樓上看不到）
-  if(!upNow) for(const c of FX.clouds){ const gr=ctx.createRadialGradient(c.x,c.y,0,c.x,c.y,c.r); gr.addColorStop(0,'rgba(30,30,60,.10)'); gr.addColorStop(1,'rgba(30,30,60,0)'); ctx.fillStyle=gr; ctx.fillRect(c.x-c.r,c.y-c.r,c.r*2,c.r*2); }
-  if(!upNow) for(const p of FX.petals){ ctx.fillStyle=p.c; ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.s); ctx.beginPath(); ctx.ellipse(0,0,3,1.8,0,0,7); ctx.fill(); ctx.restore(); }
+  if(!upNow && !lite) for(const c of FX.clouds){ const gr=ctx.createRadialGradient(c.x,c.y,0,c.x,c.y,c.r); gr.addColorStop(0,'rgba(30,30,60,.10)'); gr.addColorStop(1,'rgba(30,30,60,0)'); ctx.fillStyle=gr; ctx.fillRect(c.x-c.r,c.y-c.r,c.r*2,c.r*2); }
+  if(!upNow && !lite) for(const p of FX.petals){ ctx.fillStyle=p.c; ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.s); ctx.beginPath(); ctx.ellipse(0,0,3,1.8,0,0,7); ctx.fill(); ctx.restore(); }
   // 飛鳥與地面影子
-  if(!upNow) for(const b of FX.birds){
+  if(!upNow && !lite) for(const b of FX.birds){
     ctx.fillStyle='rgba(30,20,50,.18)'; ctx.beginPath(); ctx.ellipse(b.x+50, b.y+90, 4, 1.6, 0, 0, 7); ctx.fill();
     const f = Math.sin(b.p)*4;
     ctx.strokeStyle='#3a3248'; ctx.lineWidth=1.8; ctx.lineCap='round';
     ctx.beginPath(); ctx.moveTo(b.x-6, b.y-f); ctx.quadraticCurveTo(b.x-3, b.y-2-f*.3, b.x, b.y); ctx.quadraticCurveTo(b.x+3, b.y-2-f*.3, b.x+6, b.y-f); ctx.stroke();
   }
   // 室內：外面變暗、室內打上暖色燈光
-  if(indoor.a>.01 && indoor.b){
+  if(indoor.a>.01 && indoor.b && !lite){
     const b=indoor.b, x=b.x1*TS, y=b.y1*TS, w=(b.x2-b.x1+1)*TS, h=(b.y2-b.y1+1)*TS;
     ctx.fillStyle=`rgba(20,16,40,${.4*indoor.a})`; ctx.beginPath(); ctx.rect(cam.x-4, cam.y-4, VW+8, VH+8); ctx.rect(x, y, w, h); ctx.fill('evenodd');
     ctx.save(); ctx.globalCompositeOperation='screen';
@@ -7429,6 +7560,7 @@ function render(){
 }
 function loop(now){
   requestAnimationFrame(loop);   // 先排下一幀：就算這一幀出錯，遊戲也不會整個凍住
+  if(lite){ liteSkip = !liteSkip; if(liteSkip) return; }   // 省電模式：每秒 30 張畫面
   const dt = Math.min(.05, (now-last)/1000); last = now;
   try{
     update(dt);
@@ -7471,10 +7603,15 @@ applyTouch();
 addEventListener('touchstart', applyTouch, {passive:true});
 $('#btnKeepPortrait').onclick = ()=>document.body.classList.add('keepPortrait');
 function setTitleOpts(){
+  $('#tRead').textContent = autoRead ? '🔈 自動朗讀：開' : '🔈 自動朗讀：關';
+  $('#tLite').textContent = lite ? '🔋 省電模式：開' : '🔋 省電模式：關';
   $('#tMute').textContent = muted ? '🔇 音效：關' : '🔊 音效：開';
   $('#tSlow').textContent = `🐢 地震反應時間：${QTE_TIME} 秒`;
 }
 $('#tMute').onclick = ()=>{ muted=!muted; try{ localStorage.setItem('cgMuted', muted?'1':'0'); }catch(e){} setMuteBtn(); setTitleOpts(); };
+$('#tRead').onclick = ()=>{ autoRead = !autoRead; try{ localStorage.setItem('cgAutoRead', autoRead?'1':'0'); }catch(e){} setTitleOpts(); sfx('talk'); if(autoRead) speakZh('自動朗讀開啟了，對話會自動唸出來。'); };
+$('#tLite').onclick = ()=>{ lite = !lite; try{ localStorage.setItem('cgLite', lite?'1':'0'); }catch(e){} setTitleOpts(); sfx('talk'); };
+$('#tReport').onclick = ()=>{ sfx('talk'); showReport(); };
 $('#tSlow').onclick = ()=>{ QTE_TIME = QTE_TIME===3 ? 6 : 3; try{ localStorage.setItem('cgSlow', QTE_TIME===6?'1':'0'); }catch(e){} setTitleOpts(); sfx('talk'); };
 setTitleOpts();
 </script>
