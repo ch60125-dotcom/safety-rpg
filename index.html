@@ -145,7 +145,18 @@
   .mytile canvas{display:block;border-style:dashed !important;background:radial-gradient(circle at 50% 40%,#fff6e0,#f6dca0) !important}
   .mytile span{position:absolute;left:50%;bottom:-6px;transform:translateX(-50%);white-space:nowrap;font-size:12px;font-weight:bold;background:var(--ink);color:#fff;border-radius:8px;padding:1px 7px}
   .mytile.sel canvas{border-style:solid !important;border-color:var(--ink) !important;box-shadow:0 0 0 3px var(--gold)}
-  #dresser{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:620px;padding:14px 20px;color:var(--ink);z-index:5;box-shadow:0 0 0 2000px rgba(10,15,35,.55),0 10px 30px rgba(0,0,0,.5)}
+  .dtabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+  .dbody{max-height:300px;overflow:auto;padding-right:4px}
+  .chip2.lock{opacity:.5;border-style:dashed}
+  .chip2:disabled{opacity:.4;cursor:default}
+  .dnote{font-size:14px;color:#7a6a5a;margin-top:6px}
+  .cultcard{margin-top:8px;background:#fff8e6;border:2px solid #e6d3a8;border-radius:10px;padding:8px 12px;font-size:15px;line-height:1.55}
+  .cultcard b{font-size:17px}
+  .cultcard .hi{margin-top:4px;color:#2e6b4f;font-weight:bold}
+  .dsaved{display:flex;gap:12px;flex-wrap:wrap}
+  .dslot{display:flex;flex-direction:column;align-items:center;gap:4px;background:#fff8e6;border:2px dashed #e6d3a8;border-radius:10px;padding:6px 8px}
+  .dslot canvas{border-radius:8px;background:radial-gradient(circle at 50% 40%,#f3fbe9,#c9e8b5)}
+  #dresser{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:700px;padding:14px 20px;color:var(--ink);z-index:5;box-shadow:0 0 0 2000px rgba(10,15,35,.55),0 10px 30px rgba(0,0,0,.5)}
   #dresser h3{margin:0 0 8px;font-size:22px}
   .dwrap{display:flex;gap:16px;align-items:flex-start}
   .dleft{text-align:center}
@@ -154,7 +165,7 @@
   .drot .cbtn{padding:2px 14px;font-size:18px}
   #dOpts{flex:1}
   .dline{display:flex;align-items:center;gap:10px;margin:5px 0;min-height:34px}
-  .dline b{width:42px;flex:none;font-size:16px}
+  .dline b{width:64px;flex:none;font-size:15px}
   .dchips{display:flex;flex-wrap:wrap;gap:6px}
   .sw{width:28px;height:28px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 2px #bba98a;cursor:pointer;padding:0}
   .sw.on{box-shadow:0 0 0 3px var(--ink),0 0 0 6px var(--gold)}
@@ -406,15 +417,15 @@
     </div>
   </div>
     <div id="dresser" class="frame hidden">
-      <h3>🎨 打扮我的角色</h3>
+      <h3>👕 我的衣櫥 <small style="font-size:14px;color:#7a6a5a">每個人都不一樣，做出最像你的樣子！</small></h3>
       <div class="dwrap">
         <div class="dleft">
           <canvas id="dPrev" width="150" height="170" title="點一下可以轉身"></canvas>
-          <div class="drot"><button class="cbtn" id="dRotL">↺</button><button class="cbtn" id="dRotR">↻</button></div>
+          <div class="drot"><button class="cbtn" id="dRotL" title="轉身">↺</button><button class="cbtn" id="dBg" title="換背景">🏫</button><button class="cbtn" id="dRotR" title="轉身">↻</button></div>
         </div>
         <div id="dOpts"></div>
       </div>
-      <div class="dbtns"><button class="big alt" id="dRand">🎲 隨機</button><button class="big alt" id="dCancel">取消</button><button class="big" id="dDone">✔ 完成</button></div>
+      <div class="dbtns"><button class="big alt" id="dRand">🎲 隨機</button><button class="big alt" id="dUndo">↩ 還原</button><button class="big alt" id="dCancel">取消</button><button class="big" id="dDone">✔ 完成</button></div>
     </div>
 </div>
 
@@ -721,6 +732,7 @@ function relayout(){
   facade(26,69,28,76,27,'英語B','【英語專科教室 B 234】現在沒有課。隔壁的英語專科教室 A 可以進去！','spec');
   facade(37,69,39,76,38,'自然高','【自然專科教室（高）232】現在沒有課。2 樓的自然專科教室可以進去看看！','spec');   // （29～36 是英語專科 A）
   stairs(40,69,76,'安萃','①',{});                   // （42～50 是圖書館）
+  map[73][43]='&';                                   // 🌏 多元文化書架（圖書館裡）
   // ---- 南耘樓 2F ----
   stairs(1,81,88,'南耘','⑥',{});
   toiletRoom(3,85,8,'⑨');                           // （9～20 是輔導處）
@@ -886,9 +898,9 @@ const EXTRA_TALK = {
   '3':'【洗眼器】藥品不小心噴到眼睛時，馬上到洗眼器用清水沖洗至少 15 分鐘，並告訴老師！'
 };
 
-const SOLID = new Set(['+','!','(',')','{','^','0','4','6','7','8','9','%','s','|','1','2','3','I','a','d','y','w','u','x','#','T','W','v','m','n','r','i','q','j','E','f','k','b','c','e','h','p','S','P','L','B','Y','C','U','V','G','O','N','J','X','R','K','M','A','H','Z']);
+const SOLID = new Set(['&','+','!','(',')','{','^','0','4','6','7','8','9','%','s','|','1','2','3','I','a','d','y','w','u','x','#','T','W','v','m','n','r','i','q','j','E','f','k','b','c','e','h','p','S','P','L','B','Y','C','U','V','G','O','N','J','X','R','K','M','A','H','Z']);
 const NPC_WALK = new Set(['.','_','t',',','F','o']);
-const BG = {'+':'.','!':'.','{':'.','^':'.','0':',','4':'#','5':',','6':',','7':',','8':',','9':',',s:',','|':',','1':',','2':',','3':',',I:',',a:',',d:',',T:'.',F:'.',f:'.',S:'.',P:'.',L:'_',k:',',c:',',e:',',h:',',p:',',b:'#',Q:'#',D:',',g:'_',B:',',Y:',',C:',',U:',',V:',',G:'.',O:',',m:'.',n:'.',r:'.',i:'_',x:'.',l:'.',y:'.',w:'.',u:'.',q:',',j:',',E:'.',N:',',J:',',X:',',R:'.',K:'.',M:',',A:',',H:',',Z:','};
+const BG = {'&':',','+':'.','!':'.','{':'.','^':'.','0':',','4':'#','5':',','6':',','7':',','8':',','9':',',s:',','|':',','1':',','2':',','3':',',I:',',a:',',d:',',T:'.',F:'.',f:'.',S:'.',P:'.',L:'_',k:',',c:',',e:',',h:',',p:',',b:'#',Q:'#',D:',',g:'_',B:',',Y:',',C:',',U:',',V:',',G:'.',O:',',m:'.',n:'.',r:'.',i:'_',x:'.',l:'.',y:'.',w:'.',u:'.',q:',',j:',',E:'.',N:',',J:',',X:',',R:'.',K:'.',M:',',A:',',H:',',Z:','};
 const BOOK_TIPS = [
   '📕《小心！陌生人》：不跟陌生人走、不吃陌生人給的東西、不告訴陌生人個人資料。',
   '📗《地震來了怎麼辦》：趴下、掩護、穩住！主震結束後，聽到「1 長 4 短」的哨音再疏散。',
@@ -1449,6 +1461,13 @@ function drawStatic(g,c,tx,ty){
       g.fillStyle='#8b939c'; if(left) g.fillRect(X+1,Y,3,TS); else g.fillRect(X+TS-4,Y,3,TS);
       if(top && left && hit){ g.lineWidth=1.5; circ(g, X+14, Y+13, 9, '#fff'); g.fillStyle='#2b2233'; g.font='bold 12px sans-serif'; g.textAlign='center'; g.textBaseline='middle'; g.fillText(hit.st.id, X+14, Y+13.5); }
       if(!top && !left){ g.fillStyle='#2e9d5b'; g.beginPath(); g.moveTo(X+8,Y+14); g.lineTo(X+16,Y+5); g.lineTo(X+24,Y+14); g.closePath(); g.fill(); }
+      break; }
+    case '&': { // 多元文化書架：彩色的書＋地球儀＋各國小旗子
+      g.fillStyle='rgba(0,0,0,.18)'; g.fillRect(X+3,Y+26,28,4);
+      rr(g, X+2, Y-6, 28, 33, 2, '#a0652e');
+      for(let r=0;r<3;r++){ g.fillStyle='#7a4a24'; g.fillRect(X+4, Y+3+r*9, 24, 1.5); for(let j=0;j<5;j++){ g.fillStyle=['#e25555','#3c8de0','#ffd447','#3cb371','#9b6bd6','#f0a030'][(r*5+j)%6]; g.fillRect(X+5+j*4.6, Y-3+r*9, 3.6, 6); } }
+      circ(g, X+16, Y-9, 4.5, '#4aa3df'); g.fillStyle='#4fb35a'; g.beginPath(); g.ellipse(X+15,Y-10,1.8,1.2,.4,0,7); g.fill();
+      for(const [dx,c1,c2] of [[4,'#da251d','#ffcd00'],[24,'#e70011','#fff']]){ g.fillStyle=c1; g.fillRect(X+dx, Y-12, 5, 2); g.fillStyle=c2; g.fillRect(X+dx, Y-10, 5, 2); g.fillStyle='#6b4a2a'; g.fillRect(X+dx-.6, Y-12, .8, 7); }
       break; }
     case '{': { // 曬胡麻的竹架＋倒立的胡麻稈
       g.fillStyle='rgba(0,0,0,.15)'; g.fillRect(X+3,Y+26,26,4);
@@ -2069,6 +2088,10 @@ function drawItem(g, it, hx, hy, cx, by, side){
     g.strokeStyle='#b48cff'; g.lineWidth=1.4; g.beginPath(); g.moveTo(hx,hy); g.lineTo(ex,ey); g.stroke();
     g.strokeStyle=OL; g.lineWidth=1; g.beginPath(); for(let j=0;j<10;j++){ const r=j%2?1.8:4.2, aa=-Math.PI/2+j*Math.PI/5; g.lineTo(ex+Math.cos(aa)*r, ey+Math.sin(aa)*r); } g.closePath(); g.fillStyle='#ffe066'; g.fill(); g.stroke();
     if(Math.sin(T*5)>.3){ g.fillStyle='#fff'; g.beginPath(); g.arc(ex+5, ey-4, .9, 0, 7); g.fill(); }
+  } else if(it==='flowerbag'){ // 客家花布包
+    g.strokeStyle='#8a2c3c'; g.lineWidth=1; g.beginPath(); g.moveTo(hx-2.5, hy-3); g.quadraticCurveTo(hx, hy-9, hx+2.5, hy-3); g.stroke(); g.strokeStyle=OL; g.lineWidth=1.1;
+    rr(g, hx-5, hy-3, 10, 8, 2, '#d62d2d');
+    for(const [dx,dy,c] of [[-2.5,-.5,'#ffd447'],[2,1,'#3cb371'],[-.5,3,'#fff'],[2.8,-1.5,'#ff8fb8']]){ g.fillStyle=c; g.beginPath(); g.arc(hx+dx, hy+dy, 1.1, 0, 7); g.fill(); }
   } else if(it==='heart' && !side){ // 愛心胸章（畫在胸口）
     const x=cx-3.6, y=by+15.5;
     g.beginPath(); g.moveTo(x, y+2.6); g.bezierCurveTo(x-4,y,x-2.2,y-3,x,y-1.2); g.bezierCurveTo(x+2.2,y-3,x+4,y,x,y+2.6); g.fillStyle='#ff4f8b'; g.fill(); g.lineWidth=.9; g.stroke();
@@ -2082,6 +2105,47 @@ function drawWings(g, cx, by, side){ // 天使翅膀
   if(side) wing(-1); else { wing(-1); wing(1); }
   g.restore();
 }
+function hairBack(g, L, cx, by, side, dir){   // 新髮型在頭後面的部分（及肩、爆炸頭、雙馬尾、雙辮子、辮子頭、捲髮）
+  const h = L.hair, s = L.hstyle;
+  const blob = (cs)=>{ g.beginPath(); for(const [x,y,r] of cs){ g.moveTo(x+r,y); g.arc(x,y,r,0,7); } g.lineWidth=2.2; g.strokeStyle=OL; g.stroke(); g.fillStyle=h; g.fill(); g.lineWidth=1.25; };
+  if(s==='bob'){ if(dir==='up') rr(g, cx-8.4, by+5, 16.8, 8, 4, h); else if(side) rr(g, cx-9.6, by+1.5, 11, 10.5, 5, h); else rr(g, cx-9.2, by+1, 18.4, 11.5, 5, h); }
+  if(s==='afro'){ const cs = []; for(let i=0;i<14;i++){ const a = i/14*Math.PI*2; cs.push([cx+Math.cos(a)*10.2, by+2.6+Math.sin(a)*9.6, 3.6]); } cs.push([cx, by+2.6, 10.6]); blob(cs); }
+  if(s==='curly'){ const cs = []; for(let i=0;i<9;i++){ const a = Math.PI*(-.1+i*.15); cs.push([cx+Math.cos(a)*9.2, by+4+Math.sin(a)*7.5, 3]); } blob(cs); }
+  if(s==='twin'){ const sides = side ? [-1] : [-1,1];
+    for(const k of sides){ const tx = cx+k*10.2; g.fillStyle=h; g.beginPath(); g.ellipse(tx, by+9, 3.2, 6.5, k*.15, 0, 7); g.fill(); g.stroke(); circ(g, cx+k*8.4, by+2.6, 1.6, '#ff6b8a'); } }
+  if(s==='braids'){ const sides = side ? [-1] : [-1,1];
+    for(const k of sides){ for(let j=0;j<5;j++){ g.fillStyle=h; g.beginPath(); g.ellipse(cx+k*8.2, by+7+j*2.8, 2.3, 1.8, 0, 0, 7); g.fill(); g.lineWidth=1; g.stroke(); } circ(g, cx+k*8.2, by+21, 1.4, '#ff6b8a'); } g.lineWidth=1.25; }
+  if(s==='locs'){ g.lineCap='round'; for(const k of (side ? [-8,-6,-4,-2] : [-8,-6,-4,4,6,8])){ g.strokeStyle=OL; g.lineWidth=3.2; g.beginPath(); g.moveTo(cx+k*.9, by+4); g.lineTo(cx+k*1.05, by+15); g.stroke(); g.strokeStyle=h; g.lineWidth=2; g.beginPath(); g.moveTo(cx+k*.9, by+4); g.lineTo(cx+k*1.05, by+15); g.stroke(); } g.strokeStyle=OL; g.lineWidth=1.25; }
+}
+function topDetail(g, L, cx, by, dir, side, bwx, coat){   // 上衣款式（POLO、襯衫、連帽衫、運動服）、外套、裙子、圍巾
+  const down = dir==='down';
+  g.save(); g.beginPath(); g.roundRect(cx-6.6-bwx, by+14, 13.2+bwx*2, 9.5, 4.5); g.clip();
+  if(coat){
+    if(L.season==='coat' && down){ g.fillStyle=L.shirt; g.fillRect(cx-1.6, by+14, 3.2, 9.5); g.fillStyle='#f4c542'; g.beginPath(); g.arc(cx-2.8,by+17,.7,0,7); g.arc(cx-2.8,by+20,.7,0,7); g.fill(); }
+    if(L.season==='raincoat'){ g.fillStyle='rgba(255,255,255,.35)'; g.fillRect(cx-5,by+15,1.4,7); if(down){ g.fillStyle='#d9a810'; g.fillRect(cx-.4,by+14,.8,9.5); } }
+  } else {
+    if(L.top==='cult') cultDetail(g, L, cx, by, dir, side, bwx);
+    if(L.top==='peB' || L.top==='peR'){ g.fillStyle='#fff'; g.fillRect(cx-8, by+16.4, 16, 3.6);
+      if(dir!=='up'){ g.fillStyle=L.shirt; g.font='bold 2.7px "Microsoft JhengHei",sans-serif'; g.textAlign='center'; g.textBaseline='middle'; g.fillText('南安', side ? cx+3 : cx+2.4, by+18.3); } }
+    if(L.top==='polo' && down){ g.fillStyle=lighten(L.shirt,.45); g.beginPath(); g.moveTo(cx-3.8,by+14); g.lineTo(cx,by+16.2); g.lineTo(cx-1.4,by+17.4); g.closePath(); g.moveTo(cx+3.8,by+14); g.lineTo(cx,by+16.2); g.lineTo(cx+1.4,by+17.4); g.closePath(); g.fill(); g.fillStyle=darken(L.shirt,.35); g.fillRect(cx-.4,by+16.6,.8,.8); g.fillRect(cx-.4,by+18.2,.8,.8); }
+    if(L.top==='shirt' && down){ g.fillStyle='#fff'; g.beginPath(); g.moveTo(cx-4,by+14); g.lineTo(cx,by+16.6); g.lineTo(cx-1.6,by+17.6); g.closePath(); g.moveTo(cx+4,by+14); g.lineTo(cx,by+16.6); g.lineTo(cx+1.6,by+17.6); g.closePath(); g.fill();
+      g.fillStyle=darken(L.shirt,.3); g.fillRect(cx-.3,by+16.6,.6,6); for(const yy of [18,20]){ g.beginPath(); g.arc(cx,by+yy,.5,0,7); g.fill(); } g.strokeStyle=darken(L.shirt,.3); g.lineWidth=.6; g.strokeRect(cx+2,by+17.4,2.6,2.4); g.strokeStyle=OL; }
+    if(L.top==='hoodie'){ if(down){ g.fillStyle=darken(L.shirt,.12); g.fillRect(cx-4,by+19,8,3); g.strokeStyle='#fff'; g.lineWidth=.6; g.beginPath(); g.moveTo(cx-1.4,by+14.4); g.lineTo(cx-1.6,by+18); g.moveTo(cx+1.4,by+14.4); g.lineTo(cx+1.6,by+18); g.stroke(); g.strokeStyle=OL; } }
+  }
+  g.restore();
+  if(L.top==='hoodie' && !coat){ g.lineWidth=1.1; if(dir==='up') rr(g, cx-5.6, by+12.6, 11.2, 7, 3, darken(L.shirt,.12)); else rr(g, cx-6.2, by+12.4, 12.4, 3.6, 1.8, darken(L.shirt,.12)); g.lineWidth=1.4; }   // 帽兜
+  if(L.bot==='skirt' || L.bot==='pleat' || L.bot==='long'){   // 裙子、百褶裙、長裙（紗龍、旗袍）
+    const lg = L.bot==='long', w0 = side ? 5 : 6.4+bwx, w1 = lg ? (side ? 5.4 : 6.6+bwx) : (side ? 6.6 : 8.4+bwx), yb = lg ? 28.2 : 26.2;
+    g.beginPath(); g.moveTo(cx-w0, by+20.6); g.lineTo(cx+w0, by+20.6); g.lineTo(cx+w1, by+yb); g.quadraticCurveTo(cx, by+yb+1.2, cx-w1, by+yb); g.closePath(); g.fillStyle=L.pants; g.fill(); g.stroke();
+    if(L.cult==='batik'){ g.strokeStyle='#4a2a14'; g.lineWidth=.6; for(const yy of [22.4,24.4,26.4]){ g.beginPath(); g.moveTo(cx-w1,by+yy); g.lineTo(cx+w1,by+yy); g.stroke(); } for(const k of [-.5,0,.5]){ g.beginPath(); g.moveTo(cx+k*w0,by+21); g.lineTo(cx+k*w1,by+yb); g.stroke(); } g.strokeStyle=OL; g.lineWidth=1.4; }
+    if(L.cult==='paiwan' || L.cult==='siraya'){ g.fillStyle='#c0392b'; g.fillRect(cx-w1+.6, by+yb-3, (w1-.6)*2, 1.6); if(L.cult==='paiwan') zigzag(g, cx-w1+.6, cx+w1-.6, by+yb-2.8, 1.2, '#ffd447'); g.strokeStyle=OL; g.lineWidth=1.4; }
+    if(L.cult==='amis'){ g.fillStyle='#fff'; g.fillRect(cx-w1+1, by+yb-2.4, (w1-1)*2, 1); g.fillStyle='#ffd447'; g.fillRect(cx-w1+1, by+yb-1.4, (w1-1)*2, .8); }
+    if(L.cult==='qipao' && !side){ g.strokeStyle=lighten(L.pants,.3); g.lineWidth=.7; g.beginPath(); g.moveTo(cx+w1-1.4, by+yb-4); g.lineTo(cx+w1-.8, by+yb); g.stroke(); g.strokeStyle=OL; g.lineWidth=1.4; }
+    if(L.bot==='pleat'){ g.strokeStyle=darken(L.pants,.35); g.lineWidth=.7; for(const k of [-.6,-.2,.2,.6]){ g.beginPath(); g.moveTo(cx+k*w0, by+21.2); g.lineTo(cx+k*w1, by+26.4); g.stroke(); } g.strokeStyle=OL; g.lineWidth=1.4; }
+  }
+  if(L.top==='cult') cultOuter(g, L, cx, by, dir, side, bwx);
+  if(L.season==='scarf'){ rr(g, cx-6.2, by+12.8, 12.4, 3.2, 1.4, '#e25555'); g.fillStyle='#fff'; g.fillRect(cx-3,by+13.2,1,2.4); g.fillRect(cx+2,by+13.2,1,2.4); if(dir!=='up') rr(g, cx+(side?-3.5:1.6), by+14.6, 3, 6, 1, '#e25555'); }
+}
 const BLINK = new WeakMap();
 function drawPerson(g, x, y, dir, L, step, still){
   const cx = x+16;
@@ -2093,7 +2157,10 @@ function drawPerson(g, x, y, dir, L, step, still){
   if(dir==='left'){ g.translate(2*cx,0); g.scale(-1,1); dir='right'; }
   const side = dir==='right';
   const by = y + (step ? -1 : 0);
-  const shoe = '#3b3044';
+  const shoe = L.shoeC || (L.shoe==='boots' ? '#ffd447' : L.shoe==='cloth' ? '#2b2233' : '#3b3044');
+  const bwx = L.body==='round' ? 1.2 : 0;                                                   // 圓潤身形：身體寬一點
+  const coat = L.season==='coat' ? '#8a5a3c' : L.season==='raincoat' ? '#ffd447' : null;   // 冬天外套、雨衣
+  const sleeve = coat || (L.top==='vest' ? L.skin : L.shirt);
   // Q 版比例：頭放大 1.22 倍（以原本的頭部座標繪製，再整體放大）
   const HS = 1.22;
   const headOn = ()=>{ g.save(); g.translate(cx, by+5.2); g.scale(HS,HS); g.translate(-cx, -(by+4.5)); g.lineWidth=1.4/HS*1.1; };
@@ -2107,27 +2174,33 @@ function drawPerson(g, x, y, dir, L, step, still){
     g.closePath(); g.fill(); g.stroke();
     g.restore();
   }
+  if(['bob','afro','twin','braids','locs','curly'].includes(L.hstyle)){ headOn(); hairBack(g, L, cx, by, side, dir); g.restore(); }   // 新髮型的後面部分
   // 腿與鞋（短短的腿）
   const l1 = step===1?3.5:5, l2 = step===2?3.5:5;
   const lx1 = side ? cx-4 : cx-5, lx2 = side ? cx : cx+1;
-  rr(g, lx1, by+22.5, 4, l1, 1, L.pants); rr(g, lx2, by+22.5, 4, l2, 1, L.pants);
-  rr(g, lx1-(side?0:.8), by+21.8+l1, side?6.5:5.6, 3.6, 1.8, shoe); rr(g, lx2-(side?0:.8), by+21.8+l2, side?6.5:5.6, 3.6, 1.8, shoe);
+  const legC = (L.bot==='shorts' || L.bot==='skirt' || L.bot==='pleat' || L.bot==='long') ? L.skin : L.pants;
+  rr(g, lx1, by+22.5, 4, l1, 1, legC); rr(g, lx2, by+22.5, 4, l2, 1, legC);
+  if(L.bot==='shorts'){ rr(g, lx1-.3, by+22, 4.6, 2.8, 1, L.pants); rr(g, lx2-.3, by+22, 4.6, 2.8, 1, L.pants); }
+  if(L.shoe==='boots'){ rr(g, lx1-(side?0:.5), by+20.4+l1, side?6:5, 5, 1.6, shoe); rr(g, lx2-(side?0:.5), by+20.4+l2, side?6:5, 5, 1.6, shoe); }
+  else { rr(g, lx1-(side?0:.8), by+21.8+l1, side?6.5:5.6, 3.6, 1.8, shoe); rr(g, lx2-(side?0:.8), by+21.8+l2, side?6.5:5.6, 3.6, 1.8, shoe);
+    if(L.shoe==='cloth'){ g.fillStyle='#f4f4f4'; g.fillRect(lx1-(side?0:.8), by+24.6+l1, side?6.5:5.6, .9); g.fillRect(lx2-(side?0:.8), by+24.6+l2, side?6.5:5.6, .9); } }
   g.fillStyle='rgba(255,255,255,.25)'; g.fillRect(lx1, by+22.4+l1, 2, 1); g.fillRect(lx2, by+22.4+l2, 2, 1);
   // 手臂（正面/背面）
   const sw = step ? (step===1?1.6:-1.6) : 0;
   if(!side){
-    rr(g, cx-10, by+15+sw, 3.8, 6.5, 1.8, L.shirt); circ(g, cx-8.1, by+21.7+sw, 2.1, L.skin);
-    rr(g, cx+6.2, by+15-sw, 3.8, 6.5, 1.8, L.shirt); circ(g, cx+8.1, by+21.7-sw, 2.1, L.skin);
+    rr(g, cx-10-bwx, by+15+sw, 3.8, 6.5, 1.8, sleeve); circ(g, cx-8.1-bwx, by+21.7+sw, 2.1, L.skin);
+    rr(g, cx+6.2+bwx, by+15-sw, 3.8, 6.5, 1.8, sleeve); circ(g, cx+8.1+bwx, by+21.7-sw, 2.1, L.skin);
   }
   if(L.wings && dir!=='up') drawWings(g, cx, by, side);
   if(L.pack && side) rr(g, cx-10.5, by+14.5, 5.5, 8.5, 2, '#ff8a3d');
   // 披風（背面以外：先畫在身體後面）
   if(L.cape && dir!=='up') rr(g, cx-8.5, by+13.5, 17, 12.5, 3, L.cape);
   // 身體（圓圓短短）
-  rr(g, cx-6.6, by+14, 13.2, 9.5, 4.5, L.shirt);
-  g.fillStyle=darken(L.shirt,.2); g.fillRect(cx-6, by+20.6, 12, 2.2);
+  rr(g, cx-6.6-bwx, by+14, 13.2+bwx*2, 9.5, 4.5, coat||L.shirt);
+  g.fillStyle=darken(coat||L.shirt,.2); g.fillRect(cx-6-bwx, by+20.6, 12+bwx*2, 2.2);
   g.fillStyle='rgba(255,255,255,.25)'; g.fillRect(cx-4.6, by+15.6, 3.4, 1.8);
   g.fillStyle='rgba(40,20,60,.14)'; g.fillRect(cx+3, by+16, 2.8, 4.4); // 背光側陰影
+  topDetail(g, L, cx, by, dir, side, bwx, coat);   // 上衣款式、裙子、圍巾
   if(L.pat){ // 商店衣服的花樣
     g.save(); g.beginPath(); g.roundRect(cx-6.6,by+14,13.2,9.5,4.5); g.clip(); const pc = L.patCol||'#fff';
     if(L.pat==='stripe'){ g.fillStyle=pc; for(const yy of [15.4,18,20.6]) g.fillRect(cx-7, by+yy, 14, 1.3); }
@@ -2144,7 +2217,7 @@ function drawPerson(g, x, y, dir, L, step, still){
   if(L.tie && dir==='down'){ g.fillStyle=L.tie; g.beginPath(); g.moveTo(cx-1.5,by+14.6); g.lineTo(cx+1.5,by+14.6); g.lineTo(cx+1,by+20); g.lineTo(cx,by+21.4); g.lineTo(cx-1,by+20); g.closePath(); g.fill(); }
   if(L.wings && dir==='up') drawWings(g, cx, by, false);
   if(L.cape && dir==='up'){ g.beginPath(); g.moveTo(cx-6.6,by+14); g.lineTo(cx+6.6,by+14); g.lineTo(cx+9,by+26); g.quadraticCurveTo(cx,by+28,cx-9,by+26); g.closePath(); g.fillStyle=L.cape; g.fill(); g.stroke(); g.fillStyle='rgba(255,255,255,.2)'; g.fillRect(cx-5,by+16,3,8); }
-  if(side){ rr(g, cx-2+sw*.8, by+15, 3.8, 6.5, 1.8, L.shirt); circ(g, cx+sw*.8, by+21.7, 2.1, L.skin); }
+  if(side){ rr(g, cx-2+sw*.8, by+15, 3.8, 6.5, 1.8, sleeve); circ(g, cx+sw*.8, by+21.7, 2.1, L.skin); }
   const itemArgs = [L.item, side ? cx+sw*.8 : cx+8.1, by+21.7 - (side?0:sw), cx, by, side];
   const itemAfterHead = L.item==='flag' || L.item==='baton' || L.item==='balloon' || L.item==='wand';
   if(L.item && dir!=='up' && !itemAfterHead) drawItem(g, ...itemArgs);
@@ -2154,7 +2227,10 @@ function drawPerson(g, x, y, dir, L, step, still){
   g.fillStyle='rgba(255,255,255,.18)'; g.beginPath(); g.ellipse(cx-3, by+8.5, 2.5, 1.5, -.3, 0, 7); g.fill();
   // 頭髮
   g.fillStyle=L.hair;
-  if(dir==='up'){
+  if(L.hstyle==='buzz'){   // 平頭：只留一層薄薄的頭髮
+    g.beginPath(); g.arc(cx, by+4.4, 8.9, Math.PI*1.06, Math.PI*1.94); g.closePath(); g.fill(); g.stroke();
+    g.fillStyle='rgba(255,255,255,.14)'; for(let i=0;i<6;i++) g.fillRect(cx-6+i*2.4, by-2.6+Math.abs(i-2.5)*.7, .8, 1.6);
+  } else if(dir==='up'){
     circ(g, cx, by+4.2, 9, L.hair);
     if(L.long) rr(g, cx-7, by+8, 14, 8, 4, L.hair);
   } else if(dir==='down'){
@@ -2164,6 +2240,12 @@ function drawPerson(g, x, y, dir, L, step, still){
     g.beginPath(); g.moveTo(cx-9,by+10); g.arc(cx,by+4.2,9,Math.PI,0); g.lineTo(cx+9,by+4);
     g.quadraticCurveTo(cx+3,by+1.5,cx-2,by+5); g.lineTo(cx-3,by+10); g.closePath(); g.fill(); g.stroke();
   }
+  if(L.hstyle==='bangs' && dir!=='up'){ g.fillStyle=L.hair;   // 齊瀏海
+    if(dir==='down'){ g.beginPath(); g.moveTo(cx-8.4,by+5.4); g.lineTo(cx-8.4,by+2); g.arc(cx,by+3.6,8.4,Math.PI,0); g.lineTo(cx+8.4,by+5.4); g.closePath(); g.fill(); g.stroke(); }
+    else { g.beginPath(); g.moveTo(cx-2,by+5.6); g.lineTo(cx+8.7,by+5); g.lineTo(cx+8.4,by-1); g.lineTo(cx-3,by-3); g.closePath(); g.fill(); } }
+  if(L.hstyle==='curly' || L.hstyle==='afro'){ g.fillStyle=L.hair;   // 捲捲的髮際線
+    for(let i=0;i<7;i++){ const a = Math.PI*(1.05+i*.15); g.beginPath(); g.arc(cx+Math.cos(a)*8.6, by+4.2+Math.sin(a)*8.6, 2.6, 0, 7); g.fill(); } }
+  if(L.hstyle==='locs'){ g.strokeStyle=darken(L.hair,.3); g.lineWidth=.8; for(const k of [-5,-2.5,0,2.5,5]){ g.beginPath(); g.moveTo(cx+k*.6, by-3.8); g.lineTo(cx+k, by+2); g.stroke(); } g.strokeStyle=OL; }
   if(L.bald){ g.fillStyle=L.skin; g.beginPath(); g.ellipse(cx, by-0.5, 5.5, 4, 0, Math.PI, 0); g.fill(); }
   if(L.hstyle==='spiky'){ // 刺刺頭
     g.fillStyle=L.hair; g.beginPath();
@@ -2183,21 +2265,35 @@ function drawPerson(g, x, y, dir, L, step, still){
   }
   g.strokeStyle=lighten(L.hair,.4); g.lineWidth=1.5; g.beginPath(); g.arc(cx-1, by+2.5, 5.5, Math.PI*1.15, Math.PI*1.45); g.stroke();
   if(dir!=='up'){ g.fillStyle='rgba(255,255,255,.45)'; g.beginPath(); g.ellipse(cx+3.5, by-1.2, 1.6, .8, -.4, 0, 7); g.fill(); }
+  if(L.hijab){   // 頭巾：包住頭髮，露出臉
+    g.fillStyle='#5b8fb9'; g.beginPath();
+    if(dir==='up'){ g.arc(cx, by+4.6, 10, 0, 7); }
+    else if(side){ g.arc(cx-1, by+4.6, 10, 0, 7); g.moveTo(cx+8.6, by+7.4); g.ellipse(cx+4.2, by+7.4, 4.4, 5.4, 0, 0, 7); }
+    else { g.arc(cx, by+4.6, 10.2, 0, 7); g.moveTo(cx+6.6, by+7.6); g.ellipse(cx, by+7.6, 6.6, 5.8, 0, 0, 7); }
+    g.fill('evenodd'); g.strokeStyle=OL; g.lineWidth=1.1; g.stroke();
+    g.fillStyle='rgba(255,255,255,.18)'; g.beginPath(); g.ellipse(cx-4, by-1.5, 3, 1.6, -.4, 0, 7); g.fill();
+  }
   g.strokeStyle=OL; g.lineWidth=1.25;
   // 臉
   // 大眼睛：深色眼珠＋兩個亮點
+  const ek = L.eye==='big' ? 1.25 : 1;   // 大眼
   const eye = (ex, ey)=>{
     if(blink){ g.strokeStyle=OL; g.lineWidth=1.1; g.beginPath(); g.moveTo(ex-1.5,ey+.6); g.quadraticCurveTo(ex,ey+1.6,ex+1.5,ey+.6); g.stroke(); return; }
-    g.fillStyle=OL; g.beginPath(); g.ellipse(ex, ey, 1.65, 2.3, 0, 0, 7); g.fill();
-    g.fillStyle='#5a4a7a'; g.beginPath(); g.ellipse(ex, ey+1, 1.1, 1, 0, 0, 7); g.fill();
-    g.fillStyle='#fff'; g.beginPath(); g.arc(ex-.55, ey-.9, .75, 0, 7); g.fill(); g.beginPath(); g.arc(ex+.6, ey+1.1, .35, 0, 7); g.fill();
+    if(L.eye==='smile'){ g.strokeStyle=OL; g.lineWidth=1.2; g.beginPath(); g.moveTo(ex-1.7,ey+.8); g.quadraticCurveTo(ex,ey-1.3,ex+1.7,ey+.8); g.stroke(); return; }   // 瞇瞇眼
+    g.fillStyle=OL; g.beginPath(); g.ellipse(ex, ey, 1.65*ek, 2.3*ek, 0, 0, 7); g.fill();
+    g.fillStyle='#5a4a7a'; g.beginPath(); g.ellipse(ex, ey+1*ek, 1.1*ek, 1*ek, 0, 0, 7); g.fill();
+    g.fillStyle='#fff'; g.beginPath(); g.arc(ex-.55*ek, ey-.9*ek, .75*ek, 0, 7); g.fill(); g.beginPath(); g.arc(ex+.6*ek, ey+1.1*ek, .35*ek, 0, 7); g.fill();
   };
   if(dir==='down'){
     eye(cx-3.5, by+7); eye(cx+3.5, by+7);
     g.fillStyle='rgba(255,110,120,.5)'; g.beginPath(); g.ellipse(cx-5.6,by+9.8,1.9,1.1,0,0,7); g.ellipse(cx+5.6,by+9.8,1.9,1.1,0,0,7); g.fill();
     g.strokeStyle=darken(L.skin,.5); g.lineWidth=.9; g.beginPath(); g.moveTo(cx-1,by+10.4); g.quadraticCurveTo(cx,by+11.4,cx+1,by+10.4); g.stroke();
     if(L.mustache){ g.fillStyle=L.mustache; g.beginPath(); g.ellipse(cx-1.7,by+9.6,2,.9,.2,0,7); g.ellipse(cx+1.7,by+9.6,2,.9,-.2,0,7); g.fill(); }
+    if(L.face==='freckle'){ g.fillStyle='rgba(150,90,50,.75)'; for(const [dx,dy] of [[-5.8,8.6],[-4.5,9.7],[-6.7,9.9],[5.8,8.6],[4.5,9.7],[6.7,9.9]]){ g.beginPath(); g.arc(cx+dx,by+dy,.45,0,7); g.fill(); } }
+    if(L.face==='blush'){ g.fillStyle='rgba(255,80,120,.45)'; g.beginPath(); g.ellipse(cx-5.6,by+9.8,2.6,1.5,0,0,7); g.ellipse(cx+5.6,by+9.8,2.6,1.5,0,0,7); g.fill(); }
   } else if(side){
+    if(L.face==='freckle'){ g.fillStyle='rgba(150,90,50,.75)'; for(const [dx,dy] of [[4.4,9],[5.6,9.9],[3.6,10]]){ g.beginPath(); g.arc(cx+dx,by+dy,.45,0,7); g.fill(); } }
+    if(L.face==='blush'){ g.fillStyle='rgba(255,80,120,.45)'; g.beginPath(); g.ellipse(cx+5.2,by+9.9,2.3,1.4,0,0,7); g.fill(); }
     if(L.mustache){ g.fillStyle=L.mustache; g.beginPath(); g.ellipse(cx+6,by+9.7,1.8,.8,0,0,7); g.fill(); }
     eye(cx+4.3, by+7);
     g.fillStyle='rgba(255,110,120,.5)'; g.beginPath(); g.ellipse(cx+5.2,by+9.9,1.6,1,0,0,7); g.fill();
@@ -2206,6 +2302,12 @@ function drawPerson(g, x, y, dir, L, step, still){
   g.strokeStyle=OL; g.lineWidth=1.1;
   if(L.shades && dir!=='up'){ if(dir==='down'){ rr(g, cx-6.6, by+4.9, 5.8, 4.2, 1.6, '#1d1824'); rr(g, cx+.8, by+4.9, 5.8, 4.2, 1.6, '#1d1824'); g.fillStyle='#1d1824'; g.fillRect(cx-1,by+6,2,.9); g.fillStyle='rgba(255,255,255,.55)'; g.fillRect(cx-5.4,by+5.6,1.6,1); g.fillRect(cx+2,by+5.6,1.6,1); } else rr(g, cx+2, by+4.9, 6.6, 4.2, 1.6, '#1d1824'); }
   if(L.glasses && dir!=='up'){ if(dir==='down'){ g.strokeRect(cx-6,by+4.8,5,4.4); g.strokeRect(cx+1,by+4.8,5,4.4); g.beginPath(); g.moveTo(cx-1,by+6.5); g.lineTo(cx+1,by+6.5); g.stroke(); } else g.strokeRect(cx+2,by+4.8,6,4.4); }
+  if(L.mask && dir!=='up'){   // 口罩
+    if(dir==='down') rr(g, cx-4.8, by+8.3, 9.6, 4.4, 1.8, '#f4f8fb'); else rr(g, cx+2.2, by+8.3, 6, 4.4, 1.8, '#f4f8fb');
+    g.strokeStyle='rgba(120,140,160,.8)'; g.lineWidth=.6; g.beginPath(); if(dir==='down'){ g.moveTo(cx-4.8,by+9.5); g.lineTo(cx-8,by+7); g.moveTo(cx+4.8,by+9.5); g.lineTo(cx+8,by+7); } else { g.moveTo(cx+2.2,by+9.5); g.lineTo(cx-1,by+7); } g.stroke(); g.strokeStyle=OL; }
+  if(L.season==='raincoat' && !L.hat && !L.ears){   // 雨衣的帽子
+    g.strokeStyle='#ffd447'; g.lineWidth=3.4; g.beginPath(); g.arc(cx, by+4.4, 9.4, Math.PI*.9, Math.PI*2.1); g.stroke();
+    g.strokeStyle=OL; g.lineWidth=1; g.beginPath(); g.arc(cx, by+4.4, 11.1, Math.PI*.92, Math.PI*2.08); g.stroke(); }
   g.lineWidth=1.25;
   // 帽子
   if(L.hat==='cap'){
@@ -2227,6 +2329,12 @@ function drawPerson(g, x, y, dir, L, step, still){
     g.beginPath(); for(let j=0;j<10;j++){ const r=j%2?1.8:4, a=-Math.PI/2+j*Math.PI/5; g.lineTo(sx+Math.cos(a)*r, sy+Math.sin(a)*r); } g.closePath();
     g.fillStyle='#ffe066'; g.fill(); g.lineWidth=1; g.stroke();
   }
+  if(L.hat==='nonla'){ // 越南斗笠（淺色，綁帶在下巴）
+    if(dir!=='up'){ g.strokeStyle='#c0392b'; g.lineWidth=.8; g.beginPath(); g.moveTo(cx-6, by+3.4); g.quadraticCurveTo(cx-2, by+12.5, cx+1, by+12.4); g.stroke(); g.strokeStyle=OL; g.lineWidth=1.25; }
+    g.beginPath(); g.moveTo(cx-14.5, by+3.4); g.lineTo(cx, by-10); g.lineTo(cx+14.5, by+3.4); g.quadraticCurveTo(cx, by+7.4, cx-14.5, by+3.4); g.closePath(); g.fillStyle='#f4ead0'; g.fill(); g.stroke();
+    g.strokeStyle='rgba(170,140,80,.5)'; g.lineWidth=.8; for(const k of [-4,4]){ g.beginPath(); g.moveTo(cx+k*2.4, by+1.2); g.lineTo(cx+k*3.1, by+4.6); g.stroke(); } g.strokeStyle=OL; g.lineWidth=1.25;
+  }
+  if(L.hat==='songkok'){ rr(g, cx-7.8, by-5.6, 15.6, 7.4, 1.6, '#1d1d24'); g.fillStyle='rgba(255,255,255,.16)'; g.fillRect(cx-6, by-4.4, 2.6, 5); }   // 宋谷帽
   if(L.hat==='douli'){ // 斗笠
     g.beginPath(); g.moveTo(cx-14, by+3); g.lineTo(cx, by-9); g.lineTo(cx+14, by+3); g.quadraticCurveTo(cx, by+7, cx-14, by+3); g.closePath(); g.fillStyle='#e8c87a'; g.fill(); g.stroke();
     g.strokeStyle='rgba(140,100,40,.55)'; g.lineWidth=1; for(const k of [-6,0,6]){ g.beginPath(); g.moveTo(cx, by-8); g.lineTo(cx+k*2, by+4); g.stroke(); } g.strokeStyle=OL; g.lineWidth=1.25;
@@ -2537,6 +2645,9 @@ addNPC({id:'clean', x:6, y:26, name:'衛生組長 許組長',
         [['在衣服上擦一擦就好','衣服上也有細菌喔！要用肥皂洗手才乾淨。'],['不用洗，手看起來很乾淨','細菌用眼睛看不到，還是要用肥皂洗手喔！']],
         '答對了！勤洗手，病菌不上手！', 'heal', 'clean', '辛苦了！這個「愛心飯糰」給你補充體力！')});
   }});
+addNPC({id:'ruan', x:47, y:74, name:'新住民家長志工 阮媽媽', dir:'down',
+  look:{skin:'#e8b98f',hair:'#1f1f1f',shirt:'#e8578a',pants:'#fafafa',long:true,top:'cult',cult:'aodai',bot:'pants'},
+  talk(n){ say(['Xin chào！我是阮媽媽，從越南來到臺灣，現在是學校的家長志工。','在越南，大家見面會說「Xin chào」，就是「你好」的意思。','學校裡有來自不同國家、不同族群的家庭，大家互相認識、彼此尊重，學校就會更多元、更有趣！','你可以打開「我的衣櫥」的「🌏 文化服裝」，試穿越南的奧黛，還有其他國家和族群的衣服喔！旁邊的「多元文化書架」也有介紹。'], {name:n.name}); }});
 addNPC({id:'farmer2', x:10, y:41, name:'安定區農會 蔡阿伯', dir:'left',
   look:{skin:'#c98e62',hair:'#8a8a8a',shirt:'#3cb371',pants:'#4a4a3a',hat:'douli',mustache:'#9a9a9a'},
   talk(n){ azTalk(n); }});
@@ -3032,6 +3143,7 @@ function facingTarget(){
   if(c==='w') return {faucet:true, x:ax, y:ay};
   if(c==='u' && S.ct.ball>=3) return {board:true, x:ax, y:ay};
   if(c==='0') return {drill:true, x:ax, y:ay};
+  if(c==='&') return {mcb:true, x:ax, y:ay};
   if(c==='{' || c==='(') return {az:'sesame', x:ax, y:ay};
   if(c===')') return {az:'asp', x:ax, y:ay};
   if(c==='^') return {az:'soap', x:ax, y:ay};
@@ -3058,6 +3170,7 @@ function interact(){
   else if(t.stair) stairDialog(t.stair);
   else if(t.dmap) dcMapWall();
   else if(t.az) azPrompt(t.az);
+  else if(t.mcb){ S.mcI = ((S.mcI||0) + 1) % CULT.length; const cu = CULT[S.mcI]; say(['你從「多元文化書架」拿了一本書……', `${cu.flag} 【${cu.name}】（${cu.from}）${cu.info}`, ...(cu.hi ? [`👋 ${cu.hi}`] : []), '（打開「我的衣櫥」的「🌏 文化服裝」，可以試穿這套衣服喔！）'], {name:'🌏 多元文化書架'}); }
   else if(t.smoke) say(['這是「濃煙逃生走廊」，裡面充滿模擬的煙霧。要進去練習逃生嗎？'], {name:'🌫️ 濃煙逃生走廊', choices:[{t:'🌫️ 進去練習', f:()=>startMini('smoke')},{t:'先不用了'}]});
   else if(t.call) say(['電話旁邊貼著：「119 消防救護專線，不可以惡作劇！」要練習打 119 報案嗎？'], {name:'☎️ 119 報案電話', choices:[{t:'☎️ 來練習報案', f:()=>startMini('call')},{t:'先不用了'}]});
   else if(t.bag) say(['桌上放著一個空的防災避難包和一堆東西。要來幫忙打包嗎？'], {name:'🎒 防災避難包', choices:[{t:'🎒 來打包', f:()=>startMini('bag')},{t:'先不用了'}]});
@@ -3172,11 +3285,7 @@ function togglePanel(){
   const MG_LIST = [['mg_piano','🎹 彈鋼琴','安萃樓 3F 音樂教室的鋼琴'],['mg_drum','🥁 打鼓節奏','音樂教室的鼓'],['mg_recorder','🎶 吹直笛','音樂教室的直笛架'],['mg_cloze','🔤 英語填空','安萃樓 3F 英語教室的白板'],['mg_match','🃏 單字配對','英語教室的單字圖卡'],['mg_lab','🧪 實驗室安全','安萃樓 2F 自然專科教室'],['mg_art','🎨 畫畫','安萃樓 2F 藝術教室的畫架'],['mg_whack','📂 檔案打地鼠','1F 電腦教室的電腦'],['mg_fire','🧯 滅火練習','防災教育中心（榕樹區旁）的滅火器'],['mg_quake','🌏 地震模擬','防災教育中心的地震平台'],['mg_firesim','🔥 火災模擬','防災教育中心的火災情境體驗區'],['mg_smoke','🌫️ 濃煙逃生走廊','防災教育中心的走廊入口'],['mg_call','☎️ 119 報案','防災教育中心的電話亭'],['mg_bag','🎒 防災避難包','防災教育中心的避難包桌'],['mg_calm','🌱 心情小花園','南耘樓 2F 輔導處的沙發'],['mg_pot','🏺 投壺','小孔廟'],['mg_sesame','🌾 打胡麻','安定三寶田的曬胡麻竹架'],['mg_asp','🌱 清晨採蘆筍','安定三寶田的蘆筍田'],['mg_soap','🧼 無患子搓泡泡','安定三寶田的無患子樹']];
   h += `<h3>🎮 小遊戲（${MG_LIST.filter(g=>S.gift[g[0]]).length}/${MG_LIST.length}，不計分，第一次完成有小禮物）</h3>`;
   for(const [k,n,w] of MG_LIST) h += `<div class="qrow"><span style="font-size:22px">${S.gift[k]?'✅':'⬜'}</span><b>${n}</b><small>📍面向${w}，按${TOUCH?'「對話」鍵':'空白鍵'}</small></div>`;
-  const owned = Object.keys(ACC).filter(a=>HQ_KEYS.some(k=>S.hq.done[k] && HQ[k].reward===a) || (a==='gold' && S.perfect) || (a==='firecap' && S.dpassDone) || (a==='douli' && S.azDone));
-  if(owned.length){
-    h += `<h3>👕 我的造型</h3><div><button class="cbtn acc ${!S.acc?'on':''}" data-a="">不穿戴</button>` +
-         owned.map(a=>`<button class="cbtn acc ${S.acc===a?'on':''}" data-a="${a}">${ACC[a].name}</button>`).join('') + '</div>';
-  }
+  h += `<h3>👕 我的造型</h3><div class="qrow"><small>任務拿到的帽子、披風，和商店買的衣服，都在「我的衣櫥」裡換穿。</small></div>`;
   h += `<div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
     <button class="cbtn" id="pClose">關閉</button>
     <button class="cbtn" id="pDress">🎨 換裝</button>
@@ -3363,7 +3472,7 @@ function endCelebrate(){
   P.x=CEL.p.x; P.y=CEL.p.y; P.px=P.x*TS; P.py=P.y*TS; P.dir=CEL.p.dir;
   const perfect = CEL.perfect, replay = CEL.replay;
   CEL=null; scene='play'; checkZone();
-  if(perfect && !replay){ S.perfect = true; S.acc = 'gold'; refreshLook(); save(); updateHUD(); toast('🌟 獲得稱號「完美守護者」和造型「✨ 完美守護者金披風」！', true, 4500); }
+  if(perfect && !replay){ S.perfect = true; grantAcc('gold'); refreshLook(); save(); updateHUD(); toast('🌟 獲得稱號「完美守護者」和造型「✨ 完美守護者金披風」！', true, 4500); }
   else save();
   showCert();
   if(!perfect) setTimeout(tryPerfect, 500);   // 大魔王是最後一項時：關掉獎狀後接著舉行完美典禮
@@ -4090,7 +4199,7 @@ function hqDiscover(k){
 function hqComplete(k){
   if(S.hq.done[k]) return;
   S.hq.seen[k] = true; S.hq.done[k] = true;
-  const a = HQ[k].reward; S.acc = a; refreshLook(); addCoins(30, '隱藏任務');
+  const a = HQ[k].reward; grantAcc(a); refreshLook(); addCoins(30, '隱藏任務');
   save(); updateHUD(); sfx('win'); submitScore();
   toast(`🎉 完成隱藏任務「${HQ[k].name}」！獲得造型「${ACC[a].name}」，積分 +${HQ_POINTS}`, true, 4500);
   // 隱藏任務改成只送造型和積分（道具太多，挑戰就沒有緊張感）；完成第 3 個時送一個守護盾
@@ -4111,7 +4220,7 @@ function fixProgress(){
   const R = {3:['hint',1], 5:['hint',1], 7:['shield',1]};
   for(const l in R) if(level()>=+l) giveItem(R[l][0], R[l][1], 'lv'+l);
 }
-function refreshLook(){ P.look = Object.assign({}, baseLook(), wearLook(), (S.acc && ACC[S.acc]) ? ACC[S.acc].look : {}); }   // 基本造型 → 商店服裝 → 任務造型
+function refreshLook(){ P.look = composeLook(S.custom || PRESETS[S.look] || PRESETS[0], S.wear||{}); }   // 基本造型＋配件格（商店、任務、基本款）
 function hqStep(){ // 走到某格時檢查
   const key = P.x+','+P.y;
   if(TRASH.some(([x,y])=>x===P.x&&y===P.y) && !S.hq.trash[key]){
@@ -4596,31 +4705,133 @@ function sfx(kind){
   }catch(e){}
 }
 
+/* ---------------- 🌏 文化服裝（免費，誰都可以穿） ---------------- */
+const CULT = [
+  {id:'aodai',  flag:'🇻🇳', name:'越南 奧黛',     shirt:'#e8578a', pants:'#fafafa', bot:'pants', colors:['#e8578a','#f4f4f4','#3c8de0','#ffd447','#3cb371','#9b6bd6'], acc:'nonla',
+   from:'越南', info:'越南的傳統長衫，兩側開衩，搭配寬鬆的長褲，男生女生都可以穿。常在節慶、婚禮和典禮時穿，再戴上斗笠。', hi:'越南語：Xin chào（你好）'},
+  {id:'batik',  flag:'🇮🇩', name:'印尼 巴迪克',   shirt:'#d9973a', pants:'#7a4a24', bot:'long',
+   from:'印尼', info:'巴迪克是用蠟染做出花紋的布，2009 年被聯合國教科文組織列為人類非物質文化遺產。下身的紗龍是一塊圍起來穿的布。', hi:'印尼語：Selamat pagi（早安）', acc:'songkok'},
+  {id:'thai',   flag:'🇹🇭', name:'泰國 傳統服',   shirt:'#7a3fa8', pants:'#c9a24a', bot:'long',
+   from:'泰國', info:'泰國的傳統服裝，有斜披在肩上的披肩，和圍成長裙的布，腰間繫著金色腰帶。節慶、典禮時穿，見面時會雙手合掌打招呼。', hi:'泰語：Sawasdee（你好）'},
+  {id:'barong', flag:'🇵🇭', name:'菲律賓 巴隆',   shirt:'#f3ead2', pants:'#2b2233', bot:'pants',
+   from:'菲律賓', info:'巴隆是菲律賓正式場合穿的薄紗繡花上衣，常用鳳梨葉纖維等布料製作，穿的時候不紮進褲子裡。', hi:'菲律賓語：Magandang umaga（早安）'},
+  {id:'malay',  flag:'🇲🇾', name:'馬來西亞 傳統服', shirt:'#3cb371', pants:'#3cb371', bot:'pants', colors:['#3cb371','#3c8de0','#e8578a','#f0a030','#9b6bd6','#f4f4f4'], acc:'songkok',
+   from:'馬來西亞', info:'馬來傳統服（Baju Melayu、Baju Kurung）是寬鬆的長上衣，腰間圍著有金色花紋的布。開齋節等節日時，全家會穿同一個顏色。', hi:'馬來語：Selamat pagi（早安）'},
+  {id:'hakka',  flag:'🏮', name:'客家 藍衫',       shirt:'#2c4a7c', pants:'#2b2233', bot:'pants', acc:'flowerbag',
+   from:'臺灣客家族群', info:'藍衫是客家人傳統的衣服，用藍色的布做成，衣襟開在右邊（大襟）。耐髒又耐穿，以前很適合下田工作。', hi:'客家話：恁早（早安）'},
+  {id:'tang',   flag:'🧧', name:'唐裝',            shirt:'#b8282e', pants:'#2b2233', bot:'pants', colors:['#b8282e','#2c4a7c','#3a3a3a','#c9a24a'],
+   from:'臺灣漢人（閩南、外省等）', info:'唐裝是立領、用「盤扣」扣起來的中式上衣，過年和節慶時常常看到。', hi:'臺語：Lí hó（你好）'},
+  {id:'qipao',  flag:'🧧', name:'旗袍',            shirt:'#c8283a', pants:'#c8283a', bot:'long', colors:['#c8283a','#2c4a7c','#3cb371','#9b6bd6','#f0a030'],
+   from:'臺灣漢人', info:'旗袍是立領、側邊開衩的連身長衣，從清朝旗人的服裝慢慢演變而來，現在常在節慶、典禮時穿。', hi:'臺語：Lí hó（你好）'},
+  {id:'amis',   flag:'🌾', name:'阿美族',          shirt:'#d62d2d', pants:'#d62d2d', bot:'skirt',
+   from:'臺灣原住民族（主要住在花蓮、臺東）', info:'阿美族是臺灣人口最多的原住民族。傳統服飾常見鮮豔的紅色，配上白、黑、黃的幾何花紋，豐年祭時穿。', hi:'阿美族語：Nga\'ay ho（你好）'},
+  {id:'paiwan', flag:'🏺', name:'排灣族',          shirt:'#2b2233', pants:'#2b2233', bot:'long',
+   from:'臺灣原住民族（主要住在屏東、臺東）', info:'排灣族以精美的刺繡和琉璃珠聞名，傳統服飾常見黑色的布，配上紅、黃、綠的刺繡圖紋。', hi:'排灣族語：Djavadjavai（你好、辛苦了）'},
+  {id:'siraya', flag:'🌿', name:'西拉雅族',        shirt:'#f4f0e6', pants:'#2c3e60', bot:'long',
+   from:'臺南在地的平埔族群', info:'西拉雅族是臺南在地的平埔族群，祭典、語言和文化正在努力復振中。', hi:'', note:'※ 西拉雅族的服飾樣式，請老師或族人協助確認。'},
+];
+const CULT_BY = Object.fromEntries(CULT.map(c=>[c.id,c]));
+function cultLook(L, c){   // 把文化服裝套到角色上
+  const cu = CULT_BY[c.cult]; if(!cu) return;
+  L.top = 'cult'; L.cult = cu.id; L.shirt = (cu.colors && c.cc) || cu.shirt; L.pants = cu.id==='qipao' || cu.id==='malay' ? L.shirt : cu.pants; L.bot = cu.bot; L.season = '';
+}
+function zigzag(g, x0, x1, y, h, col){ g.strokeStyle=col; g.lineWidth=.8; g.beginPath(); for(let x=x0, k=0; x<=x1; x+=1.6, k++) (k ? g.lineTo(x, y+(k%2?h:0)) : g.moveTo(x, y)); g.stroke(); }
+function cultDetail(g, L, cx, by, dir, side, bwx){   // 上衣的花紋（畫在身體範圍裡）
+  const down = dir==='down', id = L.cult, W = 6.6+bwx;
+  if(id==='aodai' || id==='qipao' || id==='tang' || id==='malay'){ g.fillStyle=lighten(L.shirt,.25); g.fillRect(cx-2.4, by+14, 4.8, 1.4); }   // 立領
+  if(id==='aodai' && down){ g.strokeStyle=darken(L.shirt,.25); g.lineWidth=.7; g.beginPath(); g.moveTo(cx+.6,by+15.2); g.quadraticCurveTo(cx+3,by+15.6,cx+4.6,by+17.4); g.stroke(); }
+  if(id==='qipao'){ if(down){ g.strokeStyle='#f4c542'; g.lineWidth=.7; g.beginPath(); g.moveTo(cx+.4,by+15.2); g.quadraticCurveTo(cx+3,by+15.6,cx+4.6,by+17.6); g.stroke(); } g.fillStyle='rgba(255,220,120,.8)'; for(const [dx,dy] of [[-3,18],[2,20],[-1,21.6]]){ g.beginPath(); g.arc(cx+dx,by+dy,.8,0,7); g.fill(); } }
+  if(id==='tang' && down){ g.fillStyle='#f4c542'; for(const yy of [16,18,20]) g.fillRect(cx-1.4, by+yy, 2.8, .7); g.fillRect(cx-.3, by+15, .6, 7); }
+  if(id==='batik'){ g.strokeStyle='#6b3e1e'; g.lineWidth=.7; for(const [dx,dy] of [[-3.5,16.4],[1.5,16.8],[-1,19.6],[3.6,20],[-4.6,20.4]]){ g.beginPath(); g.arc(cx+dx, by+dy, 1.1, 0, 5); g.stroke(); g.fillStyle='#6b3e1e'; g.beginPath(); g.arc(cx+dx+.3, by+dy+.2, .35, 0, 7); g.fill(); } }
+  if(id==='thai' && dir!=='up'){ g.fillStyle='#c9a24a'; g.beginPath(); g.moveTo(cx-W,by+14.5); g.lineTo(cx-W+3,by+14); g.lineTo(cx+W,by+21.5); g.lineTo(cx+W-2.5,by+23); g.closePath(); g.fill(); g.strokeStyle='#8a6a20'; g.lineWidth=.5; g.stroke(); }
+  if(id==='barong'){ g.strokeStyle='rgba(150,130,90,.7)'; g.lineWidth=.6; for(const dx of [-3.5,-1.2,1.2,3.5]){ g.beginPath(); g.moveTo(cx+dx, by+15); g.lineTo(cx+dx, by+22); g.stroke(); } g.fillStyle='rgba(150,130,90,.7)'; for(const dx of [-2.3,2.3]) for(const yy of [16,18.4,20.8]){ g.beginPath(); g.arc(cx+dx,by+yy,.45,0,7); g.fill(); } }
+  if(id==='hakka' && down){ g.strokeStyle='#cfe3ff'; g.lineWidth=.9; g.beginPath(); g.moveTo(cx-1.4,by+14.2); g.quadraticCurveTo(cx+2.4,by+15,cx+W-.6,by+17.6); g.stroke(); }
+  if(id==='amis'){ g.fillStyle='#fff'; g.fillRect(cx-W, by+16.4, W*2, 1.2); g.fillStyle='#2b2233'; g.fillRect(cx-W, by+17.6, W*2, .8); g.fillStyle='#ffd447'; g.fillRect(cx-W, by+18.4, W*2, 1); zigzag(g, cx-W, cx+W, by+16.6, .8, '#2b2233'); }
+  if(id==='paiwan'){ g.fillStyle='#d62d2d'; g.fillRect(cx-W, by+16, W*2, 2.6); zigzag(g, cx-W, cx+W, by+16.4, 1.6, '#ffd447'); g.fillStyle='#3cb371'; g.fillRect(cx-W, by+18.6, W*2, .8); }
+  if(id==='siraya'){ g.fillStyle='#c0392b'; g.fillRect(cx-W, by+20.2, W*2, 1); g.fillStyle='#2c4a7c'; g.fillRect(cx-W, by+21.2, W*2, .8); if(down){ g.fillStyle='#c0392b'; g.fillRect(cx-.5, by+14, 1, 6); } }
+}
+function cultOuter(g, L, cx, by, dir, side, bwx){   // 身體以外的部分：長衫下襬、紗龍、腰帶、巴隆的下襬
+  const id = L.cult, w0 = side ? 5 : 6.4+bwx;
+  if(id==='aodai'){ g.beginPath(); g.moveTo(cx-w0+.6, by+21); g.lineTo(cx+w0-.6, by+21); g.lineTo(cx+(side?3.6:4.6), by+27); g.lineTo(cx-(side?3.6:4.6), by+27); g.closePath(); g.fillStyle=L.shirt; g.fill(); g.stroke(); }
+  if(id==='barong'){ rr(g, cx-w0, by+21, w0*2, 2.6, 1, L.shirt); }
+  if(id==='malay'){ g.fillStyle='#c9a24a'; rr(g, cx-w0-.4, by+20.6, w0*2+.8, 3.6, 1, '#7a3a1a'); zigzag(g, cx-w0, cx+w0, by+21.6, 1.2, '#f4c542'); }
+  if(id==='thai'){ g.fillStyle='#f4c542'; g.fillRect(cx-w0, by+20.6, w0*2, 1.4); }
+}
+
 /* ---------------- 標題畫面 ---------------- */
 /* 紙娃娃：快速造型 4 款＋自己打扮 */
 let lookSel = 0, custom = null;
 const DRESS = {
-  hs:    {label:'髮型', type:'text',  opts:[['short','短髮'],['long','長髮'],['pony','馬尾'],['spiky','刺刺頭'],['bun','包包頭']]},
-  hc:    {label:'髮色', type:'color', opts:['#1f1f1f','#3b2a1a','#6b3e1e','#a0652e','#e0b04a','#b8456a']},
-  skin:  {label:'膚色', type:'color', opts:['#fbe0c6','#f6d2b0','#e8b98f','#c98e62','#9a6640']},
-  shirt: {label:'上衣', type:'color', opts:['#3c8de0','#e86a9a','#3cb371','#f0a030','#9b6bd6','#e25555','#4fc3c3','#ffd447','#f4f4f4']},
-  pants: {label:'褲子', type:'color', opts:['#2c3e60','#3a3a3a','#4a3060','#6b4a2a','#3a7a4a','#8a2c3c']},
-  acc:   {label:'配件', type:'text',  opts:[['','無'],['glasses','眼鏡'],['cap','棒球帽'],['bow','蝴蝶結']]},
+  // 👤 外型
+  skin:  {tab:'look', label:'膚色', type:'color', opts:['#fde7d4','#fbe0c6','#f6d2b0','#efc39a','#e8b98f','#d9a273','#c98e62','#a8724a','#8a5a38','#5e3a24']},
+  hs:    {tab:'look', label:'髮型', type:'text',  opts:[['short','短髮'],['buzz','平頭'],['bangs','齊瀏海'],['bob','及肩'],['long','長髮'],['pony','馬尾'],['twin','雙馬尾'],['braids','雙辮子'],['bun','包包頭'],['spiky','刺刺頭'],['curly','捲髮'],['afro','爆炸頭'],['locs','辮子頭']]},
+  hc:    {tab:'look', label:'髮色', type:'color', opts:['#1f1f1f','#3b2a1a','#6b3e1e','#a0652e','#e0b04a','#c9c9c9','#ff8fb8','#5f8fe0','#9b6bd6']},
+  eye:   {tab:'look', label:'眼睛', type:'text',  opts:[['','圓眼'],['big','大眼'],['smile','瞇瞇眼']]},
+  face:  {tab:'look', label:'臉部', type:'text',  opts:[['','無'],['freckle','雀斑'],['blush','腮紅']]},
+  body:  {tab:'look', label:'身形', type:'text',  opts:[['','一般'],['round','圓潤']]},
+  // 👕 衣服
+  top:   {tab:'wear', label:'上衣', type:'text',  opts:[['tee','T恤'],['polo','POLO衫'],['shirt','襯衫'],['vest','背心'],['hoodie','連帽衫'],['peB','運動服（藍）'],['peR','運動服（紅）']]},
+  shirt: {tab:'wear', label:'顏色', type:'color', opts:['#3c8de0','#e86a9a','#3cb371','#f0a030','#9b6bd6','#e25555','#4fc3c3','#ffd447','#f4f4f4','#5a5a66']},
+  bot:   {tab:'wear', label:'下身', type:'text',  opts:[['pants','長褲'],['shorts','短褲'],['skirt','裙子'],['pleat','百褶裙']]},
+  pants: {tab:'wear', label:'顏色', type:'color', opts:['#2c3e60','#3a3a3a','#4a3060','#6b4a2a','#3a7a4a','#8a2c3c','#7a8a9a','#c9a868']},
+  shoe:  {tab:'wear', label:'鞋子', type:'text',  opts:[['','運動鞋'],['cloth','布鞋'],['boots','雨鞋']]},
+  shoeC: {tab:'wear', label:'鞋色', type:'color', opts:['#3b3044','#f4f4f4','#e25555','#3c8de0','#ffd447','#3cb371']},
+  season:{tab:'wear', label:'季節', type:'text',  opts:[['','無'],['coat','冬天外套'],['scarf','圍巾'],['raincoat','雨衣']]},
 };
-const PRESETS = [
-  {hs:'short', hc:'#3b2a1a', skin:'#f6d2b0', shirt:'#3c8de0', pants:'#2c3e60', acc:''},
-  {hs:'long',  hc:'#3b2a1a', skin:'#f6d2b0', shirt:'#e86a9a', pants:'#4a3060', acc:''},
-  {hs:'short', hc:'#1f1f1f', skin:'#e8b98f', shirt:'#3cb371', pants:'#3a3a3a', acc:''},
-  {hs:'long',  hc:'#6b3e1e', skin:'#f3c9a2', shirt:'#f0a030', pants:'#6b4a2a', acc:''},
+const DRESS_TABS = [['look','👤 外型'],['wear','👕 衣服'],['acc','🎩 配件'],['cult','🌏 文化服裝'],['saved','⭐ 我的搭配']];
+const DRESS_DEF = {cult:'', cc:'', hs:'short', hc:'#3b2a1a', skin:'#f6d2b0', eye:'', face:'', body:'', top:'tee', shirt:'#3c8de0', bot:'pants', pants:'#2c3e60', shoe:'', shoeC:'', season:''};
+const PRESETS = [   // 開始畫面的 4 個快速造型
+  {hs:'short', hc:'#3b2a1a', skin:'#f6d2b0', top:'tee',    shirt:'#3c8de0', bot:'pants',  pants:'#2c3e60'},
+  {hs:'pony',  hc:'#1f1f1f', skin:'#e8b98f', top:'polo',   shirt:'#e86a9a', bot:'shorts', pants:'#3a3a3a'},
+  {hs:'curly', hc:'#3b2a1a', skin:'#a8724a', top:'hoodie', shirt:'#3cb371', bot:'pants',  pants:'#4a3060'},
+  {hs:'bob',   hc:'#6b3e1e', skin:'#fbe0c6', top:'tee',    shirt:'#f0a030', bot:'skirt',  pants:'#2c3e60'},
 ];
 function buildLook(c){
-  c = Object.assign({}, PRESETS[0], c||{});
-  return {skin:c.skin, hair:c.hc, shirt:c.shirt, pants:c.pants, long:c.hs==='long', hstyle:c.hs,
-          glasses:c.acc==='glasses', hat:c.acc==='cap'?'cap':undefined, hatColor:c.shirt==='#f4f4f4'?'#e25555':c.shirt, bow:c.acc==='bow'};
+  c = Object.assign({}, DRESS_DEF, c||{});
+  const pe = c.top==='peB' ? '#2f6fc0' : c.top==='peR' ? '#d6404e' : null;   // 南安運動服：藍、紅兩色
+  const L = {skin:c.skin, hair:c.hc, shirt:pe||c.shirt, pants:c.pants, long:c.hs==='long', hstyle:c.hs,
+          eye:c.eye, face:c.face, body:c.body, top:c.top, bot:c.bot, shoe:c.shoe, shoeC:c.shoeC, season:c.season};
+  if(c.cult) cultLook(L, c);   // 文化服裝
+  return L;
 }
-function paintAvatar(cv, L, dir, scale, oy){
+/* ---- 配件：基本款（免費）＋商店買的＋任務拿到的，分成頭上、臉上、背後、手上 ---- */
+const BASE_ACC = {
+  bcap:   {slot:'head', name:'🧢 棒球帽', look:{hat:'cap'}},
+  bow:    {slot:'head', name:'🎀 蝴蝶結', look:{bow:true}},
+  glasses:{slot:'face', name:'👓 眼鏡', look:{glasses:true}},
+  mask:   {slot:'face', name:'😷 口罩', look:{mask:true}},
+  nonla:  {slot:'head', name:'🇻🇳 越南斗笠', look:{hat:'nonla'}},
+  songkok:{slot:'head', name:'🎩 宋谷帽', look:{hat:'songkok'}},
+  hijab:  {slot:'head', name:'🧕 頭巾', look:{hijab:true}},
+  flowerbag:{slot:'hand', name:'👜 客家花布包', look:{item:'flowerbag'}},
+};
+const ACC_SLOT = {cap:'head', cape:'back', helmet:'head', star:'head', crown:'head', gold:'back', firecap:'head', douli:'head'};
+const WEAR_SLOTS = {head:'🎩 頭上', face:'🕶️ 臉上', back:'🦋 背後', hand:'✋ 手上'};
+function catItem(id){ return BASE_ACC[id] || SHOP[id] || (ACC[id] ? {slot:ACC_SLOT[id], name:ACC[id].name, look:ACC[id].look} : null); }
+function accEarned(a){ return !!S && !!S.hq && (HQ_KEYS.some(k=>S.hq.done[k] && HQ[k].reward===a) || (a==='gold' && !!S.perfect) || (a==='firecap' && !!S.dpassDone) || (a==='douli' && !!S.azDone)); }
+function itemOwned(id){ if(BASE_ACC[id]) return true; if(!S) return false; if(SHOP[id]) return !!(S.owned && S.owned[id]); if(ACC[id]) return accEarned(id); return false; }
+function itemHint(id){
+  if(SHOP[id]) return `到商店購買（💰 ${SHOP[id].price}）`;
+  const k = HQ_KEYS.find(k=>HQ[k].reward===id); if(k) return `完成隱藏任務「${HQ[k].name}」`;
+  return {gold:'成為完美守護者', firecap:'集滿防災闖關護照', douli:'成為安定三寶小達人'}[id] || '';
+}
+function composeLook(c, w){
+  const L = buildLook(c);
+  for(const s of ['top','head','face','back','hand']){ const id = w && w[s], it = id && catItem(id); if(it && itemOwned(id)) Object.assign(L, it.look); }
+  if(L.hat==='cap' && !L.hatColor) L.hatColor = L.shirt==='#f4f4f4' ? '#e25555' : L.shirt;
+  return L;
+}
+function grantAcc(a){ if(S && ACC_SLOT[a]){ S.wear = S.wear||{}; S.wear[ACC_SLOT[a]] = a; } }   // 拿到任務造型：直接戴上（放進對應的格子）
+function migrateLook(){   // 舊存檔：任務造型、舊的配件，搬進新的配件格
+  S.wear = S.wear||{}; S.outfits = S.outfits||[null,null,null];
+  if(S.custom && S.custom.wear){ S.wear = Object.assign({}, S.custom.wear, S.wear); delete S.custom.wear; }
+  if(S.acc && ACC_SLOT[S.acc] && !S.wear[ACC_SLOT[S.acc]]) S.wear[ACC_SLOT[S.acc]] = S.acc;
+  S.acc = '';
+  if(S.custom && S.custom.acc){ const m = {glasses:['face','glasses'], cap:['head','bcap'], bow:['head','bow']}[S.custom.acc]; if(m && !S.wear[m[0]]) S.wear[m[0]] = m[1]; delete S.custom.acc; }
+}
+function paintAvatar(cv, L, dir, scale, oy, step){
   const g=cv.getContext('2d'); g.clearRect(0,0,cv.width,cv.height);
-  g.save(); g.translate(cv.width/2-16*scale, oy); g.scale(scale,scale); drawPerson(g,0,0,dir||'down',L,0,true); g.restore();
+  g.save(); g.translate(cv.width/2-16*scale, oy); g.scale(scale,scale); drawPerson(g,0,0,dir||'down',L,step||0,true); g.restore();
 }
 (function buildLooks(){
   const box=$('#looks');
@@ -4631,58 +4842,97 @@ function paintAvatar(cv, L, dir, scale, oy){
     c.title='快速造型'; c.onclick=()=>{ custom=Object.assign({},p); select(i); sfx('talk'); };
     box.appendChild(c); tiles.push(c);
   });
-  // 第 5 格：自己打扮
-  const my=document.createElement('div'); my.className='mytile'; my.innerHTML='<canvas width="72" height="80"></canvas><span>🎨 自己打扮</span>';
+  // 第 5 格：打開我的衣櫥
+  const my=document.createElement('div'); my.className='mytile'; my.innerHTML='<canvas width="72" height="80"></canvas><span>👕 我的衣櫥</span>';
   my.onclick=()=>{ openDresser(); };
   box.appendChild(my); tiles.push(my);
-  window.__refreshMyTile = ()=>{ paintAvatar(my.querySelector('canvas'), buildLook(custom), 'down', 2, 15); };
+  window.__refreshMyTile = ()=>{ paintAvatar(my.querySelector('canvas'), composeLook(custom, custom.wear||{}), 'down', 2, 15); };
   window.__selectTile = select;
   custom = Object.assign({}, PRESETS[0]); select(0); __refreshMyTile();
   const sv = loadSave();
   if(sv){
     $('#btnLoad').classList.remove('hidden'); if(sv.cls) $('#inCls').value = sv.cls; $('#inName').value = sv.name||'';
-    if(sv.custom){ custom = Object.assign({}, PRESETS[0], sv.custom); select(4); }
+    if(sv.custom){ custom = Object.assign({}, sv.custom); select(4); }
     else { const i = PRESETS[sv.look] ? sv.look : 0; custom = Object.assign({}, PRESETS[i]); select(i); }
     __refreshMyTile();
   }
 })();
-let dressDir = 0, dressBackup = null;
+let dressDir = 0, dressBackup = null, dwBackup = null, dw = {}, dressTab = 'look', dressBg = 0, dressStep = 0, dressTimer = null;
 const DIRS4 = ['down','right','up','left'];
+const DRESS_BG = ['radial-gradient(circle at 50% 40%,#f3fbe9,#c9e8b5)', 'linear-gradient(#bfe6ff 58%,#c9573f 58%)', 'linear-gradient(#f6e7c8 58%,#e2b77e 58%)', 'linear-gradient(#9fd3f0 50%,#86c96e 50%)'];
+function dressPaint(){ paintAvatar($('#dPrev'), composeLook(custom, dw), DIRS4[dressDir], 3.6, 34, dressStep); }
+function dLine(label, inner){ return `<div class="dline"><b>${label}</b><div class="dchips">${inner}</div></div>`; }
+function accChips(slot, ids){
+  return `<button class="chip2${!dw[slot]?' on':''}" data-slot="${slot}" data-id="">無</button>` + ids.map(id=>{
+    const it = catItem(id), own = itemOwned(id);
+    return `<button class="chip2${dw[slot]===id?' on':''}${own?'':' lock'}" data-slot="${slot}" data-id="${id}"${own?'':` data-hint="${itemHint(id)}"`}>${own?'':'🔒 '}${it.name}</button>`;
+  }).join('');
+}
 function renderDresser(){
-  paintAvatar($('#dPrev'), buildLook(custom), DIRS4[dressDir], 3.6, 34);
-  let h='';
-  for(const k of Object.keys(DRESS)){
-    const d=DRESS[k];
-    h += `<div class="dline"><b>${d.label}</b><div class="dchips">` + d.opts.map(o=>{
-      const v = d.type==='color' ? o : o[0], on = custom[k]===v ? ' on' : '';
-      return d.type==='color' ? `<button class="sw${on}" data-k="${k}" data-v="${v}" style="background:${v}" aria-label="${d.label}"></button>`
-                              : `<button class="chip2${on}" data-k="${k}" data-v="${v}">${o[1]}</button>`;
-    }).join('') + '</div></div>';
+  dressPaint(); $('#dPrev').style.background = DRESS_BG[dressBg];
+  let h = '<div class="dtabs">' + DRESS_TABS.map(([k,l])=>`<button class="chip2${dressTab===k?' on':''}" data-tab="${k}">${l}</button>`).join('') + '</div><div class="dbody">';
+  if(dressTab==='look' || dressTab==='wear'){
+    for(const k of Object.keys(DRESS)){
+      const d = DRESS[k]; if(d.tab!==dressTab) continue;
+      if(k==='shirt' && (custom.top==='peB' || custom.top==='peR')) continue;   // 運動服的顏色是固定的
+      h += dLine(d.label, d.opts.map(o=>{ const v = d.type==='color' ? o : o[0], on = (custom[k]||'')===v ? ' on' : '';
+        return d.type==='color' ? `<button class="sw${on}" data-k="${k}" data-v="${v}" style="background:${v}" aria-label="${d.label}"></button>` : `<button class="chip2${on}" data-k="${k}" data-v="${v}">${o[1]}</button>`; }).join(''));
+    }
+    if(dressTab==='wear' && S){ const tops = Object.keys(SHOP).filter(id=>SHOP[id].slot==='top'); h += dLine('商店衣服', accChips('top', tops)); }
+    if(dressTab==='wear' && (custom.top==='peB' || custom.top==='peR')) h += '<div class="dnote">🏫 南安國小的運動服：胸前白色橫帶上有「南安」兩個字。</div>';
+  } else if(dressTab==='acc'){
+    const all = [...Object.keys(BASE_ACC), ...(S ? Object.keys(ACC).filter(a=>ACC_SLOT[a]) : []), ...(S ? Object.keys(SHOP).filter(id=>SHOP[id].slot!=='top') : [])];
+    for(const [slot,label] of Object.entries(WEAR_SLOTS)) h += dLine(label, accChips(slot, all.filter(id=>catItem(id).slot===slot)));
+    h += `<div class="dnote">${S ? '🔒 是還沒拿到的造型，點一下可以看怎麼取得。任務拿到的帽子、披風也都在這裡。' : '開始遊戲後，商店買的和任務拿到的造型也會出現在這裡。'}</div>`;
+  } else if(dressTab==='cult'){
+    h += '<div class="dchips">' + `<button class="chip2${!custom.cult?' on':''}" data-cult="">不穿</button>` + CULT.map(c=>`<button class="chip2${custom.cult===c.id?' on':''}" data-cult="${c.id}">${c.flag} ${c.name}</button>`).join('') + '</div>';
+    const cu = CULT_BY[custom.cult];
+    if(cu && cu.colors) h += dLine('顏色', cu.colors.map(v=>`<button class="sw${(custom.cc||cu.shirt)===v?' on':''}" data-cc="${v}" style="background:${v}" aria-label="顏色"></button>`).join(''));
+    h += cu ? `<div class="cultcard"><b>${cu.flag} ${cu.name}</b>　<small>來自：${cu.from}</small><div>${cu.info}</div>${cu.hi ? `<div class="hi">👋 ${cu.hi}</div>` : ''}${cu.note ? `<small>${cu.note}</small>` : ''}</div>`
+            : '<div class="dnote">選一套文化服裝，認識臺灣不同的族群和來自各國的新住民文化！所有服裝都免費，誰都可以穿。帽子、頭巾、花布包在「🎩 配件」裡可以另外穿脫。</div>';
+  } else {
+    if(!dressInGame) h += '<div class="dnote">開始遊戲後，就可以把喜歡的造型存起來，之後一鍵換裝！</div>';
+    else { S.outfits = S.outfits||[null,null,null];
+      h += '<div class="dsaved">' + [0,1,2].map(i=>`<div class="dslot"><canvas width="72" height="80" data-o="${i}"></canvas><b>搭配 ${i+1}</b><button class="chip2" data-save="${i}">💾 存起來</button><button class="chip2" data-load="${i}"${S.outfits[i]?'':' disabled'}>👕 穿上</button></div>`).join('') + '</div>'; }
   }
-  $('#dOpts').innerHTML = h;
-  $('#dOpts').querySelectorAll('button').forEach(b=>b.onclick=()=>{ custom[b.dataset.k]=b.dataset.v; sfx('talk'); renderDresser(); });
+  h += '</div>';
+  const box = $('#dOpts'), keep = box.querySelector('.dbody') ? box.querySelector('.dbody').scrollTop : 0;
+  box.innerHTML = h; if(box.querySelector('.dbody')) box.querySelector('.dbody').scrollTop = keep;
+  box.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{ dressTab = b.dataset.tab; sfx('talk'); renderDresser(); box.querySelector('.dbody').scrollTop = 0; });
+  box.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{ custom[b.dataset.k] = b.dataset.v; if(DRESS[b.dataset.k].tab==='wear') custom.cult = ''; sfx('talk'); renderDresser(); });
+  box.querySelectorAll('[data-cult]').forEach(b=>b.onclick=()=>{ const id = b.dataset.cult; custom.cult = id; custom.cc = ''; const cu = CULT_BY[id]; if(cu && cu.acc){ const it = catItem(cu.acc); if(it) dw[it.slot] = cu.acc; } sfx('talk'); renderDresser(); });
+  box.querySelectorAll('[data-cc]').forEach(b=>b.onclick=()=>{ custom.cc = b.dataset.cc; sfx('talk'); renderDresser(); });
+  box.querySelectorAll('[data-slot]').forEach(b=>b.onclick=()=>{ if(b.dataset.hint){ toast('🔒 ' + b.dataset.hint); sfx('warn'); return; } dw[b.dataset.slot] = b.dataset.id; sfx('talk'); renderDresser(); });
+  box.querySelectorAll('canvas[data-o]').forEach(c=>{ const o = S.outfits[+c.dataset.o]; if(o) paintAvatar(c, composeLook(o.c, o.w), 'down', 2, 15); });
+  box.querySelectorAll('[data-save]').forEach(b=>b.onclick=()=>{ S.outfits[+b.dataset.save] = {c:Object.assign({}, custom), w:Object.assign({}, dw)}; save(); sfx('ok'); toast('💾 存好這套搭配了！', true); renderDresser(); });
+  box.querySelectorAll('[data-load]').forEach(b=>b.onclick=()=>{ const o = S.outfits[+b.dataset.load]; if(!o) return; custom = Object.assign({}, o.c); dw = Object.assign({}, o.w); sfx('ok'); renderDresser(); });
 }
 let dressInGame = false;
 function openDresser(inGame){
   dressInGame = !!inGame;
-  if(dressInGame){ custom = Object.assign({}, buildCustomFromSave()); scene='dress'; clearHeld(); }
-  dressBackup = Object.assign({}, custom); dressDir = 0;
+  if(dressInGame){ custom = Object.assign({}, buildCustomFromSave()); dw = Object.assign({}, S.wear||{}); scene='dress'; clearHeld(); }
+  else dw = Object.assign({}, custom.wear||{});
+  dressBackup = Object.assign({}, custom); dwBackup = Object.assign({}, dw); dressDir = 0; dressTab = 'look';
   $('#dresser').classList.remove('hidden'); renderDresser(); sfx('talk');
+  clearInterval(dressTimer); dressTimer = setInterval(()=>{ dressStep = dressStep===1 ? 2 : 1; dressPaint(); }, 300);   // 預覽時角色會踏步
 }
-function buildCustomFromSave(){ return S.custom ? Object.assign({}, PRESETS[0], S.custom) : Object.assign({}, PRESETS[S.look]||PRESETS[0]); }
+function buildCustomFromSave(){ return S.custom ? Object.assign({}, S.custom) : Object.assign({}, PRESETS[S.look]||PRESETS[0]); }
 function closeDresser(ok){
-  if(!ok && dressBackup) custom = dressBackup;
+  clearInterval(dressTimer); dressTimer = null; dressStep = 0;
+  if(!ok && dressBackup){ custom = dressBackup; dw = dwBackup; }
   $('#dresser').classList.add('hidden');
   if(dressInGame){
-    if(ok){ S.custom = Object.assign({}, custom); refreshLook(); save(); toast('🎨 換好新造型了！', true); sfx('ok'); }
+    if(ok){ S.custom = Object.assign({}, custom); delete S.custom.wear; S.wear = Object.assign({}, dw); refreshLook(); save(); toast('👕 換好新造型了！', true); sfx('ok'); }
     scene='play'; dressInGame=false; return;
   }
-  if(ok){ __refreshMyTile(); __selectTile(4); sfx('ok'); }
+  if(ok){ custom.wear = Object.assign({}, dw); __refreshMyTile(); __selectTile(4); sfx('ok'); }
 }
-$('#dRotL').onclick = ()=>{ dressDir=(dressDir+3)%4; renderDresser(); };
-$('#dRotR').onclick = ()=>{ dressDir=(dressDir+1)%4; renderDresser(); };
-$('#dPrev').onclick = ()=>{ dressDir=(dressDir+1)%4; renderDresser(); };
+$('#dRotL').onclick = ()=>{ dressDir=(dressDir+3)%4; dressPaint(); };
+$('#dRotR').onclick = ()=>{ dressDir=(dressDir+1)%4; dressPaint(); };
+$('#dPrev').onclick = ()=>{ dressDir=(dressDir+1)%4; dressPaint(); };
+$('#dBg').onclick = ()=>{ dressBg=(dressBg+1)%DRESS_BG.length; $('#dPrev').style.background = DRESS_BG[dressBg]; sfx('talk'); };
 $('#dRand').onclick = ()=>{ for(const k of Object.keys(DRESS)){ const o=DRESS[k].opts; const v=o[Math.random()*o.length|0]; custom[k] = DRESS[k].type==='color'?v:v[0]; } sfx('talk'); renderDresser(); };
+$('#dUndo').onclick = ()=>{ custom = Object.assign({}, dressBackup); dw = Object.assign({}, dwBackup); sfx('talk'); renderDresser(); };
 $('#dDone').onclick = ()=>closeDresser(true);
 $('#dCancel').onclick = ()=>closeDresser(false);
 function startGame(data, isNew){
@@ -4691,7 +4941,7 @@ function startGame(data, isNew){
   if(!S.sid) S.sid = newSid();
   if(!S.cls) S.cls = '';
   S.seen = S.seen||{}; S.wrong = S.wrong||{}; S.acc = S.acc||'';
-  hqInit(); invInit(); coinInit(); dpInit(); azInit(); refreshLook(); compassT = 0;
+  hqInit(); invInit(); coinInit(); dpInit(); azInit(); migrateLook(); refreshLook(); compassT = 0;
   setTimeout(fixProgress, 1500);  // 進度已存、但還沒標記完成就關掉網頁的任務和道具，讀檔後補上
   setTimeout(tryPerfect, 2500);   // 更新前就已經全部完成的存檔，讀檔後補辦完美典禮
   if(S.hq.friend>=3){ const yu = NPCS.find(n=>n.id==='yu'); if(yu) yu.wander=[42,29,63,34]; }
@@ -5632,9 +5882,10 @@ function showShop(tab){
         <span>${own ? (on ? '✅ 穿著' : '已擁有') : '💰 '+it.price}</span>
         <button class="cbtn sbtn${!own && S.coins<it.price ? ' poor' : ''}${shopConfirm===id ? ' on' : ''}" data-id="${id}">${lab}</button></div>`; }).join('')
       : '<div class="shopempty">這一類還沒有買東西喔！到「🛍️ 買東西」看看吧。</div>'}</div>
-    <div style="margin-top:10px"><button class="cbtn" id="pClose">關閉</button></div>`;
+    <div style="margin-top:10px;display:flex;gap:8px"><button class="cbtn" id="pWard">👕 打開我的衣櫥</button><button class="cbtn" id="pClose">關閉</button></div>`;
   paintAvatar($('#shopMe'), P.look, 'down', 2.6, 18);
-  p.querySelectorAll('canvas[data-prev]').forEach(c=>{ const it = SHOP[c.dataset.prev]; paintAvatar(c, Object.assign({}, baseLook(), wearLook(it.slot), it.look, (S.acc && ACC[S.acc]) ? ACC[S.acc].look : {}), 'down', 2, 15); });
+  $('#pWard').onclick = ()=>{ shopConfirm = null; p.classList.add('hidden'); p.dataset.mode=''; openDresser(true); };
+  p.querySelectorAll('canvas[data-prev]').forEach(c=>{ const id = c.dataset.prev, it = SHOP[id]; paintAvatar(c, Object.assign(composeLook(S.custom || PRESETS[S.look] || PRESETS[0], Object.assign({}, S.wear, {[it.slot]:''})), it.look), 'down', 2, 15); });
   p.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{ shopConfirm = null; sfx('talk'); showShop(b.dataset.tab); });
   p.querySelectorAll('[data-slot]').forEach(b=>b.onclick=()=>{ shopConfirm = null; shopSlot = b.dataset.slot; sfx('talk'); showShop(); });
   p.querySelectorAll('.sbtn').forEach(b=>b.onclick=()=>shopAct(b.dataset.id));
@@ -5663,7 +5914,7 @@ function dStamp(k){
   S.dpass[k] = true; S.dpass.got = true; const n = dpCount(); save();
   setTimeout(()=>toast(`🚒 防災闖關護照：蓋了「${DPASS.find(d=>d[0]===k)[1]}」章（${n}/${DPASS.length}）`, true, 3000), 600);
   if(n>=DPASS.length && !S.dpassDone){
-    S.dpassDone = true; S.acc = 'firecap'; refreshLook(); save();
+    S.dpassDone = true; grantAcc('firecap'); refreshLook(); save();
     setTimeout(()=>{ toast('🎉 防災闖關護照集滿了！獲得造型「🚒 小小消防員帽」', true, 4500); sfx('badge'); addCoins(50, '防災護照集滿'); }, 3800);
   }
 }
@@ -5966,7 +6217,7 @@ function azStamp(k){
   S.az[k] = true; const n = azCount(); save();
   setTimeout(()=>toast(`🌾 安定三寶小達人：完成「${AZ.find(a=>a[0]===k)[1]}」（${n}/${AZ.length}）`, true, 3000), 600);
   if(n>=AZ.length && !S.azDone){
-    S.azDone = true; S.acc = 'douli'; refreshLook(); save();
+    S.azDone = true; grantAcc('douli'); refreshLook(); save();
     setTimeout(()=>{ toast('🎉 你是「安定三寶小達人」了！獲得造型「🌾 安定小農斗笠」', true, 4500); sfx('badge'); addCoins(50, '安定三寶小達人'); }, 3800);
   }
 }
@@ -7013,13 +7264,13 @@ function update(dt){
   P.target = t;
   const hint = $('#hint');
   const key = TOUCH ? '「對話」鍵' : '空白鍵';
-  const txt = t ? (t.npc ? `💬 ${key}：和「${t.npc.name}」說話` : t.stall ? `🚽 ${key}：上廁所` : t.sink ? `🚰 ${key}：洗手` : t.stair ? `🔼 ${key}：上下樓梯` : t.az ? `🌾 ${key}：安定三寶` : t.dmap ? `🗺️ ${key}：看防災地圖` : t.smoke ? `🌫️ ${key}：濃煙逃生走廊` : t.call ? `☎️ ${key}：119 報案練習` : t.bag ? `🎒 ${key}：防災避難包` : t.door ? `🚪 ${key}：看門牌` : t.lab ? `🧪 ${key}：實驗室安全` : t.piano ? `🎹 ${key}：彈鋼琴` : t.drum ? `🥁 ${key}：打鼓節奏` : t.recorder ? `🎶 ${key}：吹直笛` : t.cloze ? `🔤 ${key}：英語填空` : t.match ? `🃏 ${key}：單字配對` : t.pc ? `📂 ${key}：檔案打地鼠` : t.sofa ? `🌱 ${key}：心情小花園` : t.fire ? `🧯 ${key}：滅火練習` : t.easel ? `🎨 ${key}：畫畫` : t.pot ? `🏺 ${key}：投壺` : t.drill ? `🔥 ${key}：火災模擬` :`📋 ${key}：查看`) : (TOUCH ? '左下角搖桿走路｜右上角 📋 任務、🎒 道具' : '方向鍵移動｜Q 任務｜B 道具｜C 商店｜M 地圖｜R 排行榜');
+  const txt = t ? (t.npc ? `💬 ${key}：和「${t.npc.name}」說話` : t.stall ? `🚽 ${key}：上廁所` : t.sink ? `🚰 ${key}：洗手` : t.stair ? `🔼 ${key}：上下樓梯` : t.mcb ? `🌏 ${key}：多元文化書架` : t.az ? `🌾 ${key}：安定三寶` : t.dmap ? `🗺️ ${key}：看防災地圖` : t.smoke ? `🌫️ ${key}：濃煙逃生走廊` : t.call ? `☎️ ${key}：119 報案練習` : t.bag ? `🎒 ${key}：防災避難包` : t.door ? `🚪 ${key}：看門牌` : t.lab ? `🧪 ${key}：實驗室安全` : t.piano ? `🎹 ${key}：彈鋼琴` : t.drum ? `🥁 ${key}：打鼓節奏` : t.recorder ? `🎶 ${key}：吹直笛` : t.cloze ? `🔤 ${key}：英語填空` : t.match ? `🃏 ${key}：單字配對` : t.pc ? `📂 ${key}：檔案打地鼠` : t.sofa ? `🌱 ${key}：心情小花園` : t.fire ? `🧯 ${key}：滅火練習` : t.easel ? `🎨 ${key}：畫畫` : t.pot ? `🏺 ${key}：投壺` : t.drill ? `🔥 ${key}：火災模擬` :`📋 ${key}：查看`) : (TOUCH ? '左下角搖桿走路｜右上角 📋 任務、🎒 道具' : '方向鍵移動｜Q 任務｜B 道具｜C 商店｜M 地圖｜R 排行榜');
   if(hint.textContent!==txt) hint.textContent = txt;
   // 觸控的「對話」鍵：依面前的東西換字；有東西可以互動時輕輕跳動，沒有時變淡
   if(TOUCH){
     const ab = $('#abtn'); let lab, st = '';
     if(DLG) lab = choicesShowing() ? '👆\n點選項' : '▶\n下一句';
-    else if(t){ st = 'go'; lab = t.npc ? '💬\n說話' : t.stall ? '🚽\n上廁所' : t.sink ? '🚰\n洗手' : t.stair ? '🔼\n樓梯' : t.az ? '🌾\n三寶' : t.dmap ? '🗺️\n地圖' : t.smoke ? '🌫️\n逃生' : t.call ? '☎️\n報案' : t.bag ? '🎒\n打包' : t.door ? '🚪\n門牌' : t.lab ? '🧪\n實驗' : t.piano ? '🎹\n彈琴' : t.drum ? '🥁\n打鼓' : t.recorder ? '🎶\n直笛' : t.cloze ? '🔤\n填空' : t.match ? '🃏\n配對' : t.pc ? '📂\n打地鼠' : t.sofa ? '🌱\n放鬆' : t.fire ? '🧯\n滅火' : t.easel ? '🎨\n畫畫' : t.pot ? '🏺\n投壺' : t.drill ? '🔥\n火災' : t.book ? '📖\n看書' : '📋\n查看'; }
+    else if(t){ st = 'go'; lab = t.npc ? '💬\n說話' : t.stall ? '🚽\n上廁所' : t.sink ? '🚰\n洗手' : t.stair ? '🔼\n樓梯' : t.mcb ? '🌏\n看書' : t.az ? '🌾\n三寶' : t.dmap ? '🗺️\n地圖' : t.smoke ? '🌫️\n逃生' : t.call ? '☎️\n報案' : t.bag ? '🎒\n打包' : t.door ? '🚪\n門牌' : t.lab ? '🧪\n實驗' : t.piano ? '🎹\n彈琴' : t.drum ? '🥁\n打鼓' : t.recorder ? '🎶\n直笛' : t.cloze ? '🔤\n填空' : t.match ? '🃏\n配對' : t.pc ? '📂\n打地鼠' : t.sofa ? '🌱\n放鬆' : t.fire ? '🧯\n滅火' : t.easel ? '🎨\n畫畫' : t.pot ? '🏺\n投壺' : t.drill ? '🔥\n火災' : t.book ? '📖\n看書' : '📋\n查看'; }
     else { lab = '對話'; st = 'idle'; }
     if(ab.textContent!==lab) ab.textContent = lab;
     if(ab.dataset.st!==st){ ab.dataset.st = st; ab.classList.toggle('go', st==='go'); ab.classList.toggle('idle', st==='idle'); }
