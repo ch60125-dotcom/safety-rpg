@@ -91,13 +91,13 @@
   #title h1{font-size:66px;margin:0;letter-spacing:8px;color:var(--gold);
     text-shadow:0 4px 0 #b9741a,0 8px 0 #2b2233,0 0 24px rgba(255,220,100,.7);animation:float 3s ease-in-out infinite}
   @keyframes float{50%{transform:translateY(-6px)}}
-  #title .sub{display:flex;gap:6px;margin:14px 0 18px}
+  #title .sub{display:flex;gap:6px;margin:8px 0 10px}
   #title .sub span{background:rgba(255,255,255,.92);color:var(--ink);border:2px solid var(--ink);border-radius:20px;padding:2px 10px;font-weight:bold;font-size:15px}
   #title .sub span.tagline{font-size:24px;padding:8px 26px;letter-spacing:2px;border:3px solid var(--ink);border-radius:30px;
     background:linear-gradient(#3fd0c9,#1f8fa8);color:#fff;box-shadow:0 5px 0 var(--ink),0 0 22px rgba(80,220,230,.8);
     text-shadow:0 2px 0 rgba(20,60,80,.6);animation:tagGlow 2.4s ease-in-out infinite}
   @keyframes tagGlow{0%,100%{box-shadow:0 5px 0 var(--ink),0 0 14px rgba(80,220,230,.5)}50%{box-shadow:0 5px 0 var(--ink),0 0 30px rgba(80,220,230,1)}}
-  .tcard{width:540px;padding:16px 24px;color:var(--ink)}
+  .tcard{width:600px;padding:14px 22px;color:var(--ink)}
   .tcard label{font-weight:bold;font-size:18px}
   .tcard input{font:inherit;font-size:20px;padding:5px 10px;border:3px solid var(--ink);border-radius:8px;width:200px;margin-left:6px;background:#fff}
   .tcard input#inCls{width:90px}
@@ -137,7 +137,7 @@
   .ph-msg b{font-size:12px;color:#666}
   .ph-msg span{background:#fff;border-radius:12px;padding:6px 10px;align-self:flex-start;border:1px solid #ddd}
   .ph-img{background:#ffe3ec!important;font-weight:bold}
-  #looks{display:flex;gap:12px;margin:10px 0}
+  #looks{display:flex;gap:12px;margin:6px 0}
   #looks canvas{border:3px solid #bba98a;border-radius:12px;background:radial-gradient(circle at 50% 40%,#f3fbe9,#c9e8b5);cursor:pointer;transition:transform .15s}
   #looks canvas:hover{transform:translateY(-3px)}
   #looks canvas.sel{border-color:var(--ink);box-shadow:0 0 0 3px var(--gold)}
@@ -179,8 +179,8 @@
     background:linear-gradient(#ffe48f,var(--gold));cursor:pointer;color:var(--ink);box-shadow:0 4px 0 var(--ink)}
   .big:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
   .big.alt{background:#fff}
-  .tbtns .big{flex:1 1 auto;white-space:nowrap;padding:9px 14px;font-size:20px}
-  .help{font-size:14px;color:#5a4a3a;margin-top:12px;line-height:1.6}
+  .tbtns .big{flex:1 1 auto;white-space:nowrap;padding:8px 10px;font-size:18px;overflow:hidden;text-overflow:ellipsis;max-width:260px}
+  .help{font-size:13px;color:#5a4a3a;margin-top:8px;line-height:1.5}
 
   /* 小遊戲 */
   #mg{position:absolute;top:0;right:0;bottom:0;left:0;z-index:15;background:#000}
@@ -279,8 +279,8 @@
   #rotate .ico{font-size:64px;animation:rot 2s ease-in-out infinite}
   @keyframes rot{0%,30%{transform:rotate(0)}60%,100%{transform:rotate(-90deg)}}
   @media (orientation:portrait) and (pointer:coarse) and (max-width:700px){ body:not(.keepPortrait) #rotate{display:flex} }
-  .topt{display:flex;gap:10px;justify-content:center;margin-top:10px;flex-wrap:wrap}
-  .topt button{font:inherit;font-size:15px;padding:4px 12px;border-radius:8px;border:2px solid var(--ink);background:#fff;cursor:pointer}
+  .topt{display:flex;gap:5px;justify-content:center;margin-top:8px;flex-wrap:wrap}
+  .topt button{font:inherit;font-size:13px;padding:3px 7px;white-space:nowrap;border-radius:8px;border:2px solid var(--ink);background:#fff;cursor:pointer}
 
   /* 獎狀 */
   #cert{position:fixed;top:0;right:0;bottom:0;left:0;background:rgba(20,30,50,.85);display:flex;align-items:center;justify-content:center;z-index:10}
@@ -402,7 +402,7 @@
         <label>座號：<input id="inSeat" maxlength="2" inputmode="numeric" placeholder="5" style="width:64px"></label>
         <label>暱稱：<input id="inName" maxlength="8" placeholder="例如：閃電小勇士"></label>
       </div>
-      <div class="tnote">🏆 排行榜會公開顯示「班級＋暱稱」，請不要使用真實姓名。💾 用「班級＋座號」分開存檔，同一台電腦可以給很多人玩。</div>
+      <div class="tnote">🏆 排行榜會公開「班級＋暱稱」，請不要用真實姓名。💾 進度用「班級＋座號」分開存。</div>
       <div class="terr" id="tErr"></div>
       <div style="margin-top:10px;font-weight:bold;font-size:18px">選擇造型：</div>
       <div id="looks"></div>
@@ -411,7 +411,7 @@
         <button class="big alt hidden" id="btnLoad">📂 繼續遊戲</button>
         <button class="big alt" id="btnBoardT">🏆 排行榜</button>
       </div>
-      <div class="topt"><button id="tMute">🔊 音效：開</button><button id="tSlow">🐢 地震反應時間：3 秒</button><button id="tRead">🔈 自動朗讀：關</button><button id="tLite">🔋 省電模式：關</button><button id="tReport">📊 老師報表</button></div>
+      <div class="topt"><button id="tMute">🔊 音效：開</button><button id="tSlow">🐢 地震反應時間：3 秒</button><button id="tRead">🔈 自動朗讀：關</button><button id="tLite">🔋 省電：關</button><button id="tReport">📊 老師報表</button></div>
       <div class="help" id="tHelpKey">⌨️ 方向鍵 / WASD：移動　空白鍵 / Enter：對話、確定　Q：任務　B：道具　M：小地圖　R：排行榜<br>
         題目可按數字鍵 1～4 作答。</div>
       <div class="help hidden" id="tHelpTouch">👆 按住左下角的搖桿往想去的方向推就能走路，按右下角的「對話」鍵和人說話。<br>
@@ -4881,8 +4881,8 @@ function titleSlot(){
 }
 function updateLoadBtn(){
   const t = titleSlot(), b = $('#btnLoad'), old = loadSave();
-  if(t.data){ b.textContent = `📂 繼續遊戲（${t.data.name}）`; b.classList.remove('hidden'); }
-  else if(old){ b.textContent = `📂 繼續舊進度（${old.name}）`; b.classList.remove('hidden'); }
+  if(t.data){ b.textContent = `📂 繼續（${t.data.name}）`; b.classList.remove('hidden'); }
+  else if(old){ b.textContent = `📂 舊進度（${old.name}）`; b.classList.remove('hidden'); }
   else b.classList.add('hidden');
 }
 
@@ -7604,9 +7604,9 @@ addEventListener('touchstart', applyTouch, {passive:true});
 $('#btnKeepPortrait').onclick = ()=>document.body.classList.add('keepPortrait');
 function setTitleOpts(){
   $('#tRead').textContent = autoRead ? '🔈 自動朗讀：開' : '🔈 自動朗讀：關';
-  $('#tLite').textContent = lite ? '🔋 省電模式：開' : '🔋 省電模式：關';
+  $('#tLite').textContent = lite ? '🔋 省電：開' : '🔋 省電：關';
   $('#tMute').textContent = muted ? '🔇 音效：關' : '🔊 音效：開';
-  $('#tSlow').textContent = `🐢 地震反應時間：${QTE_TIME} 秒`;
+  $('#tSlow').textContent = `🐢 地震反應：${QTE_TIME} 秒`;
 }
 $('#tMute').onclick = ()=>{ muted=!muted; try{ localStorage.setItem('cgMuted', muted?'1':'0'); }catch(e){} setMuteBtn(); setTitleOpts(); };
 $('#tRead').onclick = ()=>{ autoRead = !autoRead; try{ localStorage.setItem('cgAutoRead', autoRead?'1':'0'); }catch(e){} setTitleOpts(); sfx('talk'); if(autoRead) speakZh('自動朗讀開啟了，對話會自動唸出來。'); };
