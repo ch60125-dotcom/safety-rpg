@@ -101,7 +101,7 @@
   .tcard label{font-weight:bold;font-size:18px}
   .tcard input{font:inherit;font-size:20px;padding:5px 10px;border:3px solid var(--ink);border-radius:8px;width:200px;margin-left:6px;background:#fff}
   .tcard input#inCls{width:90px}
-  .trow{display:flex;gap:16px;align-items:center}
+  .trow{display:flex;gap:12px;align-items:center}
   .tnote{font-size:13px;color:#a3242a;margin-top:6px}
   .terr{font-size:15px;color:var(--bad);font-weight:bold;min-height:0;margin-top:4px}
 
@@ -400,9 +400,10 @@
       <div class="trow">
         <label>班級：<input id="inCls" maxlength="4" inputmode="numeric" placeholder="301"></label>
         <label>座號：<input id="inSeat" maxlength="2" inputmode="numeric" placeholder="5" style="width:64px"></label>
-        <label>暱稱：<input id="inName" maxlength="8" placeholder="例如：閃電小勇士"></label>
+        <label>密碼：<input id="inPin" maxlength="4" inputmode="numeric" placeholder="4位數" autocomplete="off" style="width:84px"></label>
+        <label>暱稱：<input id="inName" maxlength="8" placeholder="例如：小勇士" style="width:170px"></label>
       </div>
-      <div class="tnote">🏆 排行榜會公開「班級＋暱稱」，請不要用真實姓名。💾 進度用「班級＋座號」分開存。</div>
+      <div class="tnote">🏆 排行榜會公開「班級＋暱稱」，請不要用真實姓名。☁️ 進度存在雲端，換電腦輸入班級、座號、密碼就能接著玩。</div>
       <div class="terr" id="tErr"></div>
       <div style="margin-top:10px;font-weight:bold;font-size:18px">選擇造型：</div>
       <div id="looks"></div>
@@ -2392,6 +2393,7 @@ function save(){
   const pp = CEL ? CEL.p : P;   // 慶典時玩家被移到操場：存原本的位置
   S.x=pp.x; S.y=pp.y; S.dir=pp.dir;
   try{ localStorage.setItem(S.seat ? seatKey(S.cls, S.seat) : 'campusGuardianSave', JSON.stringify(S)); }catch(e){}
+  cloudDirty = true;
 }
 function loadSave(){
   try{ const t = localStorage.getItem('campusGuardianSave'); const d = t ? JSON.parse(t) : null; return (d && typeof d==='object' && d.name) ? d : null; }catch(e){ return null; }
@@ -3033,7 +3035,7 @@ function clearHeld(){ for(const k in held) held[k]=false; order.length=0; }
 window.addEventListener('keydown', e=>{
   if(e.target.tagName==='INPUT'){
     // 只有標題畫面的「班級／暱稱」欄位按 Enter 才開新遊戲（避免在獎狀等其他輸入框誤觸、覆蓋進度）
-    if(e.key==='Enter' && scene==='title' && (e.target.id==='inCls'||e.target.id==='inName'||e.target.id==='inSeat')){ e.preventDefault(); $('#btnNew').click(); }
+    if(e.key==='Enter' && scene==='title' && (e.target.id==='inCls'||e.target.id==='inName'||e.target.id==='inSeat'||e.target.id==='inPin')){ e.preventDefault(); $('#btnNew').click(); }
     return; }
   const k = KEYMAP[e.key];
   // 阻止空白鍵／Enter 觸發「目前聚焦的按鈕」，避免一次按鍵被執行兩次
@@ -3302,7 +3304,7 @@ function togglePanel(){
   if($('#pCert')) $('#pCert').onclick = ()=>{ togglePanel(); showCert(); };
   if($('#pPerfect')) $('#pPerfect').onclick = ()=>{ togglePanel(); perfectCeremony(true); };
   $('#pDress').onclick = ()=>{ togglePanel(); openDresser(true); };
-  $('#pReset').onclick = ()=>{ if(confirm('確定要清除進度、回到標題畫面嗎？')){ try{ localStorage.removeItem(S.seat ? seatKey(S.cls, S.seat) : 'campusGuardianSave'); }catch(e){} location.reload(); } };
+  $('#pReset').onclick = ()=>{ if(confirm('確定要清除進度、回到標題畫面嗎？')){ try{ localStorage.removeItem(S.seat ? seatKey(S.cls, S.seat) : 'campusGuardianSave'); }catch(e){} cloudDirty = false; S = null; location.reload(); } };
 }
 function toggleMini(){ showMini=!showMini; try{ localStorage.setItem('cgMini', showMini?'1':'0'); }catch(e){} $('#mini').classList.toggle('hidden', !showMini || scene==='title'); }
 $('#btnQuest').onclick = ()=>{ if(scene==='play' && !DLG && !QTE && !ESC) togglePanel(); };
@@ -4882,8 +4884,45 @@ function titleSlot(){
 function updateLoadBtn(){
   const t = titleSlot(), b = $('#btnLoad'), old = loadSave();
   if(t.data){ b.textContent = `📂 繼續（${t.data.name}）`; b.classList.remove('hidden'); }
+  else if(t.ok){ b.textContent = '☁️ 繼續遊戲'; b.classList.remove('hidden'); }
   else if(old){ b.textContent = `📂 舊進度（${old.name}）`; b.classList.remove('hidden'); }
   else b.classList.add('hidden');
+}
+
+/* ---------------- ☁️ 雲端存檔：用「班級＋座號＋4 位數密碼」，換電腦、還原卡重開機也能接著玩 ---------------- */
+let cloudDirty = false, cloudBusy = false, cloudWarned = false;
+function cloudPost(params){ return fetch(SCRIPT_URL, {method:'POST', body:new URLSearchParams(params)}).then(r=>r.json()); }
+function cloudReady(){ return !!(SCRIPT_URL && S && S.cls && S.seat && /^\d{4}$/.test(S.pin||'')); }
+function cloudSave(force){
+  if(!cloudReady() || cloudBusy) return;
+  if(!force && !cloudDirty) return;
+  cloudBusy = true; cloudDirty = false; S.cloudAt = Date.now();
+  const data = JSON.stringify(S);
+  try{ localStorage.setItem(seatKey(S.cls, S.seat), data); }catch(e){}
+  cloudPost({action:'csave', cls:S.cls, seat:S.seat, pin:S.pin, nick:S.name, data})
+    .then(d=>{ cloudBusy = false;
+      if(d && d.ok && d.csave){ if(!S.cloudOk){ S.cloudOk = true; toast('☁️ 進度已經存到雲端，換電腦也能接著玩！', true); } }
+      else { cloudDirty = true; if(d && d.error && d.error!=='存檔太頻繁' && !cloudWarned){ cloudWarned = true; toast('☁️ 雲端存檔沒有成功：' + d.error + '（進度還在這台電腦裡）'); } } })
+    .catch(()=>{ cloudBusy = false; cloudDirty = true; });
+}
+setInterval(()=>cloudSave(false), 30000);   // 有變動時，每 30 秒存一次到雲端
+document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden') cloudBeacon(); });
+addEventListener('pagehide', cloudBeacon);
+function cloudBeacon(){   // 關掉分頁、切到別的程式時，馬上送一次
+  if(!cloudReady() || !cloudDirty || !navigator.sendBeacon) return;
+  S.cloudAt = Date.now(); const data = JSON.stringify(S);
+  try{ localStorage.setItem(seatKey(S.cls, S.seat), data); }catch(e){}
+  if(navigator.sendBeacon(SCRIPT_URL, new URLSearchParams({action:'csave', cls:S.cls, seat:S.seat, pin:S.pin, nick:S.name, data}))) cloudDirty = false;
+}
+function titlePin(){ return ($('#inPin').value||'').replace(/\D/g,''); }
+async function cloudLoad(cls, seat, pin){   // 回傳 {data} 或 {error} 或 null（連不上、後端是舊版）
+  if(!SCRIPT_URL) return null;
+  try{
+    const d = await cloudPost({action:'cload', cls, seat, pin});
+    if(d && d.ok && d.cload) return {data: d.data ? JSON.parse(d.data) : null};
+    if(d && d.error) return {error: d.error, nick: d.nick};
+    return null;
+  }catch(e){ return null; }
 }
 
 /* ---------------- 標題畫面 ---------------- */
@@ -5119,7 +5158,7 @@ function nickProblem(name){
   return '';
 }
 function cleanNick(s){ return String(s||'').replace(/[<>"'&\u0000-\u001f]/g,'').trim().slice(0,8); }
-$('#btnNew').onclick = ()=>{
+$('#btnNew').onclick = async ()=>{
   const cls = ($('#inCls').value||'').replace(/\D/g,'');
   const name = cleanNick($('#inName').value);
   const err = $('#tErr');
@@ -5128,25 +5167,43 @@ $('#btnNew').onclick = ()=>{
   const bad = nickProblem(name);
   if(bad){ err.textContent=bad; $('#inName').focus(); sfx('warn'); return; }
   err.textContent='';
-  const t = titleSlot();
+  const t = titleSlot(), pin = titlePin();
   if(!t.seat){ err.textContent='請輸入座號（1～99），用來分開存檔'; $('#inSeat').focus(); sfx('warn'); return; }
-  if(t.data && !confirm(`${cls} 班 ${t.seat} 號已經有進度（${t.data.name}），開始新遊戲會覆蓋它，確定嗎？`)) return;
+  if(!/^\d{4}$/.test(pin)){ err.textContent='請自己設定 4 位數字的密碼（要記住喔！換電腦時要用）'; $('#inPin').focus(); sfx('warn'); return; }
+  const btn = $('#btnNew'); btn.disabled = true; err.textContent = '☁️ 檢查雲端存檔中……';
+  const cl = await cloudLoad(cls, t.seat, pin);
+  btn.disabled = false; err.textContent = '';
+  if(cl && cl.error==='密碼不對'){ err.textContent = `${cls} 班 ${t.seat} 號在雲端已經有進度${cl.nick ? '（'+cl.nick+'）' : ''}，而且密碼不一樣。請確認座號；忘記密碼請找老師。`; sfx('warn'); return; }
+  if(cl && cl.error){ err.textContent = '☁️ ' + cl.error; sfx('warn'); return; }
+  const had = (cl && cl.data) || t.data;
+  if(had && !confirm(`${cls} 班 ${t.seat} 號已經有進度（${had.name}），開始新遊戲會覆蓋它，確定嗎？`)) return;
   sfx('ok');
-  const ns = newSave(name, lookSel<4 ? lookSel : 0, cls); ns.seat = t.seat; ns.custom = Object.assign({}, custom);
-  startGame(ns, true);
+  const ns = newSave(name, lookSel<4 ? lookSel : 0, cls); ns.seat = t.seat; ns.pin = pin; ns.custom = Object.assign({}, custom);
+  startGame(ns, true); save(); cloudSave(true);
 };
-$('#btnLoad').onclick = ()=>{
-  const t = titleSlot();
+$('#btnLoad').onclick = async ()=>{
+  const t = titleSlot(), pin = titlePin(), err = $('#tErr');
   let d = t.data;
+  if(t.ok){
+    if(!/^\d{4}$/.test(pin)){ err.textContent = '請輸入你的 4 位數密碼'; $('#inPin').focus(); sfx('warn'); return; }
+    const btn = $('#btnLoad'); btn.disabled = true; err.textContent = '☁️ 從雲端讀取進度中……';
+    const cl = await cloudLoad(t.cls, t.seat, pin);
+    btn.disabled = false; err.textContent = '';
+    if(cl && cl.error){ err.textContent = cl.error==='密碼不對' ? '密碼不對喔！忘記密碼請找老師幫忙查。' : '☁️ ' + cl.error; sfx('warn'); return; }
+    if(cl && cl.data){ if(!(d && d.pin===pin && (d.cloudAt||0) > (cl.data.cloudAt||0))) d = cl.data; }   // 用比較新的那一份
+    else if(d && d.pin && d.pin!==pin){ err.textContent = '密碼不對喔！忘記密碼請找老師幫忙查。'; sfx('warn'); return; }
+    if(!d && !loadSave()){ err.textContent = cl ? `雲端和這台電腦都找不到 ${t.cls} 班 ${t.seat} 號的進度，請按「開始新遊戲」。` : '連不上雲端，這台電腦也沒有這個座號的進度。'; sfx('warn'); return; }
+    if(d){ d.seat = t.seat; d.pin = d.pin || pin; }
+  }
   if(!d){   // 舊版存檔（沒有座號）：先填好班級和座號，搬到自己的存檔位置
     d = loadSave(); if(!d) return;
     if(!t.ok){ $('#tErr').textContent='請先填好班級和座號，再繼續舊進度'; (t.cls ? $('#inSeat') : $('#inCls')).focus(); sfx('warn'); return; }
     if(!confirm(`要把這台電腦上的舊進度（${d.name}）存到 ${t.cls} 班 ${t.seat} 號嗎？`)) return;
     if(!d.cls){ d.cls = t.cls; d.pendUp = true; }
-    d.seat = t.seat;
+    d.seat = t.seat; d.pin = d.pin || pin;
     try{ localStorage.removeItem('campusGuardianSave'); }catch(e){}
   }
-  sfx('ok'); startGame(d,false); save(); };
+  sfx('ok'); startGame(d,false); save(); cloudSave(true); };
 
 /* ---------------- 小遊戲：音樂教室鋼琴、電腦教室檔案打地鼠、防災中心滅火、美術教室畫畫、輔導室心情小花園 ----------------
    每個小遊戲第一次完成時給經驗 +10 和一個道具（只送一次，不計入守護積分）。 */
