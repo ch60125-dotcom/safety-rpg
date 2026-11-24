@@ -34,7 +34,7 @@
   #paper.perfect{outline:6px double #d4a017;outline-offset:-16px}
   .expbar{width:140px;height:9px;background:#e9dcc0;border:2px solid var(--ink);border-radius:6px;margin-top:3px;overflow:hidden}
   .expbar i{display:block;height:100%;background:linear-gradient(180deg,#8fe0ff,#3c9be0);width:0;transition:width .4s}
-  #hRight{display:flex;gap:6px;align-items:center;pointer-events:auto}
+  #hRight{display:flex;gap:6px;align-items:center;pointer-events:auto;flex-shrink:0;margin-left:auto}
   #badges{display:flex;gap:3px;padding:5px 8px}
   #badges span{width:32px;height:32px;line-height:28px;text-align:center;font-size:18px;border-radius:50%;
     background:#d8d2c4;filter:grayscale(1);opacity:.5;border:2px solid #9a927f}
@@ -4834,8 +4834,7 @@ function todayIntro(){
   if(!S) return;
   if(scene!=='play' || DLG || MG || QTE){ setTimeout(todayIntro, 1000); return; }
   const g = todayGoals(); if(!g.length) return;
-  say([`📌 今日任務${TODAY.length ? '（老師指定）' : ''}：${g.map(k=>(goalDone(k)?'✅ ':'⬜ ')+goalName(k)).join('、')}`,
-       '用指南針（🎒 道具）或按 Q 看任務清單，就知道要去哪裡。完成今日任務後，可以自由探索校園！'], {name:'📌 今日任務'});
+  toast(`📌 今日任務${TODAY.length ? '（老師指定）' : ''}：${g.map(k=>(goalDone(k)?'✅ ':'⬜ ')+goalName(k)).join('、')}（${TOUCH ? '按 📋' : '按 Q'} 看任務清單）`, true, 6000);
 }
 let todayWasDone = null;
 function todayCheck(){
@@ -5216,15 +5215,11 @@ function startGame(data, isNew){
   $('#mini').classList.toggle('hidden', !showMini);
   applyTouch();
   if(TOUCH){ $('#pad').classList.remove('hidden'); $('#abtn').classList.remove('hidden'); $('#mini').classList.add('top'); }
-  scene='play'; updateHUD(); curZone=''; checkZone(); save();
+  scene='play'; updateHUD(); curZone=''; checkZone(); save(); setTimeout(fitHud, 50);
   if(isNew){
     say([
-      '（叮咚～早上 7 點 30 分，新的一天開始了！）',
-      '校園的一天，有許多值得發掘的問題，正等著你去發現。',
-      '學校裡有五位老師，要考驗你：防災、交通安全、性別平等、反霸凌、校園常規。',
-      '和頭上有「！」的老師對話、打倒搗蛋怪獸，就能得到「守護徽章」。',
-      '集滿 5 枚徽章後，到校長室接受最終挑戰吧！',
-      '🎒 書包裡有「提示卡、愛心飯糰、指南針」，按右上角的 🎒（或 B 鍵）就能查看。跟校園裡的大人聊聊，還能拿到更多道具喔！',
+      '（叮咚～早上 7 點 30 分）校園的一天開始了，有許多值得發掘的問題正等著你！',
+      '找頭上有「！」的五位老師、打倒搗蛋怪獸，就能得到「守護徽章」。集滿 5 枚，到校長室接受最終挑戰！（🎒 書包裡有好用的道具）',
       TOUCH ? '首先……請等小綠人亮起，走斑馬線安全地過馬路進校園！（推左下角的搖桿走路，按「對話」鍵說話）'
             : '首先……請等小綠人亮起，走斑馬線安全地過馬路進校園！（方向鍵移動，空白鍵對話）'
     ], {name:'旁白'});
@@ -6140,25 +6135,28 @@ function addCoins(n, why){
   S.coins = (S.coins||0) + n; updateHUD(); save();
   toast(`💰 金幣 +${n}${why ? '（'+why+'）' : ''}`, true);
 }
-let shopTab = 'shop', shopSlot = 'top', shopConfirm = null;
+let shopTab = 'shop', shopSlot = 'afford', shopConfirm = null;
 function showShop(tab){
   const p = $('#panel');
   if(tab) shopTab = tab;
   clearHeld(); p.dataset.mode = 'shop'; p.classList.remove('hidden');
-  const all = Object.entries(SHOP).filter(([id,it])=>it.slot===shopSlot && (shopTab==='shop' || S.owned[id]));
+  if(shopTab==='closet' && shopSlot==='afford') shopSlot = 'top';
+  const all = Object.entries(SHOP).filter(([id,it])=> shopSlot==='afford' ? (!S.owned[id] && it.price<=S.coins) : (it.slot===shopSlot && (shopTab==='shop' || S.owned[id]))).sort((a,b)=>a[1].price-b[1].price);
+  const cheap = Object.entries(SHOP).filter(([id])=>!S.owned[id]).sort((a,b)=>a[1].price-b[1].price)[0];
   const worn = Object.keys(SLOTS).map(s=>S.wear[s] && SHOP[S.wear[s]] ? SHOP[S.wear[s]].name : '').filter(Boolean);
   p.innerHTML = `<h2>🛍️ 守護者商店 <span class="coinbig">💰 ${S.coins}</span></h2>
     <div class="btabs"><button class="cbtn ${shopTab==='shop'?'on':''}" data-tab="shop">🛍️ 買東西</button><button class="cbtn ${shopTab==='closet'?'on':''}" data-tab="closet">👕 我的衣櫥</button></div>
     <div class="shoptop"><canvas id="shopMe" width="96" height="104"></canvas>
       <div class="shopnote">現在穿著：${worn.length ? worn.join('、') : '（還沒有穿商店的東西）'}<br>
       <small>💰 金幣怎麼來：拿到徽章、打倒大魔王、完成隱藏任務或校園任務、隨機事件答對、小遊戲過關。</small></div></div>
-    <div class="btabs slotbar">${Object.entries(SLOTS).map(([s,l])=>`<button class="cbtn ${s===shopSlot?'on':''}" data-slot="${s}">${l}</button>`).join('')}</div>
+    <div class="btabs slotbar">${shopTab==='shop' ? `<button class="cbtn ${shopSlot==='afford'?'on':''}" data-slot="afford">💰 買得起的</button>` : ''}${Object.entries(SLOTS).map(([s,l])=>`<button class="cbtn ${s===shopSlot?'on':''}" data-slot="${s}">${l}</button>`).join('')}</div>
     <div class="shopgrid">${all.length ? all.map(([id,it])=>{
       const own = !!S.owned[id], on = S.wear[shopSlot]===id;
       const lab = on ? '脫下' : own ? '穿上' : shopConfirm===id ? '確定買？' : S.coins>=it.price ? '購買' : `還差 ${it.price-S.coins}`;
       return `<div class="sitem${on?' worn':''}"><canvas width="72" height="80" data-prev="${id}"></canvas><b>${it.name}</b>
         <span>${own ? (on ? '✅ 穿著' : '已擁有') : '💰 '+it.price}</span>
         <button class="cbtn sbtn${!own && S.coins<it.price ? ' poor' : ''}${shopConfirm===id ? ' on' : ''}" data-id="${id}">${lab}</button></div>`; }).join('')
+      : shopSlot==='afford' ? `<div class="shopempty">${cheap ? `金幣還不夠喔！最便宜的是「${cheap[1].name}」💰 ${cheap[1].price}，還差 ${cheap[1].price-S.coins} 枚。<br>拿徽章、玩小遊戲、完成任務都能賺金幣！` : '商店的東西你全部都有了，好厲害！'}</div>`
       : '<div class="shopempty">這一類還沒有買東西喔！到「🛍️ 買東西」看看吧。</div>'}</div>
     <div style="margin-top:10px;display:flex;gap:8px"><button class="cbtn" id="pWard">👕 打開我的衣櫥</button><button class="cbtn" id="pClose">關閉</button></div>`;
   paintAvatar($('#shopMe'), P.look, 'down', 2.6, 18);
@@ -7731,6 +7729,15 @@ function fit(){
   document.documentElement.style.setProperty('--tc', Math.min(1.3, tz).toFixed(2));
 }
 addEventListener('resize', fit); fit();
+function fitHud(){   // 右上角按鈕太多、手機放大後放不下：整排一起縮小到剛好放得下
+  const hr = $('#hRight'), hud = $('#hud'); if(!hr || hud.classList.contains('hidden')) return;
+  hr.style.zoom = '';
+  const g = $('#game').getBoundingClientRect(), r = hr.getBoundingClientRect(), l = $('#hLeft').getBoundingClientRect();
+  if(!r.width) return;
+  const room = g.right - l.right - 14 * (g.width / 816);   // 左邊名字框右邊到畫面右緣
+  if(r.width > room) hr.style.zoom = Math.max(.55, room / r.width).toFixed(3);
+}
+addEventListener('resize', ()=>setTimeout(fitHud, 50)); setInterval(fitHud, 1500);
 
 /* ---------------- 觸控裝置與首頁設定 ---------------- */
 var TOUCH = false;
