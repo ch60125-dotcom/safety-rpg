@@ -107,6 +107,15 @@
 
   /* 排行榜 */
   #panel{z-index:20}
+  #hLeft{position:relative}
+  #btnCloud{position:absolute;right:-8px;bottom:-12px;font:inherit;font-size:12px;font-weight:bold;line-height:1;padding:3px 7px;border:2px solid var(--ink);border-radius:12px;background:#fff;color:var(--ink);cursor:pointer;pointer-events:auto}
+  #btnCloud.cerr{background:#ffe1dc}
+  .pincard{border:3px dashed var(--ink);border-radius:14px;padding:12px 18px;margin:10px auto;width:300px;background:#fff}
+  .pincard .pct{font-size:20px;font-weight:bold;margin-bottom:6px}
+  .pincard .pcr{display:flex;gap:12px;font-size:19px;margin:3px 0}
+  .pincard .pcr span{width:56px;color:#7a6a5a}
+  .pincard .pcpin{letter-spacing:6px;color:#c0392b}
+  .pincard .pcn{font-size:13px;color:#7a6a5a;margin-top:8px}
   .btabs{display:flex;gap:8px;margin-bottom:8px}
   .btabs .cbtn{font-size:15px;padding:3px 12px}
   .btabs .cbtn.on{background:linear-gradient(#ffe48f,var(--gold))}
@@ -334,6 +343,7 @@
         <div id="hTitle">見習守護者</div>
         <div class="expbar"><i id="hExp"></i></div>
       </div>
+      <button class="hidden" id="btnCloud" title="雲端存檔">☁️<span id="hCloud">…</span></button>
     </div>
     <div id="hRight">
       <div class="frame" id="badges"></div>
@@ -2393,7 +2403,7 @@ function save(){
   const pp = CEL ? CEL.p : P;   // 慶典時玩家被移到操場：存原本的位置
   S.x=pp.x; S.y=pp.y; S.dir=pp.dir;
   try{ localStorage.setItem(S.seat ? seatKey(S.cls, S.seat) : 'campusGuardianSave', JSON.stringify(S)); }catch(e){}
-  cloudDirty = true;
+  cloudMark();
 }
 function loadSave(){
   try{ const t = localStorage.getItem('campusGuardianSave'); const d = t ? JSON.parse(t) : null; return (d && typeof d==='object' && d.name) ? d : null; }catch(e){ return null; }
@@ -3312,6 +3322,7 @@ $('#btnShop').onclick = ()=>{ if(scene==='play' && !DLG && !QTE && !ESC){ const 
 $('#btnBag').onclick = ()=>{ if(scene==='play' && !DLG && !QTE && !ESC) showBag(); };
 $('#btnMap').onclick = ()=>{ if(scene==='play') toggleMini(); };
 function setMuteBtn(){ $('#btnMute').textContent = muted?'🔇':'🔊'; }
+$('#btnCloud').onclick = ()=>showCloudPanel();
 $('#btnMute').onclick = ()=>{ muted=!muted; try{ localStorage.setItem('cgMuted', muted?'1':'0'); }catch(e){} setMuteBtn(); };
 setMuteBtn();
 const miniCtx = $('#mini').getContext('2d');
@@ -4847,11 +4858,25 @@ function sendStats(){
 setInterval(sendStats, 90000);
 function showReport(){
   const p = $('#panel'); p.dataset.mode = 'report'; p.classList.remove('hidden');
-  p.innerHTML = `<h2>📊 老師報表：錯題統計</h2>
-    <div class="btabs"><input id="rCls" maxlength="4" inputmode="numeric" placeholder="班級，例如 301（空白＝全校）" style="font:inherit;font-size:16px;padding:4px 8px;border:2px solid var(--ink);border-radius:8px;width:270px"><button class="cbtn" id="rGo">查詢</button></div>
-    <div id="rList" class="bmsg">輸入班級後按「查詢」，會列出學生最常答錯的題目，方便下一堂課複習。</div>
+  p.innerHTML = `<h2>📊 老師報表</h2>
+    <div class="btabs"><input id="rCls" maxlength="4" inputmode="numeric" placeholder="班級，例如 301（空白＝全校）" style="font:inherit;font-size:16px;padding:4px 8px;border:2px solid var(--ink);border-radius:8px;width:270px"><button class="cbtn" id="rGo">錯題統計</button><button class="cbtn" id="rSaves">☁️ 本班存檔</button></div>
+    <div id="rList" class="bmsg">輸入班級後：按「錯題統計」列出學生最常答錯的題目，方便下一堂課複習；按「☁️ 本班存檔」看哪些座號存過檔、最後什麼時候玩。</div>
     <div style="margin-top:10px"><button class="cbtn" id="rClose">關閉</button></div>`;
   $('#rClose').onclick = ()=>{ p.classList.add('hidden'); p.dataset.mode=''; };
+  $('#rSaves').onclick = ()=>{
+    const cls = ($('#rCls').value||'').replace(/\D/g,''), list = $('#rList');
+    if(!/^\d{3,4}$/.test(cls)){ list.textContent = '請先輸入班級（例如 301），再按「本班存檔」。'; return; }
+    if(!SCRIPT_URL){ list.textContent = '排行榜還沒有設定，請先依照「排行榜設定說明」完成設定。'; return; }
+    list.textContent = '查詢中……';
+    fetch(SCRIPT_URL + '?' + new URLSearchParams({action:'clist', cls})).then(r=>r.json()).then(d=>{
+      if(!d || !d.clist){ list.innerHTML = '排行榜後端還是舊版，還沒有「本班存檔」。<br>請老師依照「排行榜設定說明」的「更新後端」步驟，貼上新的 Code.gs 並重新部署。'; return; }
+      if(!d.clist.length){ list.textContent = `${cls} 班還沒有人存過雲端存檔。`; return; }
+      const when = t=>{ if(!t) return ''; const m = Math.round((Date.now()-t)/60000); return m<1 ? '剛剛' : m<60 ? m+' 分鐘前' : m<1440 ? Math.round(m/60)+' 小時前' : Math.round(m/1440)+' 天前'; };
+      const esc = x=>String(x).replace(/[<>&"]/g, c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
+      list.innerHTML = '<table class="btable"><tr><th>座號</th><th>暱稱</th><th>最後存檔</th></tr>' + d.clist.map(r=>`<tr><td>${r.seat}</td><td>${esc(r.nick)}</td><td>${when(r.at)}</td></tr>`).join('')
+        + `</table><div class="bmsg" style="font-size:13px">共 ${d.clist.length} 人。學生忘記密碼：打開排行榜試算表的「雲端存檔」工作表，看該座號的「密碼」欄。</div>`;
+    }).catch(()=>{ list.textContent = '連線失敗，請稍後再試。'; });
+  };
   $('#rGo').onclick = ()=>{
     const cls = ($('#rCls').value||'').replace(/\D/g,''), list = $('#rList');
     if(!SCRIPT_URL){ list.textContent = '排行榜還沒有設定，請先依照「排行榜設定說明」完成設定。'; return; }
@@ -4891,28 +4916,88 @@ function updateLoadBtn(){
 
 /* ---------------- ☁️ 雲端存檔：用「班級＋座號＋4 位數密碼」，換電腦、還原卡重開機也能接著玩 ---------------- */
 let cloudDirty = false, cloudBusy = false, cloudWarned = false;
+let cloudSig = '', cloudLazy = false, cloudSoonT = 0, cloudLastAt = 0, cloudState = 'off';
+// 這台電腦的代號：用來提醒「同一個座號在兩台電腦同時玩」
+let DEV = ''; try{ DEV = localStorage.getItem('cgDev') || ''; if(!DEV){ DEV = Math.random().toString(36).slice(2, 10); localStorage.setItem('cgDev', DEV); } }catch(e){ DEV = Math.random().toString(36).slice(2, 10); }
+// 只是走路、遊戲時間增加，不算「進度有變化」（避免全班每 30 秒一直上傳、塞車）
+const CLOUD_SKIP = new Set(['x','y','dir','playT','cloudAt','cloudOk','dev']);
+function cloudSigOf(){ return JSON.stringify(S, (k, v)=>CLOUD_SKIP.has(k) ? undefined : v); }
 function cloudPost(params){ return fetch(SCRIPT_URL, {method:'POST', body:new URLSearchParams(params)}).then(r=>r.json()); }
 function cloudReady(){ return !!(SCRIPT_URL && S && S.cls && S.seat && /^\d{4}$/.test(S.pin||'')); }
+function setCloudState(st){
+  cloudState = st;
+  const b = $('#btnCloud'); if(!b) return;
+  b.classList.toggle('hidden', st==='off');
+  $('#hCloud').textContent = st==='ok' ? '✓' : st==='err' ? '⚠️' : '…';
+  b.title = st==='ok' ? '雲端存檔：已存好' : st==='err' ? '雲端存檔：沒有成功，會自動再試' : '雲端存檔：上傳中';
+  b.classList.toggle('cerr', st==='err');
+}
+function cloudMark(){   // save() 每次都會呼叫：進度有變化 → 4 秒後上傳；只有位置變 → 之後再順便上傳
+  if(!cloudReady()) return;
+  if(cloudSigOf() !== cloudSig){
+    cloudDirty = true; if(cloudState!=='err') setCloudState('wait');
+    clearTimeout(cloudSoonT); cloudSoonT = setTimeout(()=>cloudSave(false), 4000);
+  } else cloudLazy = true;
+}
+function cloudPayload(){ S.cloudAt = Date.now(); S.dev = DEV; const data = JSON.stringify(S); try{ localStorage.setItem(seatKey(S.cls, S.seat), data); }catch(e){} return data; }
 function cloudSave(force){
-  if(!cloudReady() || cloudBusy) return;
+  if(!cloudReady()) return;
+  if(cloudBusy){ clearTimeout(cloudSoonT); cloudSoonT = setTimeout(()=>cloudSave(force), 3000); return; }
   if(!force && !cloudDirty) return;
-  cloudBusy = true; cloudDirty = false; S.cloudAt = Date.now();
-  const data = JSON.stringify(S);
-  try{ localStorage.setItem(seatKey(S.cls, S.seat), data); }catch(e){}
+  cloudBusy = true; cloudDirty = false; cloudLazy = false; setCloudState('busy');
+  const sig = cloudSigOf(), data = cloudPayload();
   cloudPost({action:'csave', cls:S.cls, seat:S.seat, pin:S.pin, nick:S.name, data})
     .then(d=>{ cloudBusy = false;
-      if(d && d.ok && d.csave){ if(!S.cloudOk){ S.cloudOk = true; toast('☁️ 進度已經存到雲端，換電腦也能接著玩！', true); } }
-      else { cloudDirty = true; if(d && d.error && d.error!=='存檔太頻繁' && !cloudWarned){ cloudWarned = true; toast('☁️ 雲端存檔沒有成功：' + d.error + '（進度還在這台電腦裡）'); } } })
-    .catch(()=>{ cloudBusy = false; cloudDirty = true; });
+      if(d && d.ok && d.csave){
+        cloudSig = sig; cloudLastAt = Date.now(); cloudWarned = false;
+        setCloudState(cloudDirty ? 'wait' : 'ok');
+        if(!S.cloudOk){ S.cloudOk = true; toast('☁️ 進度已經存到雲端，換電腦也能接著玩！', true); }
+      } else if(d && d.error==='存檔太頻繁'){ cloudDirty = true; setCloudState('wait'); clearTimeout(cloudSoonT); cloudSoonT = setTimeout(()=>cloudSave(false), 4000); }
+      else { cloudDirty = true; setCloudState('err'); if(d && d.error && !cloudWarned){ cloudWarned = true; toast('☁️ 雲端存檔沒有成功：' + d.error + '（進度還在這台電腦裡）'); } } })
+    .catch(()=>{ cloudBusy = false; cloudDirty = true; setCloudState('err'); });
 }
-setInterval(()=>cloudSave(false), 30000);   // 有變動時，每 30 秒存一次到雲端
+setInterval(()=>{   // 每 30 秒檢查：有沒傳成功的就再試；只有走路的話，3 分鐘順便傳一次位置
+  if(cloudDirty) cloudSave(false);
+  else if(cloudLazy && Date.now() - cloudLastAt > 180000){ cloudDirty = true; cloudSave(false); }
+}, 30000);
 document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden') cloudBeacon(); });
 addEventListener('pagehide', cloudBeacon);
 function cloudBeacon(){   // 關掉分頁、切到別的程式時，馬上送一次
-  if(!cloudReady() || !cloudDirty || !navigator.sendBeacon) return;
-  S.cloudAt = Date.now(); const data = JSON.stringify(S);
-  try{ localStorage.setItem(seatKey(S.cls, S.seat), data); }catch(e){}
-  if(navigator.sendBeacon(SCRIPT_URL, new URLSearchParams({action:'csave', cls:S.cls, seat:S.seat, pin:S.pin, nick:S.name, data}))) cloudDirty = false;
+  if(!cloudReady() || !(cloudDirty || cloudLazy) || !navigator.sendBeacon) return;
+  const sig = cloudSigOf(), data = cloudPayload();
+  if(navigator.sendBeacon(SCRIPT_URL, new URLSearchParams({action:'csave', cls:S.cls, seat:S.seat, pin:S.pin, nick:S.name, data}))){ cloudDirty = false; cloudLazy = false; cloudSig = sig; }
+}
+function cloudStart(){ cloudSig = ''; cloudLazy = false; cloudWarned = false; setCloudState(cloudReady() ? 'wait' : 'off'); }
+function pinCardHTML(d){
+  return `<div class="pincard"><div class="pct">🔑 我的存檔卡</div>
+    <div class="pcr"><span>班級</span><b>${d.cls}</b></div><div class="pcr"><span>座號</span><b>${d.seat}</b></div>
+    <div class="pcr"><span>暱稱</span><b>${d.name}</b></div><div class="pcr"><span>密碼</span><b class="pcpin">${d.pin}</b></div>
+    <div class="pcn">換電腦時，輸入一樣的班級、座號、密碼，<br>按「☁️ 繼續遊戲」就能接著玩。</div></div>`;
+}
+function printPinCard(d){
+  const w = open('', '_blank', 'width=420,height=480'); if(!w){ toast('瀏覽器擋住了列印視窗，請把存檔卡抄在聯絡簿上'); return; }
+  w.document.write(`<!doctype html><meta charset="utf-8"><title>存檔卡</title><style>body{font-family:"Microsoft JhengHei",sans-serif;margin:24px}.pincard{border:3px dashed #2b2233;border-radius:14px;padding:16px 20px;width:300px}.pct{font-size:22px;font-weight:bold;margin-bottom:8px}.pcr{display:flex;gap:12px;font-size:20px;margin:4px 0}.pcr span{width:56px;color:#666}.pcpin{letter-spacing:6px}.pcn{font-size:13px;color:#555;margin-top:10px}</style>${pinCardHTML(d)}<script>print()<\/script>`);
+  w.document.close();
+}
+function showPinCard(d, onOk){   // 開始新遊戲時：先把存檔卡給學生看，抄好再開始
+  const p = $('#panel'); p.dataset.mode = 'pincard'; p.classList.remove('hidden');
+  p.innerHTML = `<h2>☁️ 你的進度會存在雲端</h2>${pinCardHTML(d)}
+    <div class="bmsg">請把<b>密碼</b>抄在聯絡簿或課本上，換電腦時要用！</div>
+    <div style="margin-top:10px"><button class="cbtn" id="pcPrint">🖨️ 列印</button> <button class="cbtn" id="pcOk">✅ 我記住了，開始！</button></div>`;
+  $('#pcPrint').onclick = ()=>printPinCard(d);
+  $('#pcOk').onclick = ()=>{ p.classList.add('hidden'); p.dataset.mode = ''; onOk(); };
+  $('#pcOk').focus();
+}
+function showCloudPanel(){   // 遊戲中按 ☁️：看存檔狀態和自己的存檔卡
+  if(!S) return;
+  const p = $('#panel'); p.dataset.mode = 'cloud'; p.classList.remove('hidden');
+  const st = cloudState==='ok' ? '✅ 已經存到雲端' + (cloudLastAt ? `（${new Date(cloudLastAt).toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'})}）` : '') + '，可以放心關機。'
+    : cloudState==='err' ? '⚠️ 剛剛沒有存成功，遊戲會自動再試。進度還在這台電腦裡。' : '⏳ 正在上傳，等一下再關機喔。';
+  p.innerHTML = `<h2>☁️ 雲端存檔</h2><div class="bmsg">${st}</div>${pinCardHTML(S)}
+    <div style="margin-top:10px"><button class="cbtn" id="cpNow">☁️ 現在存檔</button> <button class="cbtn" id="cpPrint">🖨️ 列印存檔卡</button> <button class="cbtn" id="cpClose">關閉</button></div>`;
+  $('#cpNow').onclick = ()=>{ save(); cloudSave(true); toast('☁️ 存檔中……', true); p.classList.add('hidden'); p.dataset.mode = ''; };
+  $('#cpPrint').onclick = ()=>printPinCard(S);
+  $('#cpClose').onclick = ()=>{ p.classList.add('hidden'); p.dataset.mode = ''; };
 }
 function titlePin(){ return ($('#inPin').value||'').replace(/\D/g,''); }
 async function cloudLoad(cls, seat, pin){   // 回傳 {data} 或 {error} 或 null（連不上、後端是舊版）
@@ -5179,7 +5264,8 @@ $('#btnNew').onclick = async ()=>{
   if(had && !confirm(`${cls} 班 ${t.seat} 號已經有進度（${had.name}），開始新遊戲會覆蓋它，確定嗎？`)) return;
   sfx('ok');
   const ns = newSave(name, lookSel<4 ? lookSel : 0, cls); ns.seat = t.seat; ns.pin = pin; ns.custom = Object.assign({}, custom);
-  startGame(ns, true); save(); cloudSave(true);
+  const go = ()=>{ startGame(ns, true); cloudStart(); save(); cloudSave(true); };
+  if(cl) showPinCard(ns, go); else go();   // 連不上雲端時不顯示存檔卡
 };
 $('#btnLoad').onclick = async ()=>{
   const t = titleSlot(), pin = titlePin(), err = $('#tErr');
@@ -5190,7 +5276,11 @@ $('#btnLoad').onclick = async ()=>{
     const cl = await cloudLoad(t.cls, t.seat, pin);
     btn.disabled = false; err.textContent = '';
     if(cl && cl.error){ err.textContent = cl.error==='密碼不對' ? '密碼不對喔！忘記密碼請找老師幫忙查。' : '☁️ ' + cl.error; sfx('warn'); return; }
-    if(cl && cl.data){ if(!(d && d.pin===pin && (d.cloudAt||0) > (cl.data.cloudAt||0))) d = cl.data; }   // 用比較新的那一份
+    if(cl && cl.data){
+      const c = cl.data, ago = Date.now() - (c.cloudAt||0);
+      if(c.dev && c.dev!==DEV && ago < 180000 && !confirm(`${t.cls} 班 ${t.seat} 號 ${Math.max(1, Math.round(ago/60000))} 分鐘內還在「另一台電腦」上玩。\n如果那台還開著，兩邊的進度會互相蓋掉。\n\n確定要在這台電腦繼續嗎？（請先把另一台關掉）`)) return;
+      if(!(d && d.pin===pin && (d.cloudAt||0) > (c.cloudAt||0))) d = c;   // 用比較新的那一份
+    }
     else if(d && d.pin && d.pin!==pin){ err.textContent = '密碼不對喔！忘記密碼請找老師幫忙查。'; sfx('warn'); return; }
     if(!d && !loadSave()){ err.textContent = cl ? `雲端和這台電腦都找不到 ${t.cls} 班 ${t.seat} 號的進度，請按「開始新遊戲」。` : '連不上雲端，這台電腦也沒有這個座號的進度。'; sfx('warn'); return; }
     if(d){ d.seat = t.seat; d.pin = d.pin || pin; }
@@ -5203,7 +5293,7 @@ $('#btnLoad').onclick = async ()=>{
     d.seat = t.seat; d.pin = d.pin || pin;
     try{ localStorage.removeItem('campusGuardianSave'); }catch(e){}
   }
-  sfx('ok'); startGame(d,false); save(); cloudSave(true); };
+  sfx('ok'); startGame(d,false); cloudStart(); save(); cloudSave(true); };
 
 /* ---------------- 小遊戲：音樂教室鋼琴、電腦教室檔案打地鼠、防災中心滅火、美術教室畫畫、輔導室心情小花園 ----------------
    每個小遊戲第一次完成時給經驗 +10 和一個道具（只送一次，不計入守護積分）。 */
@@ -7452,7 +7542,8 @@ function update(dt){
   P.target = t;
   const hint = $('#hint');
   const key = TOUCH ? '「對話」鍵' : '空白鍵';
-  const txt = t ? (t.npc ? `💬 ${key}：和「${t.npc.name}」說話` : t.stall ? `🚽 ${key}：上廁所` : t.sink ? `🚰 ${key}：洗手` : t.stair ? `🔼 ${key}：上下樓梯` : t.mcb ? `🌏 ${key}：多元文化書架` : t.az ? `🌾 ${key}：安定三寶` : t.dmap ? `🗺️ ${key}：看防災地圖` : t.smoke ? `🌫️ ${key}：濃煙逃生走廊` : t.call ? `☎️ ${key}：119 報案練習` : t.bag ? `🎒 ${key}：防災避難包` : t.door ? `🚪 ${key}：看門牌` : t.lab ? `🧪 ${key}：實驗室安全` : t.piano ? `🎹 ${key}：彈鋼琴` : t.drum ? `🥁 ${key}：打鼓節奏` : t.recorder ? `🎶 ${key}：吹直笛` : t.cloze ? `🔤 ${key}：英語填空` : t.match ? `🃏 ${key}：單字配對` : t.pc ? `📂 ${key}：檔案打地鼠` : t.sofa ? `🌱 ${key}：心情小花園` : t.fire ? `🧯 ${key}：滅火練習` : t.easel ? `🎨 ${key}：畫畫` : t.pot ? `🏺 ${key}：投壺` : t.drill ? `🔥 ${key}：火災模擬` :`📋 ${key}：查看`) : (TOUCH ? '左下角搖桿走路｜右上角 📋 任務、🎒 道具' : '方向鍵移動｜Q 任務｜B 道具｜C 商店｜M 地圖｜R 排行榜');
+  let txt = t ? (t.npc ? `💬 ${key}：和「${t.npc.name}」說話` : t.stall ? `🚽 ${key}：上廁所` : t.sink ? `🚰 ${key}：洗手` : t.stair ? `🔼 ${key}：上下樓梯` : t.mcb ? `🌏 ${key}：多元文化書架` : t.az ? `🌾 ${key}：安定三寶` : t.dmap ? `🗺️ ${key}：看防災地圖` : t.smoke ? `🌫️ ${key}：濃煙逃生走廊` : t.call ? `☎️ ${key}：119 報案練習` : t.bag ? `🎒 ${key}：防災避難包` : t.door ? `🚪 ${key}：看門牌` : t.lab ? `🧪 ${key}：實驗室安全` : t.piano ? `🎹 ${key}：彈鋼琴` : t.drum ? `🥁 ${key}：打鼓節奏` : t.recorder ? `🎶 ${key}：吹直笛` : t.cloze ? `🔤 ${key}：英語填空` : t.match ? `🃏 ${key}：單字配對` : t.pc ? `📂 ${key}：檔案打地鼠` : t.sofa ? `🌱 ${key}：心情小花園` : t.fire ? `🧯 ${key}：滅火練習` : t.easel ? `🎨 ${key}：畫畫` : t.pot ? `🏺 ${key}：投壺` : t.drill ? `🔥 ${key}：火災模擬` :`📋 ${key}：查看`) : (TOUCH ? '左下角搖桿走路｜右上角 📋 任務、🎒 道具' : '方向鍵移動｜Q 任務｜B 道具｜C 商店｜M 地圖｜R 排行榜');
+  if(!t && S && !S.crossed && P.y>=52 && light()!=='green'){ const left = Math.ceil(LIGHT_CYCLE - lightT % LIGHT_CYCLE); txt = `🔴 紅燈，請在人行道上等小綠人亮起（還有 ${left} 秒）`; }
   if(hint.textContent!==txt) hint.textContent = txt;
   // 觸控的「對話」鍵：依面前的東西換字；有東西可以互動時輕輕跳動，沒有時變淡
   if(TOUCH){
