@@ -506,7 +506,12 @@ const QUIZ = {
     {q:'坐在汽車後座時，安全帶要怎麼繫才正確？', a:['肩帶斜過胸前，腰帶繫在腰下方','把肩帶放到背後，坐起來比較舒服','只繫腰帶就好，肩帶不用繫','坐後座很安全，不用繫安全帶'], exp:'正確繫好安全帶，發生碰撞時才能保護身體。後座也一定要繫安全帶喔！'},
     {q:'在路邊玩球，球滾到馬路上了，應該怎麼做？', a:['不要追，請大人幫忙處理','看左右沒車，就衝出去撿','站在路邊大喊，叫車子停下來','用腳把球勾回來就好'], exp:'追球時眼睛只看球，很容易沒注意到來車。球滾出去了，一定要請大人幫忙。'},
     {q:'下雨天撐傘走路，要注意什麼？', a:['傘不要壓太低，注意來車','把傘壓低一點，才不會淋濕','在水坑裡跳來跳去比較好玩','撐著傘用跑的過馬路'], exp:'雨天視線不好、路面濕滑，駕駛也比較難看到你，要走慢一點、看清楚。'},
-    {q:'路口有交通警察或導護志工在指揮交通，應該怎麼做？', a:['依照他們的手勢通行','看紅綠燈就好，不用理指揮','趁他指揮別的方向時快跑過去','從他的後面繞過去就好'], exp:'有人指揮交通時，要依照指揮人員的手勢通行，他們會幫你注意來車。'}
+    {q:'路口有交通警察或導護志工在指揮交通，應該怎麼做？', a:['依照他們的手勢通行','看紅綠燈就好，不用理指揮','趁他指揮別的方向時快跑過去','從他的後面繞過去就好'], exp:'有人指揮交通時，要依照指揮人員的手勢通行，他們會幫你注意來車。'},
+    {q:'騎腳踏車出發前要做「ABC 檢查」，A、B、C 指的是什麼？', a:['輪胎的氣、煞車、鏈條','安全帽、鈴鐺、車燈','座椅、把手、踏板','籃子、後架、車鎖'], exp:'A 是 Air（輪胎的氣）、B 是 Brake（煞車）、C 是 Chain（鏈條）。出發前檢查這三樣，騎起來才安全。'},
+    {q:'騎腳踏車在馬路上，應該騎在哪裡？', a:['靠右邊的慢車道，跟車子同方向','靠左邊騎，才看得到對面來車','騎上人行道，比較不會被車撞','騎在馬路中間，比較寬比較順'], exp:'腳踏車要靠右、順著車子的方向，騎在慢車道。人行道是給行人走的，要下車用牽的。'},
+    {q:'騎腳踏車經過路邊停著的汽車時，要注意什麼？', a:['車門可能突然打開，要保持距離','貼著車子騎，才不會擋到別人','按按鈴，車裡的人就不會開門','加速騎過去，越快就越安全'], exp:'車裡的人可能沒看後面就開車門，經過時要減速，並保持大約一個車門的距離。'},
+    {q:'安全帽要怎麼戴才正確？', a:['戴正蓋住額頭，扣環扣緊','往後戴露出額頭，比較涼快','扣環鬆鬆的，才不會勒到','戴在頭上就好，扣環不用扣'], exp:'安全帽要戴正、蓋住額頭，扣環扣好，下巴和帶子之間大約放得進一到兩根手指。'},
+    {q:'騎公共自行車要還車時，怎麼做才算還好？', a:['推進停車柱，確認還車成功','停在停車柱旁邊就可以離開','停在人行道上，方便別人借','鎖在路邊的電線桿上就好'], exp:'要把車推進停車柱，看到或聽到「還車成功」的提示才算還好，不然可能會被一直計費。'}
   ],
   gender: [
     {q:'身體的哪些地方是「隱私部位」，別人不可以隨便看或碰觸？', a:['泳衣、泳褲遮住的地方和嘴巴','只有臉和頭髮，其他都可以','手臂和膝蓋，其他地方沒關係','只有肚子和背部而已'], exp:'泳衣泳褲遮住的地方和嘴巴是隱私部位，任何人（包括認識的人）都不可以隨便看或碰。看醫生檢查時，也要有爸媽或信任的大人陪在旁邊。'},
@@ -855,9 +860,14 @@ function relayout(){
   map.splice(12, 0, spacer(), spacer(), spacer()); map.length = MH;
   relayout();
 })();
+// 🚲 單車練習場（操場南邊、南面光電球場左邊，x41～56、y37～45）
+map[40][47] = '.'; map[42][53] = '.';          // 練習場裡的兩棵樹移走
+for(let x=42; x<=45; x++) map[38][x] = '$';    // 單車站的停車柱（停著腳踏車）
+map[38][46] = 'S';                             // 練習場告示牌
 
 /* 告示牌內容（座標 'x,y'：文字） */
 const SIGNS = {
+  '46,38':'【單車練習場】騎車前先做 ABC 檢查：A 輪胎、B 煞車、C 鏈條。戴好安全帽、靠右騎、不雙載、不放手。小朋友騎車上路，要有家人陪同喔！',
   '22,46':'【校園公告】上下學請走斑馬線，並遵守導護志工的指揮。',
   '23,26':'【校園地圖】安萃樓 1F：廁所、特教班、處室、校長室、電腦教室、保健室、器材室；2F：三、四年級、自然專科教室、藝術教室；3F：音樂教室、英語教室、圖書館｜南耘樓 1F：一年級、五甲、活動室；2F：輔導處、二年級；3F：五、六年級｜榕樹區旁：防災教育中心｜樓梯：安萃樓 ①②③、南耘樓 ④⑤⑥（走到樓梯前按空白鍵）',
   '9,38':'【安定三寶】胡麻（芝麻）、蘆筍、無患子是臺南安定的三樣寶貝！臺南是全台最大的胡麻產地，安定是主要產區之一；安定也是綠蘆筍的重要產地；無患子的果皮含有皂素，可以搓出泡泡，我們學校也種了無患子。',
@@ -911,9 +921,9 @@ const EXTRA_TALK = {
   '3':'【洗眼器】藥品不小心噴到眼睛時，馬上到洗眼器用清水沖洗至少 15 分鐘，並告訴老師！'
 };
 
-const SOLID = new Set(['&','+','!','(',')','{','^','0','4','6','7','8','9','%','s','|','1','2','3','I','a','d','y','w','u','x','#','T','W','v','m','n','r','i','q','j','E','f','k','b','c','e','h','p','S','P','L','B','Y','C','U','V','G','O','N','J','X','R','K','M','A','H','Z']);
+const SOLID = new Set(['&','+','!','(',')','{','^','0','4','6','7','8','9','%','s','|','1','2','3','I','a','d','y','w','u','x','#','T','W','v','m','n','r','i','q','j','E','f','k','b','c','e','h','p','S','P','L','B','Y','C','U','V','G','O','N','J','X','R','K','M','A','H','Z','$']);
 const NPC_WALK = new Set(['.','_','t',',','F','o']);
-const BG = {'&':',','+':'.','!':'.','{':'.','^':'.','0':',','4':'#','5':',','6':',','7':',','8':',','9':',',s:',','|':',','1':',','2':',','3':',',I:',',a:',',d:',',T:'.',F:'.',f:'.',S:'.',P:'.',L:'_',k:',',c:',',e:',',h:',',p:',',b:'#',Q:'#',D:',',g:'_',B:',',Y:',',C:',',U:',',V:',',G:'.',O:',',m:'.',n:'.',r:'.',i:'_',x:'.',l:'.',y:'.',w:'.',u:'.',q:',',j:',',E:'.',N:',',J:',',X:',',R:'.',K:'.',M:',',A:',',H:',',Z:','};
+const BG = {'&':',','+':'.','!':'.','{':'.','^':'.','0':',','4':'#','5':',','6':',','7':',','8':',','9':',',s:',','|':',','1':',','2':',','3':',',I:',',a:',',d:',',T:'.',F:'.',f:'.',S:'.',P:'.',L:'_',k:',',c:',',e:',',h:',',p:',',b:'#',Q:'#',D:',',g:'_',B:',',Y:',',C:',',U:',',V:',',G:'.',O:',',m:'.',n:'.',r:'.',i:'_',x:'.',l:'.',y:'.',w:'.',u:'.',q:',',j:',',E:'.',N:',',J:',',X:',',R:'.',K:'.',M:',',A:',',H:',',Z:',','$':'.'};
 const BOOK_TIPS = [
   '📕《小心！陌生人》：不跟陌生人走、不吃陌生人給的東西、不告訴陌生人個人資料。',
   '📗《地震來了怎麼辦》：趴下、掩護、穩住！主震結束後，聽到「1 長 4 短」的哨音再疏散。',
@@ -964,6 +974,7 @@ const miniCv = document.createElement('canvas'); miniCv.width = MW*MS; miniCv.he
   drawPlayground(g);
   drawPondBase(g);
   drawCourts(g);
+  drawBikeField(g);
   drawInteriors(g);
   for(let y=0;y<MH;y++) for(let x=0;x<MW;x++) drawStatic(g, map[y][x], x, y);
   drawShadows(g);
@@ -1453,6 +1464,22 @@ function drawCourts(g){
     courtFrame(g, 57, 37, 64, 46, '南面光電球場');
   }
 }
+function drawBikeField(g){   // 🚲 單車練習場：單車站的地磚＋地上畫的一圈練習道路
+  g.lineWidth=2; g.strokeStyle=OL;
+  rr(g, 41*TS+4, 37*TS+6, 6*TS-8, 3*TS-10, 6, '#d9d4c7');
+  g.fillStyle='#c6c0b0'; for(let x=41*TS+20; x<47*TS-4; x+=16) g.fillRect(x, 37*TS+8, 1.5, 3*TS-14);
+  const X=48*TS+4, Y=37*TS+8, W=9*TS-12, H=9*TS-14, RW=40;
+  g.fillStyle='#5a5d65'; g.beginPath(); g.roundRect(X, Y, W, H, 44); g.fill(); g.stroke();
+  g.fillStyle='#86c96e'; g.beginPath(); g.roundRect(X+RW, Y+RW, W-2*RW, H-2*RW, 14); g.fill(); g.stroke();
+  g.strokeStyle='#f2c230'; g.lineWidth=2; g.setLineDash([8,8]); g.beginPath(); g.roundRect(X+RW/2, Y+RW/2, W-RW, H-RW, 30); g.stroke(); g.setLineDash([]);
+  g.fillStyle='#f4f4f4'; for(let i=0;i<5;i++) g.fillRect(X+W/2-44+i*18, Y+H-RW+5, 10, RW-10);   // 斑馬線
+  g.fillRect(X+5, Y+H/2, RW-10, 4);                                                              // 停止線
+  g.strokeStyle=OL; g.lineWidth=1.5; rr(g, X+RW+6, Y+H/2-34, 6, 34, 2, '#6d7178'); rr(g, X+RW, Y+H/2-52, 18, 24, 4, '#2a2d33');
+  circ(g, X+RW+9, Y+H/2-46, 4, '#ff4040'); circ(g, X+RW+9, Y+H/2-35, 4, '#3bff6b');
+  g.lineWidth=1.5; rr(g, X+W-RW-30, Y+RW+16, 22, 40, 4, 'rgba(226,85,85,.8)'); rr(g, X+W-RW-30, Y+RW+66, 22, 40, 4, 'rgba(60,127,208,.8)');   // 紙板汽車
+  for(const [cx,cy] of [[X+RW+40,Y+RW+30],[X+RW+40,Y+H-RW-30]]){ g.fillStyle='#ff8a2a'; g.beginPath(); g.moveTo(cx,cy-9); g.lineTo(cx+6,cy+6); g.lineTo(cx-6,cy+6); g.closePath(); g.fill(); g.stroke(); }   // 三角錐
+  plaque(g, '🚲 單車練習場', X+W/2, Y+H/2);
+}
 function drawPondBase(g){
   const {x,y,w,h}=POND;
   g.lineWidth=2; g.strokeStyle=OL;
@@ -1466,6 +1493,13 @@ function drawStatic(g,c,tx,ty){
   g.lineWidth=1.5; g.strokeStyle=OL;
   if(c==='#'||c==='b'||c==='Q'||c==='|'||c==='4'){ drawWall(g,c,tx,ty); return; }
   switch(c){
+    case '$': { // 單車站：停車柱＋停好的腳踏車（從上面看）
+      g.fillStyle='rgba(0,0,0,.15)'; g.fillRect(X+4,Y+26,26,5);
+      rr(g, X+12, Y-10, 8, 30, 3, '#e8edf2'); rr(g, X+13, Y-6, 6, 5, 2, '#3cb371');
+      g.lineWidth=2.5; g.strokeStyle='#2b2b30'; g.beginPath(); g.arc(X+16, Y+8, 6, 0, 7); g.stroke(); g.beginPath(); g.arc(X+16, Y+26, 6, 0, 7); g.stroke();
+      g.strokeStyle='#2fa58f'; g.lineWidth=3; g.beginPath(); g.moveTo(X+16, Y+8); g.lineTo(X+16, Y+26); g.stroke();
+      g.strokeStyle=OL; g.lineWidth=1.2; rr(g, X+8, Y+4, 16, 3, 1.5, '#4a4a52'); rr(g, X+11, Y+15, 10, 5, 2, '#2b2b30');
+      break; }
     case 's': { // 樓梯：一階一階往上，旁邊有扶手
       const hit = stairAt(tx,ty), top = tileAt(tx,ty-1)!=='s', left = tileAt(tx-1,ty)!=='s';
       g.fillStyle='#cfc9bb'; g.fillRect(X,Y,TS,TS);
@@ -2352,6 +2386,13 @@ function drawPerson(g, x, y, dir, L, step, still){
     g.beginPath(); g.moveTo(cx-14, by+3); g.lineTo(cx, by-9); g.lineTo(cx+14, by+3); g.quadraticCurveTo(cx, by+7, cx-14, by+3); g.closePath(); g.fillStyle='#e8c87a'; g.fill(); g.stroke();
     g.strokeStyle='rgba(140,100,40,.55)'; g.lineWidth=1; for(const k of [-6,0,6]){ g.beginPath(); g.moveTo(cx, by-8); g.lineTo(cx+k*2, by+4); g.stroke(); } g.strokeStyle=OL; g.lineWidth=1.25;
   }
+  if(L.hat==='bikehelmet'){ // 單車安全帽：流線型、有通風孔、下巴扣帶
+    const hc = L.hatColor||'#2fa58f';
+    if(dir==='down'){ g.strokeStyle='#2b2233'; g.lineWidth=.9; g.beginPath(); g.moveTo(cx-8.6,by+3); g.lineTo(cx-4,by+12.6); g.lineTo(cx+4,by+12.6); g.lineTo(cx+8.6,by+3); g.stroke(); g.strokeStyle=OL; g.lineWidth=1.25; }
+    g.beginPath(); g.ellipse(cx, by+3, 10.8, 9.6, 0, Math.PI, 0); g.closePath(); g.fillStyle=hc; g.fill(); g.stroke();
+    g.fillStyle='rgba(255,255,255,.7)'; for(const k of [-4.5,0,4.5]) g.fillRect(cx+k-1, by-4.5, 2, 4.5);
+    rr(g, cx-11.4, by+1.6, 22.8, 2.8, 1.4, darken(hc,.18));
+  }
   if(L.hat==='firefighter'){ // 小小消防員帽：紅色頭盔＋寬帽簷＋金色徽章
     g.beginPath(); g.arc(cx, by+3, 10, Math.PI, 0); g.closePath(); g.fillStyle='#d62d2d'; g.fill(); g.stroke();
     rr(g, cx-12.5, by+1.5, 25, 4, 2, '#b01f1f');
@@ -2483,6 +2524,22 @@ addNPC({id:'s5', x:34, y:22, name:'小傑', wander:[33,22,42,22],
 addNPC({id:'mom', x:9, y:54, name:'家長', wander:[2,53,15,54],
   look:{skin:'#f3c9a2',hair:'#4a2f1d',shirt:'#6bbf8e',pants:'#555',long:true},
   talk(n){ say(['早安！路上車子多，大人要牽好小朋友的手。','過馬路前，我們都會一起「停、看、聽」！'],{name:n.name}); }});
+addNPC({id:'guard', x:21, y:45, name:'警衛 劉伯伯', dir:'left',
+  look:{skin:'#e8b98f',hair:'#6a6a6a',shirt:'#2c4a7a',pants:'#22304a',hat:'cap',hatColor:'#22304a',mustache:'#7a7a7a'},
+  talk(n){ say(['{name}早安！我是警衛劉伯伯，負責守護校門。','進了校門，放學前都不能自己離開學校喔！真的有事要先告訴老師，由家長到警衛室登記後，再接你離開。','看到陌生人在校門口或圍牆邊徘徊，也要馬上告訴我或老師！'],{name:n.name}); }});
+addNPC({id:'bike', x:44, y:39, name:'單車志工 林阿姨', dir:'down',
+  look:{skin:'#f3c9a2',hair:'#3a2a22',shirt:'#2fa58f',pants:'#334',long:true,hat:'bikehelmet',hatColor:'#ffd447'},
+  talk(n){ bikeTalk(n); }});
+function bikeTalk(n){
+  const ck = !!(S.gift && S.gift.mg_bikecheck);
+  const lines = S.bikeDone ? ['{name}，歡迎再來練習！','記得：出發前 ABC 檢查、戴好安全帽、靠右騎、路口停看聽！']
+    : ck ? ['車子檢查好了，可以騎上練習場囉！','練習場的地上畫了紅綠燈和斑馬線，還有用紙板做的汽車和大卡車，就像真的馬路一樣。']
+    : ['嗨！我是單車志工林阿姨，這裡是學校的單車練習場。','放學或假日，你可能會和家人一起騎腳踏車、借公共自行車。小朋友騎車上路，一定要有家人陪同喔！','上路前，先在這裡練習吧！借車之前，要先檢查車子安不安全。'];
+  const ch = [{t:'🔧 借車：出發前檢查', f:()=>startMini('bikecheck')}];
+  if(ck) ch.push({t:'🚲 騎上練習場', f:()=>startMini('bikeride')});
+  ch.push({t:'等一下再來', f:()=>{}});
+  say(lines, {name:n.name, choices:ch});
+}
 addNPC({id:'s6', x:27, y:10, name:'小安', wander:[24,10,37,11],
   look:{skin:'#f6d2b0',hair:'#222',shirt:'#9b6bd6',pants:'#2c3e60'},
   talk(n){ say(['上下樓梯要靠右邊走，一階一階走才安全！','我剛剛在走廊看到有人奔跑，差點撞到人呢。'],{name:n.name}); }});
@@ -2890,11 +2947,27 @@ function warn(msg, good){
   toast(msg, good);
   if(!good) sfx('warn');
 }
+function trafficPos(){   // 方阿伯：學生還沒進校門時在校門外導護；進校門後，他也走進來站在校門內側
+  const n = NPCS.find(n=>n.id==='traffic'); if(!n) return;
+  const [x,y] = S && S.inSchool ? [17,45] : [17,53];
+  if(n.x===x && n.y===y) return;
+  n.x = x; n.y = y; n.px = x*TS; n.py = y*TS; n.moving = false; n.dir = S && S.inSchool ? 'right' : 'down';
+}
+function gateStop(){   // 想走出校門：第一次是警衛伯伯的情境題，答對以後只提醒
+  if(DLG || evBusy) return;
+  clearHeld();
+  if(S.gateQ){ warn('🚧 警衛劉伯伯：上課時間不能自己離開學校喔！有事要先告訴老師。'); return; }
+  choiceEvent([{n:'警衛 劉伯伯',t:'小朋友，等一下！上課時間，你要去哪裡呀？'}], [
+    {t:'我忘了帶作業，回家拿一下就回來', ok:false, r:'不可以自己離開學校！忘了帶東西，要先告訴老師，請老師聯絡家長送來。'},
+    {t:'我想去對面的商店買飲料', ok:false, r:'上課時間不能自己離開學校喔！口渴可以到飲水機裝水。'},
+    {t:'我回教室去，有事會先告訴老師', ok:true, r:'答對了！進了校門，放學前都不能自己離開。真的有事要先告訴老師，由家長到警衛室登記後，再接你離開。', after:ok=>{ if(ok){ S.gateQ = 1; save(); } }}]);
+}
 function tryStep(dir){
   P.dir = dir;
   const [dx,dy] = DIRS[dir];
   const nx=P.x+dx, ny=P.y+dy;
   const c = tileAt(nx,ny), cur = tileAt(P.x,P.y);
+  if(S.inSchool && P.y<=46 && ny>=47 && ny<=55){ gateStop(); return; }   // 進了校門，放學前不能自己出去
   if(c==='='){ warn('⚠️ 危險！不可以隨意穿越馬路，要走斑馬線喔！'); return; }
   if(c==='z' && cur!=='z'){
     const L = light();
@@ -2917,11 +2990,16 @@ function onArrive(){
   if(P.prev==='z' && c==='_' && P.y===48 && !S.crossed){
     S.crossed = true; gainExp(10); warn('👍 有遵守紅綠燈、走斑馬線過馬路！經驗 +10', true); sfx('ok');
   }
+  if(!S.inSchool && P.y<=46){
+    S.inSchool = true; trafficPos(); save();
+    if(!S.badges.traffic) setTimeout(()=>toast('🚸 方阿伯導護完，也走進校門了，他就站在校門內側喔！', true, 3500), 600);
+  }
   hqStep();
   checkZone();
 }
 const ZONES = [
   {n:'🚸 校門口',x1:0,y1:47,x2:MW-1,y2:55},
+  {n:'🚲 單車練習場',x1:41,y1:37,x2:56,y2:45},
   {n:'🎯 活動室',x1:26,y1:16,x2:37,y2:23},
   {n:'🏫 校長室',x1:30,y1:2,x2:37,y2:8},
   {n:'🧯 防災教育中心',x1:80,y1:26,x2:93,y2:37},
@@ -3917,6 +3995,7 @@ const ACC = {
   gold:   {name:'✨ 完美守護者金披風', look:{cape:'#f6c445'}},
   firecap:{name:'🚒 小小消防員帽', look:{hat:'firefighter'}},
   douli:  {name:'🌾 安定小農斗笠', look:{hat:'douli'}},
+  bikehelm:{name:'🚴 單車安全帽', look:{hat:'bikehelmet', hatColor:'#2fa58f'}},
 };
 const TRASH = [[1,1],[38,1],[33,13],[47,33],[64,37],[72,9],[1,43],[30,43]];
 const EXITS = [[50,2],[36,16],[45,57],[46,69],[14,81]];   // 保健室、活動室（1F）、自然教室（安萃 2F）、圖書館（安萃 3F）、輔導處（南耘 2F）
@@ -4112,7 +4191,7 @@ function perfectCeremony(replay){
   others.forEach((n,i)=>{ const r=Math.floor(i/11), c=i%11; n.px=(50+c*1.6+(r%2)*.8)*TS; n.py=(28+r*1.4)*TS; n.dir='up'; });
   $('#hint').textContent='🌟 完美守護者頒獎典禮';
 }
-const socialList = () => NPCS.filter(n=>n.id!=='principal').map(n=>n.id);
+const socialList = () => NPCS.filter(n=>n.id!=='principal' && n.id!=='mom').map(n=>n.id);   // 校門外的家長：進校門後就見不到了，不算在內
 /* ---------------- 道具欄 ----------------
    取得方式都是固定的（每個人都拿得到一樣多），不會因為運氣影響排行榜。 */
 const ITEMS = {
@@ -4799,9 +4878,9 @@ function dlgSpeakText(){
 }
 
 /* ---------------- 📌 今日任務（老師可以用網址指定範圍，例如 ?today=disaster,traffic） ---------------- */
-const TODAY_OK = {disaster:1, traffic:1, gender:1, bully:1, rules:1, boss:1, dc:1, az:1, ct:1};
+const TODAY_OK = {disaster:1, traffic:1, gender:1, bully:1, rules:1, boss:1, dc:1, az:1, ct:1, bike:1};
 const TODAY = (()=>{ try{ const p = new URLSearchParams(location.search).get('today'); return p ? [...new Set(p.split(/[,，\s]+/).filter(k=>TODAY_OK[k]))] : []; }catch(e){ return []; } })();
-const TODAY_NAME = {boss:'👑 打倒大魔王', dc:'🚒 防災闖關護照', az:'🌾 安定三寶小達人', ct:'🏫 3 個校園任務'};
+const TODAY_NAME = {boss:'👑 打倒大魔王', dc:'🚒 防災闖關護照', az:'🌾 安定三寶小達人', ct:'🏫 3 個校園任務', bike:'🚲 單車練習場'};
 function todayGoals(){   // 老師有指定就照老師的；沒有就自動挑「接下來要做的 2 件事」
   if(TODAY.length) return TODAY;
   const g = TOPIC_KEYS.filter(k=>!S.badges[k]).slice(0, 2);
@@ -4813,6 +4892,7 @@ function goalDone(k){
   if(TOPICS[k]) return !!S.badges[k];
   if(k==='boss') return !!S.done; if(k==='dc') return !!S.dpassDone; if(k==='az') return !!S.azDone;
   if(k==='ct') return CT_KEYS.every(c=>S.ct.done[c]);
+  if(k==='bike') return !!S.bikeDone;
   return true;
 }
 function goalNpc(k){
@@ -4820,6 +4900,7 @@ function goalNpc(k){
   if(k==='boss') return NPCS.find(n=>n.id==='principal');
   if(k==='dc') return NPCS.find(n=>n.id==='disaster');
   if(k==='az') return NPCS.find(n=>n.id==='farmer2');
+  if(k==='bike') return NPCS.find(n=>n.id==='bike');
   if(k==='ct'){ const m = {veg:'farmer', ball:'senior', tree:'nature'}, c = CT_KEYS.find(c=>!S.ct.done[c]); return c ? NPCS.find(n=>n.id===m[c]) : null; }
   return null;
 }
@@ -5056,15 +5137,15 @@ const BASE_ACC = {
   hijab:  {slot:'head', name:'🧕 頭巾', look:{hijab:true}},
   flowerbag:{slot:'hand', name:'👜 客家花布包', look:{item:'flowerbag'}},
 };
-const ACC_SLOT = {cap:'head', cape:'back', helmet:'head', star:'head', crown:'head', gold:'back', firecap:'head', douli:'head'};
+const ACC_SLOT = {cap:'head', cape:'back', helmet:'head', star:'head', crown:'head', gold:'back', firecap:'head', douli:'head', bikehelm:'head'};
 const WEAR_SLOTS = {head:'🎩 頭上', face:'🕶️ 臉上', back:'🦋 背後', hand:'✋ 手上'};
 function catItem(id){ return BASE_ACC[id] || SHOP[id] || (ACC[id] ? {slot:ACC_SLOT[id], name:ACC[id].name, look:ACC[id].look} : null); }
-function accEarned(a){ return !!S && !!S.hq && (HQ_KEYS.some(k=>S.hq.done[k] && HQ[k].reward===a) || (a==='gold' && !!S.perfect) || (a==='firecap' && !!S.dpassDone) || (a==='douli' && !!S.azDone)); }
+function accEarned(a){ return !!S && !!S.hq && (HQ_KEYS.some(k=>S.hq.done[k] && HQ[k].reward===a) || (a==='gold' && !!S.perfect) || (a==='firecap' && !!S.dpassDone) || (a==='douli' && !!S.azDone) || (a==='bikehelm' && !!S.bikeDone)); }
 function itemOwned(id){ if(BASE_ACC[id]) return true; if(!S) return false; if(SHOP[id]) return !!(S.owned && S.owned[id]); if(ACC[id]) return accEarned(id); return false; }
 function itemHint(id){
   if(SHOP[id]) return `到商店購買（💰 ${SHOP[id].price}）`;
   const k = HQ_KEYS.find(k=>HQ[k].reward===id); if(k) return `完成隱藏任務「${HQ[k].name}」`;
-  return {gold:'成為完美守護者', firecap:'集滿防災闖關護照', douli:'成為安定三寶小達人'}[id] || '';
+  return {gold:'成為完美守護者', firecap:'集滿防災闖關護照', douli:'成為安定三寶小達人', bikehelm:'完成單車練習場的騎乘練習'}[id] || '';
 }
 function composeLook(c, w){
   const L = buildLook(c);
@@ -5200,6 +5281,9 @@ function startGame(data, isNew){
   if(S.mapV!==4){ S.mapV=4; S.x=19; S.y=S.crossed?45:54; S.dir='up'; if(S.hq && !S.hq.done.exits) S.hq.exits = {}; }   // 換成新校園地圖（有 2F／3F）：舊存檔放回校門口，逃生指示牌重新找
   P.x = Number.isInteger(S.x) ? S.x : 19; P.y = Number.isInteger(S.y) ? S.y : 54;
   if(SOLID.has(tileAt(P.x,P.y)) || tileAt(P.x,P.y)==='='){ P.x=19; P.y=54; }
+  if(P.y<=46 || P.y>=56) S.inSchool = true;
+  if(S.inSchool && P.y>=47 && P.y<=55){ P.x = 19; P.y = 46; }   // 進過校門的存檔，不會停在校門外
+  trafficPos();
   // 讀檔時若有 NPC 站在玩家位置，把 NPC 移回原位
   for(const n of NPCS) if(n.x===P.x && n.y===P.y){
     // 移到旁邊最近、可以走、沒有人的格子（不會被放到告示牌或牆上）
@@ -5553,6 +5637,523 @@ function drillMini(kind){
 }
 MINI.quake = drillMini('quake');
 MINI.firesim = drillMini('firesim');
+
+/* ---- 🚲 單車練習場①：出發前檢查（找出車子壞掉的地方） ---- */
+const BC_TIME = 60, BC_N = 4;
+const BC_PARTS = {
+  tire:  {n:'A 輪胎', bad:'後輪扁扁的，沒有氣！', ok:'輪胎飽飽的，有氣。', tip:'A 輪胎（Air）：用手壓壓看，輪胎要飽飽的、有彈性。沒氣的輪胎很容易滑倒。'},
+  brake: {n:'B 煞車', bad:'煞車線鬆掉了，捏下去停不住！', ok:'煞車捏下去很緊，推不動車子。', tip:'B 煞車（Brake）：左右兩邊的煞車都捏捏看，捏下去推不動車子才安全。'},
+  chain: {n:'C 鏈條', bad:'鏈條掉下來了！', ok:'鏈條套得好好的。', tip:'C 鏈條（Chain）：鏈條要套好、不鬆垮。鏈條掉了，騎到一半會踩空跌倒。'},
+  seat:  {n:'座椅', bad:'座椅太高了，坐上去腳碰不到地！', ok:'座椅高度剛剛好。', tip:'座椅高度：坐上去腳尖要碰得到地面，停車時才踩得穩。'},
+  light: {n:'車燈', bad:'車燈破掉了，不會亮！', ok:'車燈會亮。', tip:'車燈：天色暗、下雨、進地下道都要開燈，讓別人看得到你。'},
+  refl:  {n:'反光片', bad:'後面的紅色反光片不見了！', ok:'反光片好好的。', tip:'反光片：晚上被車燈照到會反光，後面的車才看得到你。'},
+  pedal: {n:'踏板', bad:'踏板斷掉了！', ok:'踏板踩起來很穩。', tip:'踏板：踏板壞了，腳會踩空滑掉。'},
+  helmet:{n:'安全帽', bad:'安全帽的扣環斷了，扣不起來！', ok:'安全帽的扣環扣得起來。', tip:'安全帽：要戴正、蓋住額頭，扣環扣好（下巴和帶子之間放得進一兩根手指）。'},
+};
+const BC_RW = [270,380], BC_FW = [530,380], BC_BB = [390,392], BC_R = 86;
+function bcSeatY(m){ return m.bad.includes('seat') ? 170 : 240; }
+function bcSpot(m, id){   // 每個零件的點擊範圍（圓心、半徑）
+  return {brake:[476,212,36], chain:[BC_BB[0],BC_BB[1],38], seat:[352,bcSeatY(m),36], light:[530,264,28], refl:[180,312,26], pedal:[430,452,28], helmet:[680,452,52]}[id];
+}
+function bcHitAt(m, x, y){
+  for(const id of ['pedal','chain','refl','light','seat','brake','helmet']){ const [cx,cy,r] = bcSpot(m,id); if(Math.hypot(x-cx,y-cy)<=r) return id; }
+  for(const w of [BC_RW, BC_FW]){ const d = Math.hypot(x-w[0], y-w[1]); if(d>=BC_R-30 && d<=BC_R+14) return 'tire'; }
+  return null;
+}
+function bcStart(m){ m.phase = 'play'; m.time = BC_TIME; m.msg = '點一點車子的每個地方，找出壞掉的 ' + BC_N + ' 個地方！'; m.msgBad = false; sfx('talk'); }
+function bcTap(m, id){
+  if(!id) return;
+  const P0 = BC_PARTS[id];
+  if(m.bad.includes(id)){
+    if(m.found[id]) return;
+    m.found[id] = true; m.msg = '⚠️ ' + P0.bad + '　' + P0.tip; m.msgBad = true; sfx('ok');
+    m.pops.push({s:'找到了！', x:(bcSpot(m,id)||[BC_RW[0],BC_RW[1]-BC_R])[0], y:(bcSpot(m,id)||[0,BC_RW[1]-BC_R-10])[1]-30, t:.9});
+    if(m.bad.every(b=>m.found[b])) bcOver(m, true);
+  } else {
+    m.checked[id] = true; m.msg = '✅ ' + P0.ok + '　' + P0.tip; m.msgBad = false; sfx('talk');
+  }
+}
+function bcOver(m, win){
+  m.phase = 'over'; m.win = win; m.reward = '';
+  if(win){ if(mgReward('mg_bikecheck', 'hint')) m.reward = '🎁 第一次完成檢查：經驗 +10、💡 提示卡、金幣 +20！'; sfx('win'); }
+  else sfx('bad');
+  save();
+}
+function bcWheel(c, flat){
+  const g = mgx; g.save(); g.translate(c[0], c[1]); if(flat){ g.translate(0, 16); g.scale(1.07, .82); }
+  g.lineWidth = 13; g.strokeStyle = '#2b2b30'; g.beginPath(); g.arc(0, 0, BC_R, 0, 7); g.stroke();
+  g.lineWidth = 3; g.strokeStyle = '#c3c9cf'; g.beginPath(); g.arc(0, 0, BC_R-10, 0, 7); g.stroke();
+  g.lineWidth = 1.2; g.strokeStyle = '#9aa0a6';
+  for(let i=0; i<12; i++){ const a = i/12*Math.PI*2; g.beginPath(); g.moveTo(0, 0); g.lineTo(Math.cos(a)*(BC_R-10), Math.sin(a)*(BC_R-10)); g.stroke(); }
+  g.strokeStyle = MG_INK; g.lineWidth = 1.5; circ(g, 0, 0, 7, '#6d7178');
+  g.restore();
+  if(flat){ g.fillStyle = '#2b2b30'; g.beginPath(); g.ellipse(c[0], c[1]+BC_R-1, 52, 10, 0, 0, 7); g.fill(); g.fillStyle = 'rgba(255,255,255,.25)'; g.fillRect(c[0]-40, c[1]+BC_R-4, 80, 2); }
+}
+function bcLine(pts, col, w){ const g = mgx; g.strokeStyle = col; g.lineWidth = w; g.lineCap = 'round'; g.beginPath(); g.moveTo(pts[0][0], pts[0][1]); for(const p of pts.slice(1)) g.lineTo(p[0], p[1]); g.stroke(); g.lineCap = 'butt'; }
+function bcBike(m){
+  const g = mgx, B = id=>m.bad.includes(id);
+  const seatY = bcSeatY(m), ST = [362,256], HT = [500,250], HB = [512,292], FR = '#2fa58f';
+  g.fillStyle = 'rgba(0,0,0,.16)'; g.beginPath(); g.ellipse(400, 470, 310, 13, 0, 0, 7); g.fill();
+  // 後擋泥板＋反光片
+  g.strokeStyle = '#8a929a'; g.lineWidth = 5; g.beginPath(); g.arc(BC_RW[0], BC_RW[1], BC_R+12, Math.PI*1.05, Math.PI*1.6); g.stroke();
+  if(B('refl')){ g.strokeStyle = MG_INK; g.lineWidth = 1.5; rr(g, 172, 306, 8, 10, 2, '#9aa0a6'); }
+  else { g.strokeStyle = MG_INK; g.lineWidth = 1.5; rr(g, 166, 304, 26, 14, 3, '#e23b3b'); g.fillStyle = 'rgba(255,255,255,.6)'; g.fillRect(170, 307, 8, 3); }
+  bcWheel(BC_RW, B('tire')); bcWheel(BC_FW, false);
+  // 鏈條
+  g.strokeStyle = MG_INK; g.lineWidth = 1.5; circ(g, BC_RW[0], BC_RW[1], 12, '#9aa0a6');
+  if(B('chain')){
+    g.strokeStyle = '#4a4a52'; g.lineWidth = 4; g.setLineDash([5,3]);
+    g.beginPath(); g.moveTo(BC_BB[0]-20, BC_BB[1]+12); g.quadraticCurveTo(330, 470, BC_RW[0]+8, BC_RW[1]+10); g.stroke();
+    g.beginPath(); g.moveTo(BC_BB[0]-10, BC_BB[1]+22); g.quadraticCurveTo(360, 478, 300, 462); g.stroke(); g.setLineDash([]);
+  } else {
+    g.strokeStyle = '#4a4a52'; g.lineWidth = 4; g.setLineDash([5,3]); g.beginPath();
+    g.moveTo(BC_BB[0], BC_BB[1]-24); g.lineTo(BC_RW[0], BC_RW[1]-12); g.moveTo(BC_BB[0], BC_BB[1]+24); g.lineTo(BC_RW[0], BC_RW[1]+12); g.stroke(); g.setLineDash([]);
+  }
+  // 車架
+  bcLine([BC_RW, BC_BB, ST, BC_RW], FR, 9); bcLine([ST, HT], FR, 9); bcLine([BC_BB, HB], FR, 10); bcLine([HT, HB], '#23806e', 11);
+  bcLine([HB, BC_FW], '#8a929a', 7);   // 前叉
+  // 座椅
+  bcLine([ST, [352, seatY+10]], '#8a929a', 6);
+  g.strokeStyle = MG_INK; g.lineWidth = 2; rr(g, 318, seatY-6, 66, 15, 7, '#2b2b30');
+  if(B('seat')){ g.strokeStyle = '#d62d2d'; g.lineWidth = 2; g.setLineDash([4,4]); g.beginPath(); g.moveTo(330, seatY+24); g.lineTo(330, 250); g.stroke(); g.setLineDash([]); }
+  // 把手＋煞車
+  bcLine([HT, [494,214]], '#8a929a', 6); bcLine([[494,214],[462,206]], '#4a4a52', 7);
+  g.strokeStyle = MG_INK; g.lineWidth = 1.5; rr(g, 452, 200, 18, 11, 4, '#2b2b30');
+  bcLine([[470,212],[452,226]], '#c3c9cf', 3);   // 煞車把手
+  g.strokeStyle = '#2b2233'; g.lineWidth = 2; g.beginPath();
+  if(B('brake')){ g.moveTo(456,226); g.bezierCurveTo(430,300, 480,320, 452,350); g.stroke(); circ(g, 452, 352, 3, '#c3c9cf'); }
+  else { g.moveTo(456,226); g.quadraticCurveTo(430,250, 400,262); g.lineTo(300, 300); g.lineTo(BC_RW[0]-6, BC_RW[1]-BC_R+4); g.stroke(); }
+  // 車燈
+  g.strokeStyle = MG_INK; g.lineWidth = 2; rr(g, 516, 254, 30, 20, 6, '#f4f4f4');
+  if(B('light')){ circ(g, 541, 264, 7, '#6d7178'); g.strokeStyle = '#2b2233'; g.lineWidth = 1.2; g.beginPath(); g.moveTo(536,259); g.lineTo(542,265); g.lineTo(539,270); g.moveTo(542,265); g.lineTo(547,262); g.stroke(); }
+  else { const gl = .35+.2*Math.sin(m.t*4); g.fillStyle = 'rgba(255,230,120,'+gl+')'; g.beginPath(); g.moveTo(548,258); g.lineTo(610,240); g.lineTo(610,290); g.lineTo(548,270); g.closePath(); g.fill(); g.strokeStyle = MG_INK; g.lineWidth = 1.5; circ(g, 541, 264, 7, '#ffe27a'); }
+  // 曲柄＋踏板
+  g.strokeStyle = MG_INK; g.lineWidth = 2; circ(g, BC_BB[0], BC_BB[1], 24, '#c3c9cf'); circ(g, BC_BB[0], BC_BB[1], 6, '#6d7178');
+  if(B('pedal')){ bcLine([BC_BB, [412,428]], '#4a4a52', 6); g.save(); g.translate(452, 466); g.rotate(.5); g.strokeStyle = MG_INK; g.lineWidth = 1.5; rr(g, -16, -5, 32, 10, 3, '#2b2b30'); g.restore(); }
+  else { bcLine([BC_BB, [430,450]], '#4a4a52', 6); g.strokeStyle = MG_INK; g.lineWidth = 1.5; rr(g, 414, 446, 34, 10, 3, '#2b2b30'); }
+  bcLine([[BC_BB[0]-6, BC_BB[1]+6], [352, 466]], '#6d7178', 4);   // 側柱
+  // 地上的安全帽
+  g.save(); g.translate(680, 452);
+  g.strokeStyle = MG_INK; g.lineWidth = 2; g.beginPath(); g.ellipse(0, 0, 44, 30, 0, Math.PI, 0); g.closePath(); g.fillStyle = '#2fa58f'; g.fill(); g.stroke();
+  g.fillStyle = 'rgba(255,255,255,.75)'; for(const k of [-20,-6,8]) { g.beginPath(); g.ellipse(k+6, -16, 5, 9, .2, 0, 7); g.fill(); }
+  rr(g, -46, -3, 92, 7, 3, '#23806e');
+  g.strokeStyle = '#2b2233'; g.lineWidth = 2.5; g.beginPath();
+  if(B('helmet')){ g.moveTo(-30, 4); g.quadraticCurveTo(-34, 18, -26, 24); g.moveTo(30, 4); g.quadraticCurveTo(36, 18, 28, 26); g.stroke(); g.strokeStyle = MG_INK; g.lineWidth = 1.2; rr(g, -30, 22, 8, 6, 1, '#ffd447'); rr(g, 22, 25, 8, 6, 1, '#ffd447'); }
+  else { g.moveTo(-30, 4); g.quadraticCurveTo(-20, 26, 0, 26); g.quadraticCurveTo(20, 26, 30, 4); g.stroke(); g.strokeStyle = MG_INK; g.lineWidth = 1.2; rr(g, -6, 22, 12, 8, 2, '#ffd447'); }
+  g.restore();
+}
+MINI.bikecheck = {
+  init(m){
+    m.phase = 'ready'; m.bad = shuffle(Object.keys(BC_PARTS)).slice(0, BC_N); m.found = {}; m.checked = {}; m.pops = []; m.time = BC_TIME; m.reward = '';
+    m.msg = ''; m.msgBad = false;
+  },
+  btn(m, id){ if(id==='start') bcStart(m); else if(id==='ride') startMini('bikeride'); },
+  key(m, k, down){
+    if(!down) return;
+    if(m.phase==='ready' && (k===' '||k==='Enter')) bcStart(m);
+    else if(m.phase==='over' && (k===' '||k==='Enter') && (m.ovT||0) > 1){ if(m.win) startMini('bikeride'); else mgAgain(); }
+  },
+  pointer(m, type, x, y){ if(type==='down' && m.phase==='play') bcTap(m, bcHitAt(m, x, y)); },
+  update(m, dt){
+    m.t += dt; m.pops.forEach(p=>p.t -= dt); m.pops = m.pops.filter(p=>p.t>0);
+    if(m.phase!=='play') return;
+    m.time -= dt; if(m.time<=0){ m.time = 0; bcOver(m, false); }
+  },
+  draw(m){
+    m.btns = [];
+    const sky = mgx.createLinearGradient(0, 52, 0, 480); sky.addColorStop(0, '#bfe6ff'); sky.addColorStop(1, '#eaf7ff');
+    mgx.fillStyle = sky; mgx.fillRect(0, 0, 800, 576);
+    mgx.fillStyle = '#9ad48f'; mgx.fillRect(0, 466, 800, 110);
+    mgx.fillStyle = '#cfccc4'; mgx.fillRect(0, 462, 800, 14);
+    // 背景的停車柱
+    for(const x of [40, 110, 740]){ mgx.strokeStyle = MG_INK; mgx.lineWidth = 2; rr(mgx, x, 330, 22, 134, 6, '#e8edf2'); rr(mgx, x+3, 346, 16, 10, 3, '#3cb371'); }
+    mgHeader('🚲 單車練習場・出發前檢查', (TOUCH ? '點車子上壞掉的地方' : '用滑鼠點車子上壞掉的地方') + '｜找到 ' + Object.keys(m.found).length + ' / ' + BC_N + '｜⏱ ' + Math.ceil(m.time) + ' 秒｜' + (TOUCH ? '✖ 離開' : 'Esc 離開'));
+    bcBike(m);
+    // 找到的：紅圈；檢查過沒問題的：綠勾
+    for(const id of Object.keys(m.found)){
+      if(id==='tire'){ mgx.strokeStyle = '#e23b3b'; mgx.lineWidth = 4; mgx.beginPath(); mgx.arc(BC_RW[0], BC_RW[1]+9, BC_R+14, 0, 7); mgx.stroke(); mgT('⚠️ 輪胎', BC_RW[0], BC_RW[1]-BC_R-24, 16, '#c0302a'); continue; }
+      const [cx,cy,r] = bcSpot(m,id); mgx.strokeStyle = '#e23b3b'; mgx.lineWidth = 4; mgx.beginPath(); mgx.arc(cx, cy, r, 0, 7); mgx.stroke();
+      mgT('⚠️ ' + BC_PARTS[id].n.replace(/^[ABC] /,''), cx, cy-r-12, 15, '#c0302a');
+    }
+    for(const id of Object.keys(m.checked)){ if(id==='tire'){ mgT('✅', BC_FW[0]+BC_R-6, BC_FW[1]-BC_R+6, 20, MG_INK, 'center', false); continue; } const [cx,cy,r] = bcSpot(m,id); mgT('✅', cx+r*.75, cy-r*.75, 18, MG_INK, 'center', false); }
+    for(const p of m.pops) mgT(p.s, p.x, p.y-(.9-p.t)*30, 18, '#c0302a');
+    // 下面：提示
+    mgPanel(16, 490, 768, 76, m.msgBad ? '#ffecec' : '#eaf6ff');
+    if(m.msg) mgWrap(m.msg, 32, 512, 736, 16, MG_INK, 24);
+    // ABC 小卡
+    mgPanel(16, 64, 190, 112, 'rgba(255,253,246,.95)');
+    mgT('🔧 ABC 檢查', 111, 86, 17, MG_INK);
+    mgT('A 輪胎（Air）', 32, 112, 15, m.found.tire||m.checked.tire ? '#2e9d5b' : '#4a3a5a', 'left');
+    mgT('B 煞車（Brake）', 32, 134, 15, m.found.brake||m.checked.brake ? '#2e9d5b' : '#4a3a5a', 'left');
+    mgT('C 鏈條（Chain）', 32, 156, 15, m.found.chain||m.checked.chain ? '#2e9d5b' : '#4a3a5a', 'left');
+    if(m.phase==='ready'){
+      mgx.fillStyle = 'rgba(10,12,24,.6)'; mgx.fillRect(0, 52, 800, 524);
+      mgPanel(140, 100, 520, 380);
+      mgT('🔧 出發前檢查', 400, 136, 26, MG_INK);
+      mgWrap('林阿姨：「這台車借出去之前，要先檢查一下！可是它有 ' + BC_N + ' 個地方壞掉了，你可以幫忙找出來嗎？」', 400, 182, 460, 17, '#4a3a5a', 26, 'center');
+      mgT('記住「ABC 檢查」：A 輪胎、B 煞車、C 鏈條', 400, 268, 17, '#2a6aa8');
+      mgT('還要看：座椅、車燈、反光片、踏板、安全帽', 400, 298, 16, '#4a3a5a', 'center', false);
+      mgT('在 ' + BC_TIME + ' 秒內找出全部壞掉的地方就過關！', 400, 336, 15, '#6a5a7a', 'center', false);
+      mgT('過關後就可以騎上練習場' + (S.gift.mg_bikecheck ? '' : '（第一次過關有獎勵）'), 400, 362, 15, '#c0502a', 'center', false);
+      mgButton(m, 'start', '▶ 開始' + (TOUCH ? '' : '（空白鍵）'), 300, 400, 200, 50, true);
+    }
+    if(m.phase==='over'){
+      mgx.fillStyle = 'rgba(10,12,24,.6)'; mgx.fillRect(0, 52, 800, 524);
+      mgPanel(100, 62, 600, 504);
+      mgT(m.win ? '🔧 全部找到了！' : '⏱ 時間到！', 400, 94, 26, MG_INK);
+      mgT(m.win ? '這台車有 ' + BC_N + ' 個問題，不能騎！林阿姨幫你換了一台檢查好的車。' : '還有 ' + m.bad.filter(b=>!m.found[b]).length + ' 個地方沒找到，看看是哪裡：', 400, 126, 16, '#4a3a5a');
+      let y = 158;
+      for(const id of m.bad){
+        const P0 = BC_PARTS[id];
+        mgT((m.found[id] ? '✅ ' : '❌ ') + P0.n + '：' + P0.bad, 124, y, 16, m.found[id] ? MG_INK : '#c0302a', 'left');
+        y = mgWrap(P0.tip, 150, y+24, 520, 14, '#6a5a7a', 20) + 32;
+      }
+      mgWrap('💡 借來的車有問題：不要騎！換一台車，並請大人幫忙報修。', 400, y+2, 540, 15, '#2a6aa8', 22, 'center');
+      if(m.reward) mgT(m.reward, 400, 474, 15, '#c0502a');
+      if(m.win){
+        mgButton(m, 'ride', '🚲 騎上練習場' + (TOUCH ? '' : '（空白鍵）'), 130, 500, 230, 50, true);
+        mgButton(m, 'again', '🔁 再檢查一台', 372, 500, 160, 50, false);
+        mgButton(m, 'exit', '✖ 離開', 544, 500, 126, 50, false);
+      } else {
+        mgButton(m, 'again', '🔁 再試一次', 220, 500, 170, 50, true);
+        mgButton(m, 'exit', '✖ 離開', 410, 500, 170, 50, false);
+      }
+    }
+  }
+};
+
+/* ---- 🚲 單車練習場②：安全騎乘（往前騎的練習道路）＋還車 ----
+   道路（由左到右）：草地｜對向車道｜雙黃線｜汽車道｜白線｜慢車道（腳踏車騎這裡）｜人行道 */
+const BR = {L1:140, MID:376, L2:520, CURB:640, PY:430, VMAX:170, HW:11, HL:22};
+const BR_ASK = [
+  {who:'同學 小傑', q:'「我走好累喔，你載我一段好不好？」', ok:'「不行！腳踏車不能雙載，很危險。」', bad:'「好啊，坐到後面來！」',
+   rok:'👍 腳踏車只能一個人騎。雙載會重心不穩，煞車也停不下來。', rbad:'❌ 雙載會重心不穩，很容易摔車！腳踏車不可以雙載。'},
+  {who:'同學 阿哲', q:'「你看！我會放手騎！你也試試看！」', ok:'「我要兩手握好把手。」', bad:'「好，我也放手騎！」',
+   rok:'👍 兩手握好把手，遇到狀況才能馬上煞車、轉彎。', rbad:'❌ 放手騎遇到坑洞或來車就來不及反應！一定要兩手握好把手。'},
+  {who:'📱 叮咚～', q:'口袋裡的手機響了，要怎麼辦？', ok:'先停到路邊安全的地方，再拿出來看', bad:'一手騎車、一手看手機',
+   rok:'👍 騎車要專心！看手機、講電話，都要先停到安全的地方。', rbad:'❌ 邊騎邊看手機，眼睛沒有看路，非常危險！'},
+  {who:'🌧️ 滴答滴答', q:'開始下雨了，要怎麼辦？', ok:'停到路邊，穿上雨衣再慢慢騎', bad:'一手撐傘、一手騎車',
+   rok:'👍 下雨要穿雨衣，不要撐傘騎車；路面濕滑要騎慢一點。', rbad:'❌ 撐傘騎車只剩一隻手，又看不清楚，很容易摔倒！'},
+];
+const BR_RETURN = {who:'🚲 單車站到了', q:'騎回單車站了！要怎麼還車？', opts:[
+  {t:'把車推進停車柱，確認「還車成功」再離開', ok:true, r:'👍 還車成功！一定要確認有推進停車柱、看到或聽到還車成功的提示。'},
+  {t:'停在停車柱旁邊，就可以走了', ok:false, r:'❌ 沒有推進停車柱就不算還車，可能會一直計費，車子也可能被別人騎走。'},
+  {t:'停在人行道中間，方便下一個人借', ok:false, r:'❌ 車子停在人行道會擋住行人，看不見的朋友也可能被絆倒。'}]};
+function brRect(m){ return [m.x-BR.HW, BR.PY-BR.HL, BR.HW*2, BR.HL*2]; }
+function brOver(a, b){ return a[0] < b[0]+b[2] && a[0]+a[2] > b[0] && a[1] < b[1]+b[3] && a[1]+a[3] > b[1]; }
+function brHit(m, msg){
+  if(m.inv>0 || m.phase!=='play') return false;
+  m.hearts--; m.inv = 1.6; m.shake = .45; m.v = Math.min(m.v, 30); m.msg = msg; m.msgBad = true; sfx('bad');
+  if(m.hearts<=0) brEnd(m, false);
+  return true;
+}
+function brGood(m, msg){ m.stars++; m.msg = msg; m.msgBad = false; sfx('ok'); }
+function brTell(m, e, msg){ if(e.told) return; e.told = 1; m.msg = msg; m.msgBad = false; sfx('talk'); }
+function brEnd(m, win){
+  m.phase = 'over'; m.win = win; m.prompt = null; m.reward = ''; m.reward2 = '';
+  if(win){
+    if(mgReward('mg_bikeride', 'shield')) m.reward = '🎁 第一次騎完：經驗 +10、🔰 守護盾、金幣 +20！';
+    if(!S.bikeDone){ S.bikeDone = true; grantAcc('bikehelm'); refreshLook(); m.reward2 = '🚴 得到「單車安全帽」，已經幫你戴上了（衣櫥可以換）！'; }
+    sfx('win');
+  }
+  save();
+}
+function brAsk(m, a, e){
+  m.prompt = {e, who:a.who, q:a.q, opts:shuffle([{t:a.ok, ok:true, r:a.rok}, {t:a.bad, ok:false, r:a.rbad}])};
+  m.v = 0; clearHeld(); m.kh = {}; m.ptrs = {}; m.hold = {}; sfx('talk');
+}
+function brChoose(m, i){
+  const P0 = m.prompt, o = P0 && P0.opts[i]; if(!o) return;
+  if(P0.ret){   // 還車
+    if(o.ok){ m.msg = o.r; m.msgBad = false; brEnd(m, true); }
+    else { m.msg = o.r; m.msgBad = true; sfx('bad'); P0.wrong = (P0.wrong||0) + 1; }
+    return;
+  }
+  m.prompt = null; P0.e.done = true;
+  if(o.ok) brGood(m, o.r);
+  else { m.inv = 0; brHit(m, o.r); m.inv = .5; }
+}
+// 每一種路況：up（每幀更新）、draw（畫在玩家下面）
+const BR_EV = {
+  light:{   // 路口紅燈：停在停止線前，等綠燈
+    up(m, e, dt){
+      const dist = e.pos - m.d - BR.HL;
+      if(e.green){ if(dist < -260) e.done = true; return; }
+      if(dist < 420) brTell(m, e, '🔴 前面的路口是紅燈！按住煞車，停在白色停止線後面。');
+      if(dist >= -4 && dist < 130 && m.v < 8){ e.wait = (e.wait||0) + dt; if(e.wait > 1.3){ e.green = true; brGood(m, '👍 紅燈停、綠燈行！停在停止線後面等，綠燈亮了再出發。'); } }
+      if(dist < -4 && !e.green){ e.green = true; e.fail = true; m.inv = 0; brHit(m, '🚨 闖紅燈了！紅燈一定要停在停止線後面，等綠燈再走。'); }
+    },
+    draw(m, e, sy){
+      const g = mgx;
+      g.fillStyle = '#50535b'; g.fillRect(0, sy-230, 800, 150);   // 橫向的路
+      g.fillStyle = '#f2c230'; g.fillRect(0, sy-157, BR.L1, 3); g.fillRect(BR.CURB+8, sy-157, 800, 3);
+      g.fillStyle = '#f4f4f4'; for(let x=BR.L1+6; x<BR.CURB; x+=26) g.fillRect(x, sy-72, 14, 56);   // 斑馬線
+      g.fillRect(BR.MID+4, sy-8, BR.CURB-BR.MID-4, 8);   // 停止線
+      // 號誌
+      g.strokeStyle = MG_INK; g.lineWidth = 2; rr(g, BR.CURB+18, sy-60, 8, 70, 2, '#6d7178'); rr(g, BR.CURB+6, sy-110, 32, 56, 6, '#2a2d33');
+      circ(g, BR.CURB+22, sy-96, 9, e.green ? '#4a1a1a' : '#ff4040'); circ(g, BR.CURB+22, sy-68, 9, e.green ? '#3bff6b' : '#173d22');
+    }
+  },
+  ped:{   // 斑馬線上的行人：停下來讓行人先走
+    up(m, e, dt){
+      const dist = e.pos - m.d;
+      if(dist < 270 && e.px===undefined){ e.px = 700; brTell(m, e, '🚶 有人要過斑馬線！減速停下來，讓行人先走。'); }
+      if(e.px!==undefined && e.px > 60) e.px -= 85*dt;
+      const sy = BR.PY - dist;
+      if(e.px!==undefined && !e.fail && brOver(brRect(m), [e.px-10, sy-46, 20, 26])){ e.fail = true; m.inv = 0; brHit(m, '🚨 撞到行人了！看到斑馬線上有人，一定要停下來讓行人先走。'); }
+      if(dist < -90){ e.done = true; if(!e.fail) brGood(m, '👍 行人優先！經過斑馬線要減速，有人就停下來。'); }
+    },
+    draw(m, e, sy){
+      const g = mgx; g.fillStyle = '#f4f4f4'; for(let x=BR.L1+6; x<BR.CURB; x+=26) g.fillRect(x, sy-64, 14, 46);
+      if(e.px!==undefined){ g.strokeStyle = MG_INK; g.lineWidth = 1.5; rr(g, e.px-9, sy-42, 18, 16, 6, '#e86a9a'); circ(g, e.px, sy-44, 7, '#f6d2b0'); g.fillStyle = '#3b2a1a'; g.beginPath(); g.arc(e.px, sy-46, 7, Math.PI, 0); g.fill(); }
+    }
+  },
+  door:{   // 路邊停的車突然開門
+    up(m, e, dt){
+      const dist = e.pos - m.d, sy = BR.PY - dist;
+      if(dist < 440) brTell(m, e, '🚗 路邊停著車，車門可能突然打開！往左一點、減速慢慢騎過去。');
+      if(dist < 210) e.open = Math.min(1, (e.open||0) + dt*3);
+      const car = [596, sy-110, 40, 100], door = [596-34*(e.open||0), sy-74, 34*(e.open||0), 8];
+      if(!e.fail && (brOver(brRect(m), car) || (e.open && brOver(brRect(m), door)))){ e.fail = true; m.inv = 0; brHit(m, '🚨 撞到車門了！經過路邊的車，要保持「一個車門」的距離。'); }
+      if(dist < -150){ e.done = true; if(!e.fail) brGood(m, '👍 經過路邊停的車，保持一個車門的距離，小心有人開門。'); }
+    },
+    draw(m, e, sy){
+      const g = mgx; brCar(596, sy-110, 40, 100, '#e25555', true);
+      if(e.open){ g.strokeStyle = MG_INK; g.lineWidth = 1.5; rr(g, 596-34*e.open, sy-74, 34*e.open, 8, 2, '#c84848'); }
+    }
+  },
+  truck:{   // 大卡車右轉（內輪差）：停在卡車後面等
+    up(m, e, dt){
+      const dist = e.pos - m.d, sy = BR.PY - dist;
+      if(dist < 340 && e.turn===undefined){ e.turn = 0; brTell(m, e, '🚚 大卡車要右轉了！停在卡車後面等它轉完，不要騎到旁邊（內輪差很危險）。'); }
+      if(e.turn!==undefined) e.turn += dt;
+      const on = e.turn===undefined || e.turn < 4;
+      if(on && !e.fail){
+        const zone = [BR.L2-14, sy-40, BR.CURB-BR.L2+14, 210], body = [404, sy-20, 92, 180];
+        if(brOver(brRect(m), body) || (e.turn!==undefined && brOver(brRect(m), zone))){ e.fail = true; m.inv = 0; brHit(m, '🚨 太危險了！大車右轉時，後輪會往內切（內輪差），司機也看不到旁邊的你。'); }
+      }
+      if(dist < -260){ e.done = true; if(!e.fail) brGood(m, '👍 大車轉彎時要離遠一點，在後面等它轉完再走。'); }
+    },
+    draw(m, e, sy){
+      const g = mgx;
+      g.fillStyle = '#50535b'; g.fillRect(0, sy-200, 800, 150); g.fillStyle = '#f4f4f4'; g.fillRect(BR.MID+4, sy-30, BR.CURB-BR.MID-4, 6);
+      const on = e.turn===undefined || e.turn < 4;
+      if(e.turn!==undefined && on){   // 內輪差危險區
+        g.fillStyle = 'rgba(226,59,59,.28)'; g.fillRect(BR.L2-14, sy-40, BR.CURB-BR.L2+14, 210);
+        g.strokeStyle = 'rgba(226,59,59,.7)'; g.lineWidth = 3; for(let y=sy-40; y<sy+170; y+=22){ g.beginPath(); g.moveTo(BR.L2-14, y); g.lineTo(BR.CURB, y+22); g.stroke(); }
+        mgT('⚠️ 內輪差', (BR.L2+BR.CURB)/2, sy+60, 17, '#fff');
+      }
+      if(!on) return;
+      const k = e.turn===undefined ? 0 : Math.min(1, e.turn/4);
+      // 以車尾右下角附近為中心轉：車頭先往右，車尾往內切（內輪差）
+      g.save(); g.translate(496 + k*150, sy+160 - k*170); g.rotate(k*Math.PI/2);
+      g.strokeStyle = MG_INK; g.lineWidth = 2;
+      rr(g, -92, -140, 92, 140, 4, '#e8edf2'); g.fillStyle = '#c9d6ea'; g.fillRect(-86, -132, 80, 6);
+      rr(g, -88, -180, 84, 40, 8, '#2f7fb8'); g.fillStyle = '#bfe6ff'; g.fillRect(-80, -174, 68, 10);
+      if(Math.floor(m.t*3)%2===0){ circ(g, -6, -176, 5, '#ffb020'); circ(g, -6, -4, 5, '#ffb020'); }   // 右轉方向燈
+      g.restore();
+    }
+  },
+  hole:{   // 水溝蓋、坑洞：左右閃開
+    up(m, e, dt){
+      const dist = e.pos - m.d;
+      if(dist < 460) brTell(m, e, '🕳️ 前面路面有水溝蓋和坑洞，左右閃開，不要壓過去！');
+      for(const o of e.obs){ const sy = BR.PY - (o.pos - m.d); if(!e.fail && brOver(brRect(m), [o.x-17, sy-12, 34, 24])){ e.fail = true; m.inv = 0; brHit(m, '😵 壓到' + o.n + '，差點摔車！騎車要看前面的路面。'); } }
+      if(dist < -260){ e.done = true; if(!e.fail) brGood(m, '👍 騎車眼睛看前方，遇到坑洞、水溝蓋要提早閃開或減速。'); }
+    },
+    draw(m, e){
+      const g = mgx;
+      for(const o of e.obs){
+        const sy = BR.PY - (o.pos - m.d); g.strokeStyle = MG_INK; g.lineWidth = 1.5;
+        if(o.n==='水溝蓋'){ rr(g, o.x-17, sy-12, 34, 24, 3, '#3a3d44'); g.strokeStyle = '#8a929a'; g.lineWidth = 2; for(let x=o.x-12; x<o.x+14; x+=6){ g.beginPath(); g.moveTo(x, sy-9); g.lineTo(x, sy+9); g.stroke(); } }
+        else { g.fillStyle = '#2b2d33'; g.beginPath(); g.ellipse(o.x, sy, 18, 11, .2, 0, 7); g.fill(); g.stroke(); g.fillStyle = 'rgba(120,180,230,.5)'; g.beginPath(); g.ellipse(o.x-3, sy-2, 9, 4, .2, 0, 7); g.fill(); }
+      }
+    }
+  },
+  ask:{   // 同學、手機、下雨：選一個做法
+    up(m, e){
+      const dist = e.pos - m.d;
+      if(dist < 150 && !m.prompt) brAsk(m, e.a, e);
+    },
+    draw(m, e, sy){ const g = mgx; g.strokeStyle = MG_INK; g.lineWidth = 1.5; if(e.a.who.startsWith('同學')){ rr(g, 700, sy-24, 20, 18, 6, '#5aa9e6'); circ(g, 710, sy-28, 8, '#f6d2b0'); mgT('💬', 734, sy-44, 20, MG_INK, 'center', false); } else mgT(e.a.who.slice(0,2), 690, sy-30, 26, MG_INK, 'center', false); }
+  },
+  night:{   // 地下道：要開燈
+    up(m, e){
+      const dist = e.pos - m.d - BR.HL;
+      if(dist < 380) brTell(m, e, '🌙 前面是地下道，很暗！按「💡 開燈」' + (TOUCH ? '' : '（L 鍵）') + '，讓別人看得到你。');
+      if(dist < 0 && !e.in){ e.in = true; if(m.lamp) brGood(m, '👍 天色暗、進地下道都要開燈，別人才看得到你！'); else { e.fail = true; m.inv = 0; brHit(m, '🚨 沒開燈！暗暗的地方，別人看不到你。（已經幫你打開了）'); m.lamp = true; } }
+      if(m.d > e.pos + e.len + 60) e.done = true;
+    },
+    draw(m, e, sy){ const g = mgx, top = sy - e.len; g.fillStyle = '#7a7f88'; g.fillRect(BR.L1-14, top, 14, e.len); g.fillRect(BR.CURB, top, 14, e.len); g.fillStyle = '#ffe27a'; for(let y=top+30; y<sy; y+=90){ g.fillRect(BR.L1-10, y, 6, 14); g.fillRect(BR.CURB+4, y, 6, 14); } mgT('地下道', 690, sy+20, 16, '#fff'); }
+  },
+};
+function brCar(x, y, w, h, col, down){
+  const g = mgx; g.strokeStyle = MG_INK; g.lineWidth = 2;
+  rr(g, x, y, w, h, 8, col);
+  g.fillStyle = 'rgba(190,230,255,.9)'; const wy = down ? y+h-30 : y+12; g.fillRect(x+5, wy, w-10, 16); g.fillRect(x+5, down ? y+14 : y+h-24, w-10, 10);
+}
+function brRider(m){
+  const g = mgx, x = m.x, y = BR.PY, L = P.look || {shirt:'#3c8de0', skin:'#f6d2b0'};
+  if(m.inv>0 && Math.floor(m.t*12)%2===0) g.globalAlpha = .45;
+  if(m.lamp){ g.fillStyle = 'rgba(255,240,150,.32)'; g.beginPath(); g.moveTo(x-6, y-22); g.lineTo(x-46, y-200); g.lineTo(x+46, y-200); g.lineTo(x+6, y-22); g.closePath(); g.fill(); }
+  g.strokeStyle = MG_INK; g.lineWidth = 1.5;
+  rr(g, x-3, y-24, 6, 14, 3, '#2b2b30'); rr(g, x-3, y+10, 6, 14, 3, '#2b2b30');   // 前後輪
+  rr(g, x-2, y-12, 4, 24, 2, '#2fa58f');                                       // 車架
+  rr(g, x-13, y-16, 26, 4, 2, '#4a4a52');                                       // 把手
+  g.beginPath(); g.ellipse(x, y+2, 11, 8, 0, 0, 7); g.fillStyle = L.shirt || '#3c8de0'; g.fill(); g.stroke();   // 身體
+  rr(g, x-12, y-12, 5, 9, 2, L.skin || '#f6d2b0'); rr(g, x+7, y-12, 5, 9, 2, L.skin || '#f6d2b0');            // 手
+  circ(g, x, y-3, 7.5, '#2fa58f'); g.fillStyle = 'rgba(255,255,255,.75)'; g.fillRect(x-1, y-9, 2, 7);         // 安全帽
+  g.globalAlpha = 1;
+}
+function brZone(x, y){
+  if(y < 476) return null;
+  if(x >= 16 && x <= 100) return 'l';
+  if(x >= 108 && x <= 192) return 'r';
+  if(x >= 676 && x <= 784) return 'b';
+  return null;
+}
+function brHoldSync(m){ const v = Object.values(m.ptrs); m.hold = {l:v.includes('l'), r:v.includes('r'), b:v.includes('b')}; }
+MINI.bikeride = {
+  init(m){
+    m.phase = 'ready'; m.x = 590; m.v = 0; m.d = 0; m.hearts = 3; m.stars = 0; m.inv = 0; m.shake = 0; m.lamp = false;
+    m.kh = {}; m.ptrs = {}; m.hold = {}; m.cars = []; m.carT = 2; m.wrongT = 0; m.sideT = 0; m.laneT = 0; m.prompt = null; m.reward = ''; m.reward2 = '';
+    m.msg = ''; m.msgBad = false;
+    const asks = shuffle(BR_ASK.slice()).slice(0, 2);
+    let p = 620; m.ev = [];
+    for(const k of shuffle(['light','ped','door','truck','hole','ask','ask','night'])){
+      const e = {k, pos:p};
+      if(k==='ask') e.a = asks.pop();
+      if(k==='hole'){ const s = Math.random()<.5; e.obs = [{x:s?600:552, pos:p, n:'水溝蓋'}, {x:s?550:604, pos:p+170, n:'坑洞'}]; }
+      if(k==='night') e.len = 460;
+      m.ev.push(e);
+      p += k==='night' ? 980 : k==='truck' ? 820 : k==='hole' ? 820 : 700;
+    }
+    m.total = m.ev.length; m.end = p + 120;
+  },
+  btn(m, id){
+    if(id==='start'){ m.phase = 'play'; m.msg = '靠右騎在慢車道（白線右邊），注意前面的路況！'; sfx('talk'); }
+    else if(id==='lamp'){ m.lamp = !m.lamp; sfx('talk'); }
+    else if(id.startsWith('opt')) brChoose(m, +id.slice(3));
+  },
+  key(m, k, down){
+    const kk = k.length===1 ? k.toLowerCase() : k;
+    if(kk==='ArrowLeft'||kk==='a'){ m.kh.l = down; return; }
+    if(kk==='ArrowRight'||kk==='d'){ m.kh.r = down; return; }
+    if(kk==='ArrowDown'||kk==='s'||(kk===' ' && m.phase==='play' && !m.prompt)){ m.kh.b = down; return; }
+    if(!down) return;
+    if(m.phase==='ready' && (kk===' '||kk==='Enter')){ this.btn(m, 'start'); return; }
+    if(m.phase==='over' && (kk===' '||kk==='Enter')){ mgAgain(); return; }
+    if(m.prompt){ const i = '123'.indexOf(kk); if(i>=0) brChoose(m, i); return; }
+    if(kk==='l' && m.phase==='play'){ this.btn(m, 'lamp'); }
+  },
+  pointer(m, type, x, y, id){
+    if(type==='up'){ delete m.ptrs[id]; brHoldSync(m); return; }
+    if(m.phase!=='play' || m.prompt) return;
+    if(type==='down' || m.ptrs[id]!==undefined){ m.ptrs[id] = brZone(x, y); brHoldSync(m); }
+  },
+  update(m, dt){
+    m.t += dt; if(m.shake>0) m.shake -= dt; if(m.inv>0) m.inv -= dt;
+    if(m.phase!=='play' || m.prompt) return;
+    const L = m.kh.l || m.hold.l, R = m.kh.r || m.hold.r, B = m.kh.b || m.hold.b;
+    m.v = B ? Math.max(0, m.v - 470*dt) : Math.min(BR.VMAX, m.v + 130*dt);
+    const st = (m.v > 4 ? 220 : 90) * dt;
+    if(L) m.x -= st; if(R) m.x += st; m.x = clamp(m.x, 150, 720);
+    m.d += m.v*dt;
+    // 車道：逆向、人行道會扣愛心；騎在汽車道只提醒
+    if(m.x - BR.HW < BR.MID){ m.wrongT += dt; if(m.wrongT > .5){ m.wrongT = 0; brHit(m, '⚠️ 逆向了！腳踏車要靠右、順著車子的方向騎。'); } } else m.wrongT = 0;
+    if(m.x + BR.HW > BR.CURB){ m.sideT += dt; if(m.sideT > .5){ m.sideT = 0; brHit(m, '⚠️ 不可以騎上人行道！人行道是給行人走的，要下車用牽的。'); } } else m.sideT = 0;
+    if(m.x - BR.HW < BR.L2 && m.x - BR.HW >= BR.MID){ m.laneT += dt; if(m.laneT > 1.2){ m.laneT = -3; m.msg = '💡 盡量靠右，騎在白線右邊的慢車道。'; m.msgBad = false; } } else if(m.laneT > 0) m.laneT = 0; else m.laneT = Math.min(0, m.laneT + dt);
+    // 對向來車
+    m.carT -= dt;
+    if(m.carT <= 0){ m.carT = 1.8 + Math.random()*2.2; m.cars.push({x:170 + Math.random()*150, y:-130, col:['#3c7fd0','#f0a030','#7a7f88','#3cb371','#ffffff'][Math.random()*5|0]}); }
+    for(const c of m.cars){ c.y += (260 + m.v)*dt; if(brOver(brRect(m), [c.x, c.y, 44, 84])) brHit(m, '🚨 逆向騎車，撞到對面的來車了！一定要靠右騎。'); }
+    m.cars = m.cars.filter(c=>c.y < 700);
+    for(const e of m.ev){ if(e.done) continue; if(e.pos - m.d > 640) break; BR_EV[e.k].up(m, e, dt); if(m.phase!=='play' || m.prompt) return; }
+    if(m.d >= m.end){ m.v = 0; m.d = m.end; m.prompt = {ret:true, who:BR_RETURN.who, q:BR_RETURN.q, opts:shuffle(BR_RETURN.opts.slice())}; clearHeld(); m.kh = {}; m.ptrs = {}; m.hold = {}; sfx('talk'); }
+  },
+  draw(m){
+    m.btns = [];
+    const g = mgx, sh = m.shake>0 ? Math.sin(m.t*60)*5 : 0;
+    g.save(); g.translate(sh, 0);
+    // 草地、樹
+    g.fillStyle = '#8cc485'; g.fillRect(-10, 0, BR.L1+10, 576);
+    for(let i=-1; i<6; i++){ const y = i*130 + (m.d % 130); circ(g, 60, y, 26, '#4f9a4a'); circ(g, 70, y-10, 16, '#63b35c'); }
+    // 道路
+    g.fillStyle = '#5a5d65'; g.fillRect(BR.L1, 0, BR.CURB-BR.L1, 576);
+    g.fillStyle = '#62656d'; g.fillRect(BR.L2, 0, BR.CURB-BR.L2, 576);
+    g.fillStyle = '#f2c230'; g.fillRect(BR.MID-4, 0, 3, 576); g.fillRect(BR.MID+2, 0, 3, 576);
+    g.fillStyle = '#f4f4f4'; g.fillRect(BR.L2-2, 0, 4, 576);
+    for(let y=-60+(m.d%60); y<576; y+=60) g.fillRect(258, y, 4, 30);
+    for(let k=-1; k<3; k++){ const y = k*400 + (m.d % 400); mgT('🚲', (BR.L2+BR.CURB)/2, y, 26, 'rgba(255,255,255,.55)', 'center', false); }
+    // 人行道
+    g.fillStyle = '#cfccc4'; g.fillRect(BR.CURB, 0, 800-BR.CURB+10, 576); g.fillStyle = '#9b978e'; g.fillRect(BR.CURB, 0, 8, 576);
+    g.fillStyle = '#bdb9b0'; for(let y=-40+(m.d%40); y<576; y+=40) g.fillRect(BR.CURB+8, y, 160, 2);
+    // 終點的單車站
+    const ey = BR.PY - (m.end - m.d) - 30;
+    if(ey > -200){ g.fillStyle = '#f4f4f4'; g.fillRect(BR.MID+4, ey+40, BR.CURB-BR.MID-4, 8); for(let i=0; i<4; i++){ g.strokeStyle = MG_INK; g.lineWidth = 2; rr(g, 662+i*30, ey-60, 14, 70, 4, '#e8edf2'); rr(g, 664+i*30, ey-52, 10, 8, 2, '#3cb371'); } mgT('🚲 單車站（終點）', 720, ey-80, 16, MG_INK); }
+    // 路況
+    for(const e of m.ev){ const sy = BR.PY - (e.pos - m.d); if(sy < -260 || sy - (e.len||0) > 820) continue; BR_EV[e.k].draw(m, e, sy); }
+    for(const c of m.cars) brCar(c.x, c.y, 44, 84, c.col, true);
+    brRider(m);
+    // 地下道裡很暗
+    for(const e of m.ev){ if(e.k!=='night') continue; const sy = BR.PY - (e.pos - m.d), top = sy - e.len; if(sy < 0 || top > 576) continue;
+      g.fillStyle = 'rgba(10,12,30,' + (m.lamp ? .45 : .78) + ')'; g.fillRect(BR.L1, Math.max(0, top), BR.CURB-BR.L1, Math.min(576, sy) - Math.max(0, top));
+      if(m.lamp && BR.PY > top && BR.PY < sy){ g.fillStyle = 'rgba(255,240,150,.35)'; g.beginPath(); g.moveTo(m.x-6, BR.PY-22); g.lineTo(m.x-50, BR.PY-210); g.lineTo(m.x+50, BR.PY-210); g.lineTo(m.x+6, BR.PY-22); g.closePath(); g.fill(); } }
+    g.restore();
+    mgHeader('🚲 單車練習場・安全騎乘', TOUCH ? '◀ ▶ 移動、按住 🛑 煞車、💡 開燈｜✖ 離開' : '← → 移動、按住 ↓（或空白鍵）煞車、L 開燈｜Esc 離開');
+    mgT('❤️'.repeat(Math.max(0, m.hearts)) + '🤍'.repeat(Math.max(0, 3-m.hearts)), 784, 18, 18, MG_INK, 'right', false);
+    mgT('⭐ ' + m.stars + ' / ' + m.total, 784, 40, 14, '#ffd447', 'right');
+    // 進度條
+    g.fillStyle = 'rgba(20,24,40,.7)'; g.fillRect(BR.CURB+20, 62, 140, 10); g.fillStyle = '#3cb371'; g.fillRect(BR.CURB+20, 62, 140*Math.min(1, m.d/m.end), 10);
+    mgT('🏁', BR.CURB+170, 67, 14, MG_INK, 'center', false);
+    // 提示
+    if(m.msg){ mgPanel(BR.L1+8, 62, 470, 62, m.msgBad ? '#ffecec' : '#eaf6ff'); mgWrap(m.msg, BR.L1+20, 82, 446, 15, MG_INK, 21); }
+    // 操作按鈕
+    if(m.phase==='play'){
+      const hb = (x, y, w, h, on, s)=>{ g.strokeStyle = MG_INK; g.lineWidth = 3; rr(g, x, y, w, h, 14, on ? '#ffd447' : 'rgba(255,253,246,.88)'); mgT(s, x+w/2, y+h/2+1, 24, MG_INK, 'center', false); };
+      hb(16, 486, 84, 74, m.kh.l||m.hold.l, '◀'); hb(108, 486, 84, 74, m.kh.r||m.hold.r, '▶'); hb(676, 486, 108, 74, m.kh.b||m.hold.b, '🛑');
+      mgButton(m, 'lamp', m.lamp ? '💡 燈開著' : '💡 開燈', 16, 420, 176, 52, m.lamp);
+      mgT(Math.round(m.v/BR.VMAX*20) + ' km/h', 730, 470, 15, '#fff');
+    }
+    // 選擇題
+    if(m.prompt){
+      const P0 = m.prompt;
+      g.fillStyle = 'rgba(10,12,24,.55)'; g.fillRect(0, 52, 800, 524);
+      mgPanel(130, 150, 540, 300);
+      mgT(P0.who, 400, 182, 18, '#2a6aa8'); mgWrap(P0.q, 400, 214, 480, 18, MG_INK, 26, 'center');
+      P0.opts.forEach((o, i)=>mgButton(m, 'opt'+i, (TOUCH ? '' : (i+1) + '. ') + o.t, 160, 262+i*58, 480, 48, false));
+      if(P0.ret && P0.wrong) mgWrap(m.msg, 400, 438, 500, 14, '#c0302a', 20, 'center');
+    }
+    if(m.phase==='ready'){
+      g.fillStyle = 'rgba(10,12,24,.6)'; g.fillRect(0, 52, 800, 524);
+      mgPanel(130, 76, 540, 470);
+      mgT('🚲 安全騎乘練習', 400, 110, 26, MG_INK);
+      mgWrap('林阿姨：「練習場的地上畫了紅綠燈、斑馬線，還有用紙板做的汽車和大卡車，就跟真的馬路一樣。騎一圈回到單車站還車，就完成了！」', 400, 148, 480, 16, '#4a3a5a', 24, 'center');
+      const rules = ['🛣️ 靠右騎在慢車道（白線右邊），不逆向、不騎上人行道','🔴 紅燈停在停止線後面；🚶 斑馬線有人要停下來','🚚 大車轉彎離遠一點；🚗 小心路邊的車突然開門','🕳️ 閃開坑洞、水溝蓋；🌙 暗的地方要開燈'];
+      rules.forEach((r, i)=>mgWrap(r, 160, 252+i*34, 480, 15, MG_INK, 20));
+      mgT(TOUCH ? '◀ ▶ 移動，按住 🛑 煞車，💡 開燈' : '← → 移動，按住 ↓ 或空白鍵煞車，L 開燈', 400, 404, 16, '#2a6aa8');
+      mgT('有 3 顆 ❤️，被撞到或違規會扣一顆', 400, 432, 15, '#6a5a7a', 'center', false);
+      mgButton(m, 'start', '▶ 出發' + (TOUCH ? '' : '（空白鍵）'), 300, 470, 200, 50, true);
+    }
+    if(m.phase==='over'){
+      g.fillStyle = 'rgba(10,12,24,.6)'; g.fillRect(0, 52, 800, 524);
+      mgPanel(120, 70, 560, 486);
+      mgT(m.win ? '🏁 還車成功，練習完成！' : '😵 這次練習失敗了', 400, 104, 26, MG_INK);
+      mgT('❤️ 剩下 ' + Math.max(0, m.hearts) + ' 顆　⭐ 做對 ' + m.stars + ' / ' + m.total + ' 個狀況', 400, 138, 17, '#4a3a5a');
+      if(!m.win) mgWrap(m.msg, 400, 170, 500, 15, '#c0302a', 22, 'center');
+      const tips = ['靠右騎在慢車道，不逆向、不騎上人行道','紅燈停、行人優先','大車轉彎離遠一點（內輪差）','經過路邊的車，保持一個車門的距離','不雙載、不放手、不邊騎邊滑手機','暗的地方要開燈；下雨穿雨衣不撐傘'];
+      mgT('🚲 騎車安全口訣', 400, m.win ? 178 : 226, 17, '#2a6aa8');
+      tips.forEach((t, i)=>mgT('✔ ' + t, 170, (m.win ? 208 : 256) + i*28, 15, MG_INK, 'left', false));
+      let y = (m.win ? 208 : 256) + tips.length*28 + 8;
+      mgT('真的上路時，要有家人陪同，戴好安全帽！', 400, y, 15, '#c0502a'); y += 26;
+      if(m.reward){ mgT(m.reward, 400, y, 15, '#c0502a'); y += 24; }
+      if(m.reward2){ mgT(m.reward2, 400, y, 15, '#2e9d5b'); }
+      mgButton(m, 'again', '🔁 再騎一次', 220, 494, 170, 50, true);
+      mgButton(m, 'exit', '✖ 離開', 410, 494, 170, 50, false);
+    }
+  }
+};
+
 
 /* ---- 🏺 小孔廟：投壺（先定方向，再定力道，把箭投進壺裡） ---- */
 const POT_N = 8, POT_GOAL = 3, POT_X = 400, POT_Y = 268, POT_P = .64, POT_BAND = .08, POT_MOUTH = 20, POT_EAR = 36;
